@@ -31,13 +31,15 @@ if [ 0 -ne $? ]; then
 fi
 
 popd > /dev/null
-
+pushd . > /dev/null
 # ブランチの作成
 createBranch mykernel ${kernel_path}
-if [ 0 -ne $? ]; then
-	exit
-fi
+#if [ 0 -ne $? ]; then
+#	exit
+#fi
 # カーネルパラメータの書き換え
+popd > /dev/null
+pwd
 cat ../kernel_params/${BOARD} | xargs -L 1 ./modifyKernelParam.sh
 
 # kernelconfigの実行
