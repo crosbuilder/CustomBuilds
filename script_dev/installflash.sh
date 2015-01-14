@@ -7,6 +7,16 @@ cleanup() {
 mount -r -o remount / 
 }
 
+if [ -e /opt/google/chrome/PepperFlash/manifest.json ]; then
+
+  local old_version=`grep version /opt/google/chrome/PepperFlash/manifest.json | grep -o -E '[0-9\.]*'`
+  echo Installed Flash Version: ${old_version}
+  echo Start update...
+else
+  echo "Flash isn't installed."
+  echo Start new installation...
+fi
+
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
 export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
@@ -39,6 +49,12 @@ else
   cleanup
   exit 1
 fi
+
+echo copy plugins for rollback...
+local backupdir=/usr/local/myscript/flash_backup/${flash_version}
+mkdir ${backupdir}
+cp -r ../PepperFlash ${backupdir}
+cp ../libffmpegsumo.so ${backupdir}
 
 echo install flash plugin
 
