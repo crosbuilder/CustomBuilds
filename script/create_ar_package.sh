@@ -59,6 +59,7 @@ cd ~/trunk/src/third_party/portage-stable/app-misc/ar
 rm -f Manifest
 ebuild-${BOARD} ar-1.ebuild manifest
 ebuild-${BOARD} ar-1.ebuild test
+emerge-${BOARD} app-misc/ar --pretend
 
 
 popd > /dev/null
