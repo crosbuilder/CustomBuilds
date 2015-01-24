@@ -1,0 +1,23 @@
+diff --git a/src/mesa/main/streaming-load-memcpy.c b/src/mesa/main/streaming-load-memcpy.c
+index 8427149..ccb53d1 100644
+--- a/src/mesa/main/streaming-load-memcpy.c
++++ b/src/mesa/main/streaming-load-memcpy.c
+@@ -85,4 +85,18 @@ _mesa_streaming_load_memcpy(void *restrict dst, void *restrict src, size_t len)
+    }
+ }
+ 
++#else
++/**
++ * _mesa_streaming_load_memcpy is called from intel_miptree_map_movntdqa() unconditionally.
++ * Without sse4.1 option causes undefined symbol error at run time.
++ * This is a dummy method for non-sse4.1 build.
++ */
++#include <string.h>
++#include "main/macros.h"
++#include "main/streaming-load-memcpy.h"
++void
++_mesa_streaming_load_memcpy(void *restrict dst, void *restrict src, size_t len)
++{
++	memcpy(dst, src, len);
++}
+ #endif
