@@ -1,0 +1,56 @@
+diff --git a/app-arch/p7zip/p7zip-9.20.1-r4.ebuild b/app-arch/p7zip/p7zip-9.20.1-r4.ebuild
+index 61b9de1..9bac0c5 100644
+--- a/app-arch/p7zip/p7zip-9.20.1-r4.ebuild
++++ b/app-arch/p7zip/p7zip-9.20.1-r4.ebuild
+@@ -91,6 +91,7 @@ src_prepare() {
+ }
+ 
+ src_compile() {
++	sed -e 's/-fno-exceptions//g' -i makefile.* || die
+ 	emake all3
+ 	if use kde || use wxwidgets; then
+ 		emake -- 7zG
+@@ -104,22 +105,22 @@ src_test() {
+ 
+ src_install() {
+ 	# this wrappers can not be symlinks, p7zip should be called with full path
+-	make_wrapper 7zr "/usr/$(get_libdir)/${PN}/7zr"
+-	make_wrapper 7za "/usr/$(get_libdir)/${PN}/7za"
+-	make_wrapper 7z "/usr/$(get_libdir)/${PN}/7z"
++	make_wrapper 7zr "/usr/local/lib/${PN}/7zr"
++	make_wrapper 7za "/usr/local/lib/${PN}/7za"
++	make_wrapper 7z "/usr/local/lib/${PN}/7z"
+ 
+ 	if use kde || use wxwidgets; then
+-		make_wrapper 7zG "/usr/$(get_libdir)/${PN}/7zG"
+-		make_wrapper 7zFM "/usr/$(get_libdir)/${PN}/7zFM"
++		make_wrapper 7zG "/usr/local/lib/${PN}/7zG"
++		make_wrapper 7zFM "/usr/local/lib/${PN}/7zFM"
+ 
+ 		make_desktop_entry 7zFM "${PN} FM" ${PN} "GTK;Utility;Archiving;Compression"
+ 		make_desktop_entry 7zG "${PN} GUI" ${PN} "GTK;Utility;Archiving;Compression"
+ 
+ 		dobin GUI/p7zipForFilemanager
+-		exeinto /usr/$(get_libdir)/${PN}
++		exeinto /usr/local/lib/${PN}
+ 		doexe bin/7z{G,FM}
+ 
+-		insinto /usr/$(get_libdir)/${PN}
++		insinto /usr/local/lib/${PN}
+ 		doins -r GUI/{Lang,help}
+ 
+ 		insinto /usr/share/icons/hicolor/16x16/apps/
+@@ -136,11 +137,11 @@ src_install() {
+ 	dobin contrib/gzip-like_CLI_wrapper_for_7z/p7zip
+ 	doman contrib/gzip-like_CLI_wrapper_for_7z/man1/p7zip.1
+ 
+-	exeinto /usr/$(get_libdir)/${PN}
++	exeinto /usr/local/lib/${PN}
+ 	doexe bin/7z bin/7za bin/7zr bin/7zCon.sfx
+ 	doexe bin/*$(get_modname)
+ 	if use rar; then
+-		exeinto /usr/$(get_libdir)/${PN}/Codecs/
++		exeinto /usr/local/lib/${PN}/Codecs/
+ 		doexe bin/Codecs/*$(get_modname)
+ 	fi
+ 
