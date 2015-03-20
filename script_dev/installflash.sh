@@ -35,7 +35,9 @@ echo Download Completed.
 echo
 echo Extract package...
 ar x google-chrome-stable_current_i386.deb
-tar xf data.tar.lzma --lzma
+#tar xf data.tar.lzma --lzma
+xz -dv data.tar.xz
+tar xf data.tar
 echo 
 echo Extracted.
 echo
@@ -52,9 +54,14 @@ fi
 
 echo copy plugins for rollback...
 local backupdir=/usr/local/myscript/flash_backup/${flash_version}
+if [ ! -e /usr/local/myscript/flash_backup ]; then
+  mkdir /usr/local/myscript/flash_backup
+fi
 mkdir ${backupdir}
 cp -r ../PepperFlash ${backupdir}
 cp ../libffmpegsumo.so ${backupdir}
+#cp ../libwidevinecdm.so ${backupdir}
+#cp ../libwidevinecdmadapter.so ${backupdir}
 
 echo install flash plugin
 
@@ -67,6 +74,8 @@ cp libpepflashplayer.so /opt/google/chrome/PepperFlash -f
 cp manifest.json /opt/google/chrome/PepperFlash -f
 cd ..
 cp libffmpegsumo.so /opt/google/chrome
+#cp libwidevinecdm.so /opt/google/chrome
+#cp libwidevinecdmadapter.so /opt/google/chrome
 
 echo add option to /etc/chrome_dev.conf
 
