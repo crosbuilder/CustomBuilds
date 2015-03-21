@@ -1,0 +1,66 @@
+diff --git a/build_library/create_legacy_bootloader_templates.sh b/build_library/create_legacy_bootloader_templates.sh
+index 059b6b3..c04e0e7 100755
+--- a/build_library/create_legacy_bootloader_templates.sh
++++ b/build_library/create_legacy_bootloader_templates.sh
+@@ -114,13 +114,13 @@ EOF
+ label chromeos-usb.A
+   menu label chromeos-usb.A
+   kernel vmlinuz.A
+-  append ${common_args} root=HDROOTUSB i915.modeset=1 cros_legacy
++  append ${common_args} root=HDROOTUSB i915.modeset=1 cros_legacy pae
+ 
+ label chromeos-vusb.A
+   menu label chromeos-vusb.A
+   kernel vmlinuz.A
+   append ${common_args} ${verity_common} root=${ROOTDEV} \
+-      i915.modeset=1 cros_legacy dm="DMTABLEA"
++      i915.modeset=1 cros_legacy dm="DMTABLEA" pae
+ EOF
+   info "Emitted ${SYSLINUX_DIR}/usb.A.cfg"
+ 
+@@ -131,13 +131,13 @@ EOF
+ label chromeos-hd.A
+   menu label chromeos-hd.A
+   kernel vmlinuz.A
+-  append ${common_args} root=HDROOTA i915.modeset=1 cros_legacy
++  append ${common_args} root=HDROOTA i915.modeset=1 cros_legacy pae
+ 
+ label chromeos-vhd.A
+   menu label chromeos-vhd.A
+   kernel vmlinuz.A
+   append ${common_args} ${verity_common} root=${ROOTDEV} \
+-      i915.modeset=1 cros_legacy dm="DMTABLEA"
++      i915.modeset=1 cros_legacy dm="DMTABLEA" pae
+ EOF
+   info "Emitted ${SYSLINUX_DIR}/root.A.cfg"
+ 
+@@ -145,13 +145,13 @@ EOF
+ label chromeos-hd.B
+   menu label chromeos-hd.B
+   kernel vmlinuz.B
+-  append ${common_args} root=HDROOTB i915.modeset=1 cros_legacy
++  append ${common_args} root=HDROOTB i915.modeset=1 cros_legacy pae
+ 
+ label chromeos-vhd.B
+   menu label chromeos-vhd.B
+   kernel vmlinuz.B
+   append ${common_args} ${verity_common} root=${ROOTDEV} \
+-      i915.modeset=1 cros_legacy dm="DMTABLEB"
++      i915.modeset=1 cros_legacy dm="DMTABLEB" pae
+ EOF
+   info "Emitted ${SYSLINUX_DIR}/root.B.cfg"
+ 
+diff --git a/build_packages b/build_packages
+index 8363153..931cd49 100755
+--- a/build_packages
++++ b/build_packages
+@@ -146,7 +146,8 @@ fi
+ sudo_clear_shadow_locks "/build/${FLAGS_board}"
+ 
+ # Setup all the emerge command/flags.
+-EMERGE_FLAGS=( -uDNv --backtrack=30 --select --newrepo )
++#EMERGE_FLAGS=( -uDNv --backtrack=30 --select --newrepo)
++EMERGE_FLAGS=( --emptytree --backtrack=30 )
+ 
+ if [[ "${FLAGS_fast}" -eq "${FLAGS_TRUE}" ]]; then
+   EMERGE_CMD=(
