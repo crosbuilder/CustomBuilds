@@ -1,0 +1,74 @@
+diff --git a/gpu/config/software_rendering_list_json.cc b/gpu/config/software_rendering_list_json.cc
+index b9f5e3a..36f3b7e 100644
+--- a/gpu/config/software_rendering_list_json.cc
++++ b/gpu/config/software_rendering_list_json.cc
+@@ -36,6 +36,20 @@ const char kSoftwareRenderingListJson[] = LONG_STRING_CONST(
+       ]
+     },
+     {
++      "id": 2,
++      "description": "ATI Mobility Radeon 7500 is not compatible with WebGL ",
++      "os": {
++        "type": "any"
++      },
++      "vendor_id": "0x1002",
++      "device_id": ["0x4c57"],
++      "features": [
++        "webgl",
++        "flash_3d",
++        "flash_stage3d"
++      ]
++    },
++    {
+       "id": 3,
+       "description": "GL driver is software rendered. GPU acceleration is disabled",
+       "cr_bugs": [59302, 315217],
+diff --git a/third_party/zlib/BUILD.gn b/third_party/zlib/BUILD.gn
+index 18cf816..6264e9a 100644
+--- a/third_party/zlib/BUILD.gn
++++ b/third_party/zlib/BUILD.gn
+@@ -7,12 +7,7 @@ config("zlib_config") {
+ }
+ 
+ static_library("zlib_x86_simd") {
+-  if (cpu_arch == "x86" || cpu_arch == "x64") {
+-    sources = [ "crc_folding.c", "fill_window_sse.c" ]
+-    cflags = [ "-msse2", "-msse4.2", "-mpclmul" ]
+-  } else {
+     sources = [ "simd_stub.c"]
+-  }
+ }
+ 
+ static_library("zlib") {
+diff --git a/third_party/zlib/simd_stub.c b/third_party/zlib/simd_stub.c
+index bb2ddc3..2d3b0b2 100644
+--- a/third_party/zlib/simd_stub.c
++++ b/third_party/zlib/simd_stub.c
+@@ -30,6 +30,8 @@ void ZLIB_INTERNAL fill_window_sse(deflate_state *s)
+     assert(0);
+ }
+ 
++/*
+ void x86_check_features(void)
+ {
+ }
++*/
+diff --git a/third_party/zlib/zlib.gyp b/third_party/zlib/zlib.gyp
+index 8c5ae44..8232eac 100644
+--- a/third_party/zlib/zlib.gyp
++++ b/third_party/zlib/zlib.gyp
+@@ -10,10 +10,10 @@
+       'conditions': [
+         # See http://crbug.com/420616 gyp on mac & ios doesn't apply cflags
+         ['OS!="ios" and OS!="mac" and (target_arch=="ia32" or target_arch=="x64")', {
+-          'cflags' : ["-msse2", "-msse4.2", "-mpclmul"],
+-          'sources' : [ 'crc_folding.c',
+-                        'fill_window_sse.c']
+-        }, {
++#          'cflags' : ["-msse2", "-msse4.2", "-mpclmul"],
++#          'sources' : [ 'crc_folding.c',
++#                        'fill_window_sse.c']
++#        }, {
+           'sources' : [ 'simd_stub.c' ],
+         }], ['OS=="android"', {
+           'toolsets': ['target', 'host'],
