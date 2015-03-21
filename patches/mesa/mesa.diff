@@ -1,0 +1,58 @@
+diff --git a/src/mesa/main/sse_minmax.c b/src/mesa/main/sse_minmax.c
+index 222ac14..95007dd 100644
+--- a/src/mesa/main/sse_minmax.c
++++ b/src/mesa/main/sse_minmax.c
+@@ -93,5 +93,20 @@ _mesa_uint_array_min_max(const unsigned *ui_indices, unsigned *min_index,
+    *min_index = min_ui;
+    *max_index = max_ui;
+ }
++#else
++#include "main/sse_minmax.h"
+ 
++/**
++ * AIGLXでUndefined symbolsが出るのでダミーメソッドを追加
++ * 処理はsrc/mesa/vbo/vbo_exec_array.cからコピーしたもの
++ */
++void
++_mesa_uint_array_min_max(const unsigned *ui_indices, unsigned *min_index,
++                         unsigned *max_index, const unsigned count)
++{
++    for (int i = 0; i < count; i++) {
++        if (ui_indices[i] > *max_index) *max_index = ui_indices[i];
++        if (ui_indices[i] < *min_index) *min_index = ui_indices[i];
++    }
++}
+ #endif
+diff --git a/src/mesa/main/streaming-load-memcpy.c b/src/mesa/main/streaming-load-memcpy.c
+index d7147af..d6bd49d 100644
+--- a/src/mesa/main/streaming-load-memcpy.c
++++ b/src/mesa/main/streaming-load-memcpy.c
+@@ -25,7 +25,7 @@
+  *    Matt Turner <mattst88@gmail.com>
+  *
+  */
+-
++#ifdef __SSE4_1__
+ #include "main/macros.h"
+ #include "main/streaming-load-memcpy.h"
+ #include <smmintrin.h>
+@@ -83,3 +83,19 @@ _mesa_streaming_load_memcpy(void *restrict dst, void *restrict src, size_t len)
+       memcpy(d, s, len);
+    }
+ }
++#else
++/**
++ * _mesa_streaming_load_memcpy is called from intel_miptree_map_movntdqa() unconditionally.
++ * Without sse4.1 option causes undefined symbol error at run time.
++ * This is a dummy method for non-sse4.1 build.
++ */
++#include <string.h>
++#include "main/macros.h"
++#include "main/streaming-load-memcpy.h"
++void
++_mesa_streaming_load_memcpy(void *restrict dst, void *restrict src, size_t len)
++{
++	memcpy(dst, src, len);
++}
++#endif
++
