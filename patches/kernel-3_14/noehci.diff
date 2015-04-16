@@ -1,0 +1,82 @@
+diff --git a/drivers/usb/core/usb.c b/drivers/usb/core/usb.c
+index 4d11449..ec332dc 100644
+--- a/drivers/usb/core/usb.c
++++ b/drivers/usb/core/usb.c
+@@ -972,6 +972,10 @@ module_param(nousb, bool, 0444);
+ core_param(nousb, nousb, bool, 0444);
+ #endif
+ 
++static bool noehci = 0;
++module_param (noehci, bool, S_IRUGO);
++MODULE_PARM_DESC (noehci, "disable ehci driver for ThinkPad T40/T41/T42/X40");
++
+ /*
+  * for external read access to <nousb>
+  */
+@@ -982,6 +986,15 @@ int usb_disabled(void)
+ EXPORT_SYMBOL_GPL(usb_disabled);
+ 
+ /*
++ * for external read access to <noehci>
++ */
++int ehci_disabled(void)
++{
++	return noehci;
++}
++EXPORT_SYMBOL_GPL(ehci_disabled);
++
++/*
+  * Notifications of device and interface registration
+  */
+ static int usb_bus_notify(struct notifier_block *nb, unsigned long action,
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index 81cda09..68841cd 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -102,6 +102,8 @@ static bool ignore_oc = 0;
+ module_param (ignore_oc, bool, S_IRUGO);
+ MODULE_PARM_DESC (ignore_oc, "ignore bogus hardware overcurrent indications");
+ 
++extern int ehci_disabled(void);
++
+ #define	INTR_MASK (STS_IAA | STS_FATAL | STS_PCD | STS_ERR | STS_INT)
+ 
+ /*-------------------------------------------------------------------------*/
+@@ -1306,6 +1308,12 @@ static int __init ehci_hcd_init(void)
+ 
+ 	if (usb_disabled())
+ 		return -ENODEV;
++	// check disable_ehci parameter
++	if (ehci_disabled()){
++		printk(KERN_INFO "ehci_hcd is disabled by boot parameter\n");
++		clear_bit(USB_EHCI_LOADED, &usb_hcds_loaded);
++		return -ENOENT;
++	}
+ 
+ 	printk(KERN_INFO "%s: " DRIVER_DESC "\n", hcd_name);
+ 	set_bit(USB_EHCI_LOADED, &usb_hcds_loaded);
+diff --git a/drivers/usb/host/ehci-pci.c b/drivers/usb/host/ehci-pci.c
+index 3e86bf4..a30d653 100644
+--- a/drivers/usb/host/ehci-pci.c
++++ b/drivers/usb/host/ehci-pci.c
+@@ -29,6 +29,8 @@
+ 
+ #define DRIVER_DESC "EHCI PCI platform driver"
+ 
++extern int ehci_disabled(void);
++
+ static const char hcd_name[] = "ehci-pci";
+ 
+ /* defined here to avoid adding to pci_ids.h for single instance use */
+@@ -361,6 +363,11 @@ static int __init ehci_pci_init(void)
+ 	if (usb_disabled())
+ 		return -ENODEV;
+ 
++	if (ehci_disabled()){
++		pr_info("ehci-pci is disabled by boot parameter.");
++		return -ENOENT;
++	}
++
+ 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
+ 
+ 	ehci_init_driver(&ehci_pci_hc_driver, &pci_overrides);
