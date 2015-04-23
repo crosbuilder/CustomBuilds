@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ./revisionup_ebuild.sh
+
 if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".
 	exit
@@ -61,5 +63,16 @@ ebuild-${BOARD} ar-1.ebuild manifest
 ebuild-${BOARD} ar-1.ebuild test
 emerge-${BOARD} app-misc/ar --pretend
 
+# 依存関係を追加
+cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os-dev
+search=`grep 'app-misc/ar' target-chromium-os-dev-1.ebuild`
+if [ -z "${search}" ]; then
+        echo ar is not included in dev overlay. append to dev overlay now.
+        sed -e '/^RDEPEND="${RDEPEND}/a \\tapp-misc\/ar' -i target-chromium-os-dev-1.ebuild || exit 1
+        echo done
+        revisionup_ebuild
+else
+        echo ar is already included in dev overlay. skip.
+fi
 
 popd > /dev/null
