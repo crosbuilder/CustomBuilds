@@ -1,13 +1,16 @@
 #!/bin/bash
 
+source ./revisionup_ebuild.sh
+
 if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".
 	exit
 fi
 
-# スクリプトをtarにまとめる。このとき、ディレクトリmyscript-1配下にスクリプトが置かれるようにする
+# スクリプトをtarにまとめる。このとき、ディレクトリmyscript配下にスクリプトが置かれるようにする
 pushd . > /dev/null
-copydir=~/myenv/addpackages/tarballs/myscript-1
+#copydir=~/myenv/addpackages/tarballs/myscript-1
+copydir=~/myenv/addpackages/tarballs/myscript
 if [ -e ${copydir} ]; then
 	rm -rf ${copydir}
 fi
@@ -15,7 +18,8 @@ mkdir ${copydir}
 cp -R ../script_dev/* ${copydir}
 
 cd ${copydir}/..
-tar zcvf myscript.tar.gz ./myscript-1
+#tar zcvf myscript.tar.gz ./myscript-1
+tar zcvf myscript.tar.gz ./myscript
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Create tar failed. Abort."
 	exit
@@ -52,4 +56,15 @@ ebuild-${BOARD} myscript-1.ebuild test
 emerge-${BOARD} app-misc/myscript --pretend --verbose
 
 
+# 依存関係を追加
+cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os-dev
+search=`grep 'myscript' target-chromium-os-dev-1.ebuild`
+if [ -z "${search}" ]; then
+        echo myscript is not included in dev overlay. append to dev overlay now.
+        sed -e '/^RDEPEND="${RDEPEND}/a \\tapp-misc\/myscript' -i target-chromium-os-dev-1.ebuild || exit 1
+        echo done
+        revisionup_ebuild
+else
+        echo myscript is already included in dev overlay. skip.
+fi
 popd > /dev/null
