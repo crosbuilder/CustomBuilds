@@ -1,0 +1,847 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index a21a709..e9010c1 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -218,8 +218,8 @@ static_library("libvpx") {
+       ":libvpx_yasm",
+       ":libvpx_intrinsics_mmx",
+       ":libvpx_intrinsics_sse2",
+-      ":libvpx_intrinsics_ssse3",
+-      ":libvpx_intrinsics_sse4_1",
++#      ":libvpx_intrinsics_ssse3",
++#      ":libvpx_intrinsics_sse4_1",
+     ]
+   }
+   if (cpu_arch_full == "arm-neon-cpu-detect") {
+diff --git a/libvpx.gyp b/libvpx.gyp
+index cdfaa1a..d299356 100644
+--- a/libvpx.gyp
++++ b/libvpx.gyp
+@@ -144,8 +144,8 @@
+                 'libvpx_intrinsics_sse2',
+                 # Currently no sse3 intrinsic functions
+                 #'libvpx_intrinsics_sse3',
+-                'libvpx_intrinsics_ssse3',
+-                'libvpx_intrinsics_sse4_1',
++                #'libvpx_intrinsics_ssse3',
++                #'libvpx_intrinsics_sse4_1',
+                 # Currently no avx intrinsic functions
+                 #'libvpx_intrinsics_avx',
+                 #'libvpx_intrinsics_avx2',
+diff --git a/libvpx_srcs.gni b/libvpx_srcs.gni
+index 8e65dce..9a11e83 100644
+--- a/libvpx_srcs.gni
++++ b/libvpx_srcs.gni
+@@ -323,15 +323,10 @@ libvpx_srcs_x86_assembly = [
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/recon_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_sse3.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_sse4.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/variance_impl_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/variance_impl_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/variance_impl_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/dct_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/dct_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/encodeopt.asm",
+@@ -341,19 +336,13 @@ libvpx_srcs_x86_assembly = [
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/subtract_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_copy_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_intrapred_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_intrapred_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_loopfilter_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_8t_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_8t_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_bilinear_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_bilinear_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_dct_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_error_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad4d_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad_sse3.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad_sse4.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_subpel_variance.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_subtract_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_temporal_filter_apply_sse2.asm",
+@@ -384,14 +373,8 @@ libvpx_srcs_x86_sse2 = [
+ libvpx_srcs_x86_sse3 = [
+ ]
+ libvpx_srcs_x86_ssse3 = [
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/variance_ssse3.c",
+-  "//third_party/libvpx/source/libvpx/vp8/encoder/x86/quantize_ssse3.c",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_idct_intrin_ssse3.c",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_8t_intrin_ssse3.c",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_dct_ssse3.c",
+ ]
+ libvpx_srcs_x86_sse4_1 = [
+-  "//third_party/libvpx/source/libvpx/vp8/encoder/x86/quantize_sse4.c",
+ ]
+ libvpx_srcs_x86_avx = [
+ ]
+@@ -718,15 +701,10 @@ libvpx_srcs_x86_64_assembly = [
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/recon_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_sse3.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_sse4.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/sad_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/variance_impl_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/common/x86/variance_impl_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/variance_impl_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/dct_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/dct_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/encodeopt.asm",
+@@ -736,23 +714,14 @@ libvpx_srcs_x86_64_assembly = [
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/subtract_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp8/encoder/x86/subtract_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_copy_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_idct_ssse3_x86_64.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_intrapred_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_intrapred_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_loopfilter_mmx.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_8t_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_8t_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_bilinear_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_bilinear_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_dct_mmx.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_dct_ssse3_x86_64.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_error_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_quantize_ssse3_x86_64.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad4d_sse2.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad_sse2.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad_sse3.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad_sse4.asm",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_sad_ssse3.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_ssim_opt_x86_64.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_subpel_variance.asm",
+   "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_subtract_sse2.asm",
+@@ -784,14 +753,8 @@ libvpx_srcs_x86_64_sse2 = [
+ libvpx_srcs_x86_64_sse3 = [
+ ]
+ libvpx_srcs_x86_64_ssse3 = [
+-  "//third_party/libvpx/source/libvpx/vp8/common/x86/variance_ssse3.c",
+-  "//third_party/libvpx/source/libvpx/vp8/encoder/x86/quantize_ssse3.c",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_idct_intrin_ssse3.c",
+-  "//third_party/libvpx/source/libvpx/vp9/common/x86/vp9_subpixel_8t_intrin_ssse3.c",
+-  "//third_party/libvpx/source/libvpx/vp9/encoder/x86/vp9_dct_ssse3.c",
+ ]
+ libvpx_srcs_x86_64_sse4_1 = [
+-  "//third_party/libvpx/source/libvpx/vp8/encoder/x86/quantize_sse4.c",
+ ]
+ libvpx_srcs_x86_64_avx = [
+ ]
+diff --git a/libvpx_srcs_x86.gypi b/libvpx_srcs_x86.gypi
+index c0ceff6..538ba3e 100644
+--- a/libvpx_srcs_x86.gypi
++++ b/libvpx_srcs_x86.gypi
+@@ -82,15 +82,15 @@
+     '<(libvpx_source)/vp8/common/x86/recon_sse2.asm',
+     '<(libvpx_source)/vp8/common/x86/sad_mmx.asm',
+     '<(libvpx_source)/vp8/common/x86/sad_sse2.asm',
+-    '<(libvpx_source)/vp8/common/x86/sad_sse3.asm',
+-    '<(libvpx_source)/vp8/common/x86/sad_sse4.asm',
+-    '<(libvpx_source)/vp8/common/x86/sad_ssse3.asm',
++#    '<(libvpx_source)/vp8/common/x86/sad_sse3.asm',
++#    '<(libvpx_source)/vp8/common/x86/sad_sse4.asm',
++#    '<(libvpx_source)/vp8/common/x86/sad_ssse3.asm',
+     '<(libvpx_source)/vp8/common/x86/subpixel_mmx.asm',
+     '<(libvpx_source)/vp8/common/x86/subpixel_sse2.asm',
+-    '<(libvpx_source)/vp8/common/x86/subpixel_ssse3.asm',
++#    '<(libvpx_source)/vp8/common/x86/subpixel_ssse3.asm',
+     '<(libvpx_source)/vp8/common/x86/variance_impl_mmx.asm',
+     '<(libvpx_source)/vp8/common/x86/variance_impl_sse2.asm',
+-    '<(libvpx_source)/vp8/common/x86/variance_impl_ssse3.asm',
++#    '<(libvpx_source)/vp8/common/x86/variance_impl_ssse3.asm',
+     '<(libvpx_source)/vp8/common/x86/vp8_asm_stubs.c',
+     '<(libvpx_source)/vp8/decoder/dboolhuff.c',
+     '<(libvpx_source)/vp8/decoder/dboolhuff.h',
+@@ -217,12 +217,12 @@
+     '<(libvpx_source)/vp9/common/x86/vp9_copy_sse2.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_idct_intrin_sse2.h',
+     '<(libvpx_source)/vp9/common/x86/vp9_intrapred_sse2.asm',
+-    '<(libvpx_source)/vp9/common/x86/vp9_intrapred_ssse3.asm',
++#    '<(libvpx_source)/vp9/common/x86/vp9_intrapred_ssse3.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_loopfilter_mmx.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_sse2.asm',
+-    '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_ssse3.asm',
++#    '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_ssse3.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_subpixel_bilinear_sse2.asm',
+-    '<(libvpx_source)/vp9/common/x86/vp9_subpixel_bilinear_ssse3.asm',
++#    '<(libvpx_source)/vp9/common/x86/vp9_subpixel_bilinear_ssse3.asm',
+     '<(libvpx_source)/vp9/decoder/vp9_decodeframe.c',
+     '<(libvpx_source)/vp9/decoder/vp9_decodeframe.h',
+     '<(libvpx_source)/vp9/decoder/vp9_decodemv.c',
+@@ -313,9 +313,9 @@
+     '<(libvpx_source)/vp9/encoder/x86/vp9_error_sse2.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_sad4d_sse2.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse2.asm',
+-    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse3.asm',
+-    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse4.asm',
+-    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_ssse3.asm',
++#    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse3.asm',
++#    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse4.asm',
++#    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_ssse3.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_subpel_variance.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_subtract_sse2.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_temporal_filter_apply_sse2.asm',
+diff --git a/libvpx_srcs_x86_64.gypi b/libvpx_srcs_x86_64.gypi
+index ad525bf..c904f66 100644
+--- a/libvpx_srcs_x86_64.gypi
++++ b/libvpx_srcs_x86_64.gypi
+@@ -83,15 +83,15 @@
+     '<(libvpx_source)/vp8/common/x86/recon_sse2.asm',
+     '<(libvpx_source)/vp8/common/x86/sad_mmx.asm',
+     '<(libvpx_source)/vp8/common/x86/sad_sse2.asm',
+-    '<(libvpx_source)/vp8/common/x86/sad_sse3.asm',
+-    '<(libvpx_source)/vp8/common/x86/sad_sse4.asm',
+-    '<(libvpx_source)/vp8/common/x86/sad_ssse3.asm',
++#    '<(libvpx_source)/vp8/common/x86/sad_sse3.asm',
++#    '<(libvpx_source)/vp8/common/x86/sad_sse4.asm',
++#    '<(libvpx_source)/vp8/common/x86/sad_ssse3.asm',
+     '<(libvpx_source)/vp8/common/x86/subpixel_mmx.asm',
+     '<(libvpx_source)/vp8/common/x86/subpixel_sse2.asm',
+-    '<(libvpx_source)/vp8/common/x86/subpixel_ssse3.asm',
++#    '<(libvpx_source)/vp8/common/x86/subpixel_ssse3.asm',
+     '<(libvpx_source)/vp8/common/x86/variance_impl_mmx.asm',
+     '<(libvpx_source)/vp8/common/x86/variance_impl_sse2.asm',
+-    '<(libvpx_source)/vp8/common/x86/variance_impl_ssse3.asm',
++#    '<(libvpx_source)/vp8/common/x86/variance_impl_ssse3.asm',
+     '<(libvpx_source)/vp8/common/x86/vp8_asm_stubs.c',
+     '<(libvpx_source)/vp8/decoder/dboolhuff.c',
+     '<(libvpx_source)/vp8/decoder/dboolhuff.h',
+@@ -218,14 +218,14 @@
+     '<(libvpx_source)/vp9/common/x86/vp9_asm_stubs.c',
+     '<(libvpx_source)/vp9/common/x86/vp9_copy_sse2.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_idct_intrin_sse2.h',
+-    '<(libvpx_source)/vp9/common/x86/vp9_idct_ssse3_x86_64.asm',
++#    '<(libvpx_source)/vp9/common/x86/vp9_idct_ssse3_x86_64.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_intrapred_sse2.asm',
+-    '<(libvpx_source)/vp9/common/x86/vp9_intrapred_ssse3.asm',
++#    '<(libvpx_source)/vp9/common/x86/vp9_intrapred_ssse3.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_loopfilter_mmx.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_sse2.asm',
+-    '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_ssse3.asm',
++#    '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_ssse3.asm',
+     '<(libvpx_source)/vp9/common/x86/vp9_subpixel_bilinear_sse2.asm',
+-    '<(libvpx_source)/vp9/common/x86/vp9_subpixel_bilinear_ssse3.asm',
++#    '<(libvpx_source)/vp9/common/x86/vp9_subpixel_bilinear_ssse3.asm',
+     '<(libvpx_source)/vp9/decoder/vp9_decodeframe.c',
+     '<(libvpx_source)/vp9/decoder/vp9_decodeframe.h',
+     '<(libvpx_source)/vp9/decoder/vp9_decodemv.c',
+@@ -313,14 +313,14 @@
+     '<(libvpx_source)/vp9/encoder/vp9_writer.h',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_dct_mmx.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_dct_sse2.h',
+-    '<(libvpx_source)/vp9/encoder/x86/vp9_dct_ssse3_x86_64.asm',
++#    '<(libvpx_source)/vp9/encoder/x86/vp9_dct_ssse3_x86_64.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_error_sse2.asm',
+-    '<(libvpx_source)/vp9/encoder/x86/vp9_quantize_ssse3_x86_64.asm',
++#    '<(libvpx_source)/vp9/encoder/x86/vp9_quantize_ssse3_x86_64.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_sad4d_sse2.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse2.asm',
+-    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse3.asm',
+-    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse4.asm',
+-    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_ssse3.asm',
++#    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse3.asm',
++#    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_sse4.asm',
++#    '<(libvpx_source)/vp9/encoder/x86/vp9_sad_ssse3.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_ssim_opt_x86_64.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_subpel_variance.asm',
+     '<(libvpx_source)/vp9/encoder/x86/vp9_subtract_sse2.asm',
+diff --git a/libvpx_srcs_x86_64_intrinsics.gypi b/libvpx_srcs_x86_64_intrinsics.gypi
+index 3d07856..1864733 100644
+--- a/libvpx_srcs_x86_64_intrinsics.gypi
++++ b/libvpx_srcs_x86_64_intrinsics.gypi
+@@ -54,14 +54,14 @@
+         '<(libvpx_source)',
+       ],
+       'sources': [
+-        '<(libvpx_source)/vp8/common/x86/variance_ssse3.c',
+-        '<(libvpx_source)/vp8/encoder/x86/quantize_ssse3.c',
+-        '<(libvpx_source)/vp9/common/x86/vp9_idct_intrin_ssse3.c',
+-        '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_intrin_ssse3.c',
+-        '<(libvpx_source)/vp9/encoder/x86/vp9_dct_ssse3.c',
++#        '<(libvpx_source)/vp8/common/x86/variance_ssse3.c',
++#        '<(libvpx_source)/vp8/encoder/x86/quantize_ssse3.c',
++#        '<(libvpx_source)/vp9/common/x86/vp9_idct_intrin_ssse3.c',
++#        '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_intrin_ssse3.c',
++#        '<(libvpx_source)/vp9/encoder/x86/vp9_dct_ssse3.c',
+       ],
+-      'cflags': [ '-mssse3', ],
+-      'xcode_settings': { 'OTHER_CFLAGS': [ '-mssse3' ] },
++#      'cflags': [ '-mssse3', ],
++#      'xcode_settings': { 'OTHER_CFLAGS': [ '-mssse3' ] },
+       'conditions': [
+         ['OS=="win" and clang==1', {
+           # cl.exe's /arch flag doesn't have a setting for SSSE3/4, and cl.exe
+@@ -80,10 +80,10 @@
+         '<(libvpx_source)',
+       ],
+       'sources': [
+-        '<(libvpx_source)/vp8/encoder/x86/quantize_sse4.c',
++#        '<(libvpx_source)/vp8/encoder/x86/quantize_sse4.c',
+       ],
+-      'cflags': [ '-msse4.1', ],
+-      'xcode_settings': { 'OTHER_CFLAGS': [ '-msse4.1' ] },
++#      'cflags': [ '-msse4.1', ],
++#      'xcode_settings': { 'OTHER_CFLAGS': [ '-msse4.1' ] },
+       'conditions': [
+         ['OS=="win" and clang==1', {
+           # cl.exe's /arch flag doesn't have a setting for SSSE3/4, and cl.exe
+diff --git a/libvpx_srcs_x86_intrinsics.gypi b/libvpx_srcs_x86_intrinsics.gypi
+index 3d07856..a7ae4e8 100644
+--- a/libvpx_srcs_x86_intrinsics.gypi
++++ b/libvpx_srcs_x86_intrinsics.gypi
+@@ -54,20 +54,20 @@
+         '<(libvpx_source)',
+       ],
+       'sources': [
+-        '<(libvpx_source)/vp8/common/x86/variance_ssse3.c',
+-        '<(libvpx_source)/vp8/encoder/x86/quantize_ssse3.c',
+-        '<(libvpx_source)/vp9/common/x86/vp9_idct_intrin_ssse3.c',
+-        '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_intrin_ssse3.c',
+-        '<(libvpx_source)/vp9/encoder/x86/vp9_dct_ssse3.c',
++#        '<(libvpx_source)/vp8/common/x86/variance_ssse3.c',
++#        '<(libvpx_source)/vp8/encoder/x86/quantize_ssse3.c',
++#        '<(libvpx_source)/vp9/common/x86/vp9_idct_intrin_ssse3.c',
++#        '<(libvpx_source)/vp9/common/x86/vp9_subpixel_8t_intrin_ssse3.c',
++#        '<(libvpx_source)/vp9/encoder/x86/vp9_dct_ssse3.c',
+       ],
+-      'cflags': [ '-mssse3', ],
+-      'xcode_settings': { 'OTHER_CFLAGS': [ '-mssse3' ] },
++#      'cflags': [ '-mssse3', ],
++#      'xcode_settings': { 'OTHER_CFLAGS': [ '-mssse3' ] },
+       'conditions': [
+         ['OS=="win" and clang==1', {
+           # cl.exe's /arch flag doesn't have a setting for SSSE3/4, and cl.exe
+           # doesn't need it for intrinsics. clang-cl does need it, though.
+           'msvs_settings': {
+-            'VCCLCompilerTool': { 'AdditionalOptions': [ '-mssse3' ] },
++#            'VCCLCompilerTool': { 'AdditionalOptions': [ '-mssse3' ] },
+           },
+         }],
+       ],
+@@ -80,16 +80,16 @@
+         '<(libvpx_source)',
+       ],
+       'sources': [
+-        '<(libvpx_source)/vp8/encoder/x86/quantize_sse4.c',
++#        '<(libvpx_source)/vp8/encoder/x86/quantize_sse4.c',
+       ],
+-      'cflags': [ '-msse4.1', ],
+-      'xcode_settings': { 'OTHER_CFLAGS': [ '-msse4.1' ] },
++#      'cflags': [ '-msse4.1', ],
++#      'xcode_settings': { 'OTHER_CFLAGS': [ '-msse4.1' ] },
+       'conditions': [
+         ['OS=="win" and clang==1', {
+           # cl.exe's /arch flag doesn't have a setting for SSSE3/4, and cl.exe
+           # doesn't need it for intrinsics. clang-cl does need it, though.
+           'msvs_settings': {
+-            'VCCLCompilerTool': { 'AdditionalOptions': [ '-msse4.1' ] },
++#            'VCCLCompilerTool': { 'AdditionalOptions': [ '-msse4.1' ] },
+           },
+         }],
+       ],
+diff --git a/source/config/linux/ia32/vp8_rtcd.h b/source/config/linux/ia32/vp8_rtcd.h
+index 99d12b3..383216a 100644
+--- a/source/config/linux/ia32/vp8_rtcd.h
++++ b/source/config/linux/ia32/vp8_rtcd.h
+@@ -478,7 +478,7 @@ static void setup_rtcd_internal(void)
+     vp8_bilinear_predict16x16 = vp8_bilinear_predict16x16_c;
+     if (flags & HAS_MMX) vp8_bilinear_predict16x16 = vp8_bilinear_predict16x16_mmx;
+     if (flags & HAS_SSE2) vp8_bilinear_predict16x16 = vp8_bilinear_predict16x16_sse2;
+-    if (flags & HAS_SSSE3) vp8_bilinear_predict16x16 = vp8_bilinear_predict16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp8_bilinear_predict16x16 = vp8_bilinear_predict16x16_ssse3;
+     vp8_bilinear_predict4x4 = vp8_bilinear_predict4x4_c;
+     if (flags & HAS_MMX) vp8_bilinear_predict4x4 = vp8_bilinear_predict4x4_mmx;
+     vp8_bilinear_predict8x4 = vp8_bilinear_predict8x4_c;
+@@ -486,21 +486,21 @@ static void setup_rtcd_internal(void)
+     vp8_bilinear_predict8x8 = vp8_bilinear_predict8x8_c;
+     if (flags & HAS_MMX) vp8_bilinear_predict8x8 = vp8_bilinear_predict8x8_mmx;
+     if (flags & HAS_SSE2) vp8_bilinear_predict8x8 = vp8_bilinear_predict8x8_sse2;
+-    if (flags & HAS_SSSE3) vp8_bilinear_predict8x8 = vp8_bilinear_predict8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp8_bilinear_predict8x8 = vp8_bilinear_predict8x8_ssse3;
+     vp8_block_error = vp8_block_error_c;
+     if (flags & HAS_MMX) vp8_block_error = vp8_block_error_mmx;
+     if (flags & HAS_SSE2) vp8_block_error = vp8_block_error_xmm;
+     vp8_build_intra_predictors_mbuv_s = vp8_build_intra_predictors_mbuv_s_c;
+     if (flags & HAS_SSE2) vp8_build_intra_predictors_mbuv_s = vp8_build_intra_predictors_mbuv_s_sse2;
+-    if (flags & HAS_SSSE3) vp8_build_intra_predictors_mbuv_s = vp8_build_intra_predictors_mbuv_s_ssse3;
++//    if (flags & HAS_SSSE3) vp8_build_intra_predictors_mbuv_s = vp8_build_intra_predictors_mbuv_s_ssse3;
+     vp8_build_intra_predictors_mby_s = vp8_build_intra_predictors_mby_s_c;
+     if (flags & HAS_SSE2) vp8_build_intra_predictors_mby_s = vp8_build_intra_predictors_mby_s_sse2;
+-    if (flags & HAS_SSSE3) vp8_build_intra_predictors_mby_s = vp8_build_intra_predictors_mby_s_ssse3;
++//    if (flags & HAS_SSSE3) vp8_build_intra_predictors_mby_s = vp8_build_intra_predictors_mby_s_ssse3;
+     vp8_clear_system_state = vp8_clear_system_state_c;
+     if (flags & HAS_MMX) vp8_clear_system_state = vpx_reset_mmx_state;
+     vp8_copy32xn = vp8_copy32xn_c;
+     if (flags & HAS_SSE2) vp8_copy32xn = vp8_copy32xn_sse2;
+-    if (flags & HAS_SSE3) vp8_copy32xn = vp8_copy32xn_sse3;
++//    if (flags & HAS_SSE3) vp8_copy32xn = vp8_copy32xn_sse3;
+     vp8_copy_mem16x16 = vp8_copy_mem16x16_c;
+     if (flags & HAS_MMX) vp8_copy_mem16x16 = vp8_copy_mem16x16_mmx;
+     if (flags & HAS_SSE2) vp8_copy_mem16x16 = vp8_copy_mem16x16_sse2;
+@@ -525,17 +525,17 @@ static void setup_rtcd_internal(void)
+     vp8_dequantize_b = vp8_dequantize_b_c;
+     if (flags & HAS_MMX) vp8_dequantize_b = vp8_dequantize_b_mmx;
+     vp8_diamond_search_sad = vp8_diamond_search_sad_c;
+-    if (flags & HAS_SSE3) vp8_diamond_search_sad = vp8_diamond_search_sadx4;
++//    if (flags & HAS_SSE3) vp8_diamond_search_sad = vp8_diamond_search_sadx4;
+     vp8_fast_quantize_b = vp8_fast_quantize_b_c;
+     if (flags & HAS_SSE2) vp8_fast_quantize_b = vp8_fast_quantize_b_sse2;
+-    if (flags & HAS_SSSE3) vp8_fast_quantize_b = vp8_fast_quantize_b_ssse3;
++//    if (flags & HAS_SSSE3) vp8_fast_quantize_b = vp8_fast_quantize_b_ssse3;
+     vp8_filter_by_weight16x16 = vp8_filter_by_weight16x16_c;
+     if (flags & HAS_SSE2) vp8_filter_by_weight16x16 = vp8_filter_by_weight16x16_sse2;
+     vp8_filter_by_weight8x8 = vp8_filter_by_weight8x8_c;
+     if (flags & HAS_SSE2) vp8_filter_by_weight8x8 = vp8_filter_by_weight8x8_sse2;
+     vp8_full_search_sad = vp8_full_search_sad_c;
+-    if (flags & HAS_SSE3) vp8_full_search_sad = vp8_full_search_sadx3;
+-    if (flags & HAS_SSE4_1) vp8_full_search_sad = vp8_full_search_sadx8;
++//    if (flags & HAS_SSE3) vp8_full_search_sad = vp8_full_search_sadx3;
++//    if (flags & HAS_SSE4_1) vp8_full_search_sad = vp8_full_search_sadx8;
+     vp8_get4x4sse_cs = vp8_get4x4sse_cs_c;
+     if (flags & HAS_MMX) vp8_get4x4sse_cs = vp8_get4x4sse_cs_mmx;
+     vp8_get_mb_ss = vp8_get_mb_ss_c;
+@@ -585,58 +585,58 @@ static void setup_rtcd_internal(void)
+     vp8_post_proc_down_and_across_mb_row = vp8_post_proc_down_and_across_mb_row_c;
+     if (flags & HAS_SSE2) vp8_post_proc_down_and_across_mb_row = vp8_post_proc_down_and_across_mb_row_sse2;
+     vp8_refining_search_sad = vp8_refining_search_sad_c;
+-    if (flags & HAS_SSE3) vp8_refining_search_sad = vp8_refining_search_sadx4;
++//    if (flags & HAS_SSE3) vp8_refining_search_sad = vp8_refining_search_sadx4;
+     vp8_regular_quantize_b = vp8_regular_quantize_b_c;
+     if (flags & HAS_SSE2) vp8_regular_quantize_b = vp8_regular_quantize_b_sse2;
+-    if (flags & HAS_SSE4_1) vp8_regular_quantize_b = vp8_regular_quantize_b_sse4_1;
++//    if (flags & HAS_SSE4_1) vp8_regular_quantize_b = vp8_regular_quantize_b_sse4_1;
+     vp8_sad16x16 = vp8_sad16x16_c;
+     if (flags & HAS_MMX) vp8_sad16x16 = vp8_sad16x16_mmx;
+     if (flags & HAS_SSE2) vp8_sad16x16 = vp8_sad16x16_wmt;
+-    if (flags & HAS_SSE3) vp8_sad16x16 = vp8_sad16x16_sse3;
++//    if (flags & HAS_SSE3) vp8_sad16x16 = vp8_sad16x16_sse3;
+     vp8_sad16x16x3 = vp8_sad16x16x3_c;
+-    if (flags & HAS_SSE3) vp8_sad16x16x3 = vp8_sad16x16x3_sse3;
+-    if (flags & HAS_SSSE3) vp8_sad16x16x3 = vp8_sad16x16x3_ssse3;
++//    if (flags & HAS_SSE3) vp8_sad16x16x3 = vp8_sad16x16x3_sse3;
++//    if (flags & HAS_SSSE3) vp8_sad16x16x3 = vp8_sad16x16x3_ssse3;
+     vp8_sad16x16x4d = vp8_sad16x16x4d_c;
+-    if (flags & HAS_SSE3) vp8_sad16x16x4d = vp8_sad16x16x4d_sse3;
++//    if (flags & HAS_SSE3) vp8_sad16x16x4d = vp8_sad16x16x4d_sse3;
+     vp8_sad16x16x8 = vp8_sad16x16x8_c;
+-    if (flags & HAS_SSE4_1) vp8_sad16x16x8 = vp8_sad16x16x8_sse4;
++//    if (flags & HAS_SSE4_1) vp8_sad16x16x8 = vp8_sad16x16x8_sse4;
+     vp8_sad16x8 = vp8_sad16x8_c;
+     if (flags & HAS_MMX) vp8_sad16x8 = vp8_sad16x8_mmx;
+     if (flags & HAS_SSE2) vp8_sad16x8 = vp8_sad16x8_wmt;
+     vp8_sad16x8x3 = vp8_sad16x8x3_c;
+-    if (flags & HAS_SSE3) vp8_sad16x8x3 = vp8_sad16x8x3_sse3;
+-    if (flags & HAS_SSSE3) vp8_sad16x8x3 = vp8_sad16x8x3_ssse3;
++//    if (flags & HAS_SSE3) vp8_sad16x8x3 = vp8_sad16x8x3_sse3;
++//    if (flags & HAS_SSSE3) vp8_sad16x8x3 = vp8_sad16x8x3_ssse3;
+     vp8_sad16x8x4d = vp8_sad16x8x4d_c;
+-    if (flags & HAS_SSE3) vp8_sad16x8x4d = vp8_sad16x8x4d_sse3;
++//    if (flags & HAS_SSE3) vp8_sad16x8x4d = vp8_sad16x8x4d_sse3;
+     vp8_sad16x8x8 = vp8_sad16x8x8_c;
+-    if (flags & HAS_SSE4_1) vp8_sad16x8x8 = vp8_sad16x8x8_sse4;
++//    if (flags & HAS_SSE4_1) vp8_sad16x8x8 = vp8_sad16x8x8_sse4;
+     vp8_sad4x4 = vp8_sad4x4_c;
+     if (flags & HAS_MMX) vp8_sad4x4 = vp8_sad4x4_mmx;
+     if (flags & HAS_SSE2) vp8_sad4x4 = vp8_sad4x4_wmt;
+     vp8_sad4x4x3 = vp8_sad4x4x3_c;
+-    if (flags & HAS_SSE3) vp8_sad4x4x3 = vp8_sad4x4x3_sse3;
++//    if (flags & HAS_SSE3) vp8_sad4x4x3 = vp8_sad4x4x3_sse3;
+     vp8_sad4x4x4d = vp8_sad4x4x4d_c;
+-    if (flags & HAS_SSE3) vp8_sad4x4x4d = vp8_sad4x4x4d_sse3;
++//    if (flags & HAS_SSE3) vp8_sad4x4x4d = vp8_sad4x4x4d_sse3;
+     vp8_sad4x4x8 = vp8_sad4x4x8_c;
+-    if (flags & HAS_SSE4_1) vp8_sad4x4x8 = vp8_sad4x4x8_sse4;
++//    if (flags & HAS_SSE4_1) vp8_sad4x4x8 = vp8_sad4x4x8_sse4;
+     vp8_sad8x16 = vp8_sad8x16_c;
+     if (flags & HAS_MMX) vp8_sad8x16 = vp8_sad8x16_mmx;
+     if (flags & HAS_SSE2) vp8_sad8x16 = vp8_sad8x16_wmt;
+     vp8_sad8x16x3 = vp8_sad8x16x3_c;
+-    if (flags & HAS_SSE3) vp8_sad8x16x3 = vp8_sad8x16x3_sse3;
++//    if (flags & HAS_SSE3) vp8_sad8x16x3 = vp8_sad8x16x3_sse3;
+     vp8_sad8x16x4d = vp8_sad8x16x4d_c;
+-    if (flags & HAS_SSE3) vp8_sad8x16x4d = vp8_sad8x16x4d_sse3;
++//    if (flags & HAS_SSE3) vp8_sad8x16x4d = vp8_sad8x16x4d_sse3;
+     vp8_sad8x16x8 = vp8_sad8x16x8_c;
+-    if (flags & HAS_SSE4_1) vp8_sad8x16x8 = vp8_sad8x16x8_sse4;
++//    if (flags & HAS_SSE4_1) vp8_sad8x16x8 = vp8_sad8x16x8_sse4;
+     vp8_sad8x8 = vp8_sad8x8_c;
+     if (flags & HAS_MMX) vp8_sad8x8 = vp8_sad8x8_mmx;
+     if (flags & HAS_SSE2) vp8_sad8x8 = vp8_sad8x8_wmt;
+     vp8_sad8x8x3 = vp8_sad8x8x3_c;
+-    if (flags & HAS_SSE3) vp8_sad8x8x3 = vp8_sad8x8x3_sse3;
++//    if (flags & HAS_SSE3) vp8_sad8x8x3 = vp8_sad8x8x3_sse3;
+     vp8_sad8x8x4d = vp8_sad8x8x4d_c;
+-    if (flags & HAS_SSE3) vp8_sad8x8x4d = vp8_sad8x8x4d_sse3;
++//    if (flags & HAS_SSE3) vp8_sad8x8x4d = vp8_sad8x8x4d_sse3;
+     vp8_sad8x8x8 = vp8_sad8x8x8_c;
+-    if (flags & HAS_SSE4_1) vp8_sad8x8x8 = vp8_sad8x8x8_sse4;
++//    if (flags & HAS_SSE4_1) vp8_sad8x8x8 = vp8_sad8x8x8_sse4;
+     vp8_short_fdct4x4 = vp8_short_fdct4x4_c;
+     if (flags & HAS_MMX) vp8_short_fdct4x4 = vp8_short_fdct4x4_mmx;
+     if (flags & HAS_SSE2) vp8_short_fdct4x4 = vp8_short_fdct4x4_sse2;
+@@ -653,29 +653,29 @@ static void setup_rtcd_internal(void)
+     vp8_sixtap_predict16x16 = vp8_sixtap_predict16x16_c;
+     if (flags & HAS_MMX) vp8_sixtap_predict16x16 = vp8_sixtap_predict16x16_mmx;
+     if (flags & HAS_SSE2) vp8_sixtap_predict16x16 = vp8_sixtap_predict16x16_sse2;
+-    if (flags & HAS_SSSE3) vp8_sixtap_predict16x16 = vp8_sixtap_predict16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp8_sixtap_predict16x16 = vp8_sixtap_predict16x16_ssse3;
+     vp8_sixtap_predict4x4 = vp8_sixtap_predict4x4_c;
+     if (flags & HAS_MMX) vp8_sixtap_predict4x4 = vp8_sixtap_predict4x4_mmx;
+-    if (flags & HAS_SSSE3) vp8_sixtap_predict4x4 = vp8_sixtap_predict4x4_ssse3;
++//    if (flags & HAS_SSSE3) vp8_sixtap_predict4x4 = vp8_sixtap_predict4x4_ssse3;
+     vp8_sixtap_predict8x4 = vp8_sixtap_predict8x4_c;
+     if (flags & HAS_MMX) vp8_sixtap_predict8x4 = vp8_sixtap_predict8x4_mmx;
+     if (flags & HAS_SSE2) vp8_sixtap_predict8x4 = vp8_sixtap_predict8x4_sse2;
+-    if (flags & HAS_SSSE3) vp8_sixtap_predict8x4 = vp8_sixtap_predict8x4_ssse3;
++//    if (flags & HAS_SSSE3) vp8_sixtap_predict8x4 = vp8_sixtap_predict8x4_ssse3;
+     vp8_sixtap_predict8x8 = vp8_sixtap_predict8x8_c;
+     if (flags & HAS_MMX) vp8_sixtap_predict8x8 = vp8_sixtap_predict8x8_mmx;
+     if (flags & HAS_SSE2) vp8_sixtap_predict8x8 = vp8_sixtap_predict8x8_sse2;
+-    if (flags & HAS_SSSE3) vp8_sixtap_predict8x8 = vp8_sixtap_predict8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp8_sixtap_predict8x8 = vp8_sixtap_predict8x8_ssse3;
+     vp8_sub_pixel_mse16x16 = vp8_sub_pixel_mse16x16_c;
+     if (flags & HAS_MMX) vp8_sub_pixel_mse16x16 = vp8_sub_pixel_mse16x16_mmx;
+     if (flags & HAS_SSE2) vp8_sub_pixel_mse16x16 = vp8_sub_pixel_mse16x16_wmt;
+     vp8_sub_pixel_variance16x16 = vp8_sub_pixel_variance16x16_c;
+     if (flags & HAS_MMX) vp8_sub_pixel_variance16x16 = vp8_sub_pixel_variance16x16_mmx;
+     if (flags & HAS_SSE2) vp8_sub_pixel_variance16x16 = vp8_sub_pixel_variance16x16_wmt;
+-    if (flags & HAS_SSSE3) vp8_sub_pixel_variance16x16 = vp8_sub_pixel_variance16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp8_sub_pixel_variance16x16 = vp8_sub_pixel_variance16x16_ssse3;
+     vp8_sub_pixel_variance16x8 = vp8_sub_pixel_variance16x8_c;
+     if (flags & HAS_MMX) vp8_sub_pixel_variance16x8 = vp8_sub_pixel_variance16x8_mmx;
+     if (flags & HAS_SSE2) vp8_sub_pixel_variance16x8 = vp8_sub_pixel_variance16x8_wmt;
+-    if (flags & HAS_SSSE3) vp8_sub_pixel_variance16x8 = vp8_sub_pixel_variance16x8_ssse3;
++//    if (flags & HAS_SSSE3) vp8_sub_pixel_variance16x8 = vp8_sub_pixel_variance16x8_ssse3;
+     vp8_sub_pixel_variance4x4 = vp8_sub_pixel_variance4x4_c;
+     if (flags & HAS_MMX) vp8_sub_pixel_variance4x4 = vp8_sub_pixel_variance4x4_mmx;
+     if (flags & HAS_SSE2) vp8_sub_pixel_variance4x4 = vp8_sub_pixel_variance4x4_wmt;
+diff --git a/source/config/linux/ia32/vp9_rtcd.h b/source/config/linux/ia32/vp9_rtcd.h
+index 1baf79e..bc1f91c 100644
+--- a/source/config/linux/ia32/vp9_rtcd.h
++++ b/source/config/linux/ia32/vp9_rtcd.h
+@@ -902,56 +902,56 @@ static void setup_rtcd_internal(void)
+     if (flags & HAS_SSE2) vp9_block_error = vp9_block_error_sse2;
+     vp9_convolve8 = vp9_convolve8_c;
+     if (flags & HAS_SSE2) vp9_convolve8 = vp9_convolve8_sse2;
+-    if (flags & HAS_SSSE3) vp9_convolve8 = vp9_convolve8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_convolve8 = vp9_convolve8_ssse3;
+     vp9_convolve8_avg = vp9_convolve8_avg_c;
+     if (flags & HAS_SSE2) vp9_convolve8_avg = vp9_convolve8_avg_sse2;
+-    if (flags & HAS_SSSE3) vp9_convolve8_avg = vp9_convolve8_avg_ssse3;
++//    if (flags & HAS_SSSE3) vp9_convolve8_avg = vp9_convolve8_avg_ssse3;
+     vp9_convolve8_avg_horiz = vp9_convolve8_avg_horiz_c;
+     if (flags & HAS_SSE2) vp9_convolve8_avg_horiz = vp9_convolve8_avg_horiz_sse2;
+-    if (flags & HAS_SSSE3) vp9_convolve8_avg_horiz = vp9_convolve8_avg_horiz_ssse3;
++//    if (flags & HAS_SSSE3) vp9_convolve8_avg_horiz = vp9_convolve8_avg_horiz_ssse3;
+     vp9_convolve8_avg_vert = vp9_convolve8_avg_vert_c;
+     if (flags & HAS_SSE2) vp9_convolve8_avg_vert = vp9_convolve8_avg_vert_sse2;
+-    if (flags & HAS_SSSE3) vp9_convolve8_avg_vert = vp9_convolve8_avg_vert_ssse3;
++//    if (flags & HAS_SSSE3) vp9_convolve8_avg_vert = vp9_convolve8_avg_vert_ssse3;
+     vp9_convolve8_horiz = vp9_convolve8_horiz_c;
+     if (flags & HAS_SSE2) vp9_convolve8_horiz = vp9_convolve8_horiz_sse2;
+-    if (flags & HAS_SSSE3) vp9_convolve8_horiz = vp9_convolve8_horiz_ssse3;
++//    if (flags & HAS_SSSE3) vp9_convolve8_horiz = vp9_convolve8_horiz_ssse3;
+     vp9_convolve8_vert = vp9_convolve8_vert_c;
+     if (flags & HAS_SSE2) vp9_convolve8_vert = vp9_convolve8_vert_sse2;
+-    if (flags & HAS_SSSE3) vp9_convolve8_vert = vp9_convolve8_vert_ssse3;
++//    if (flags & HAS_SSSE3) vp9_convolve8_vert = vp9_convolve8_vert_ssse3;
+     vp9_convolve_avg = vp9_convolve_avg_c;
+     if (flags & HAS_SSE2) vp9_convolve_avg = vp9_convolve_avg_sse2;
+     vp9_convolve_copy = vp9_convolve_copy_c;
+     if (flags & HAS_SSE2) vp9_convolve_copy = vp9_convolve_copy_sse2;
+     vp9_d153_predictor_16x16 = vp9_d153_predictor_16x16_c;
+-    if (flags & HAS_SSSE3) vp9_d153_predictor_16x16 = vp9_d153_predictor_16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d153_predictor_16x16 = vp9_d153_predictor_16x16_ssse3;
+     vp9_d153_predictor_4x4 = vp9_d153_predictor_4x4_c;
+-    if (flags & HAS_SSSE3) vp9_d153_predictor_4x4 = vp9_d153_predictor_4x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d153_predictor_4x4 = vp9_d153_predictor_4x4_ssse3;
+     vp9_d153_predictor_8x8 = vp9_d153_predictor_8x8_c;
+-    if (flags & HAS_SSSE3) vp9_d153_predictor_8x8 = vp9_d153_predictor_8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d153_predictor_8x8 = vp9_d153_predictor_8x8_ssse3;
+     vp9_d207_predictor_16x16 = vp9_d207_predictor_16x16_c;
+-    if (flags & HAS_SSSE3) vp9_d207_predictor_16x16 = vp9_d207_predictor_16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d207_predictor_16x16 = vp9_d207_predictor_16x16_ssse3;
+     vp9_d207_predictor_32x32 = vp9_d207_predictor_32x32_c;
+-    if (flags & HAS_SSSE3) vp9_d207_predictor_32x32 = vp9_d207_predictor_32x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d207_predictor_32x32 = vp9_d207_predictor_32x32_ssse3;
+     vp9_d207_predictor_4x4 = vp9_d207_predictor_4x4_c;
+-    if (flags & HAS_SSSE3) vp9_d207_predictor_4x4 = vp9_d207_predictor_4x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d207_predictor_4x4 = vp9_d207_predictor_4x4_ssse3;
+     vp9_d207_predictor_8x8 = vp9_d207_predictor_8x8_c;
+-    if (flags & HAS_SSSE3) vp9_d207_predictor_8x8 = vp9_d207_predictor_8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d207_predictor_8x8 = vp9_d207_predictor_8x8_ssse3;
+     vp9_d45_predictor_16x16 = vp9_d45_predictor_16x16_c;
+-    if (flags & HAS_SSSE3) vp9_d45_predictor_16x16 = vp9_d45_predictor_16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d45_predictor_16x16 = vp9_d45_predictor_16x16_ssse3;
+     vp9_d45_predictor_32x32 = vp9_d45_predictor_32x32_c;
+-    if (flags & HAS_SSSE3) vp9_d45_predictor_32x32 = vp9_d45_predictor_32x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d45_predictor_32x32 = vp9_d45_predictor_32x32_ssse3;
+     vp9_d45_predictor_4x4 = vp9_d45_predictor_4x4_c;
+-    if (flags & HAS_SSSE3) vp9_d45_predictor_4x4 = vp9_d45_predictor_4x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d45_predictor_4x4 = vp9_d45_predictor_4x4_ssse3;
+     vp9_d45_predictor_8x8 = vp9_d45_predictor_8x8_c;
+-    if (flags & HAS_SSSE3) vp9_d45_predictor_8x8 = vp9_d45_predictor_8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d45_predictor_8x8 = vp9_d45_predictor_8x8_ssse3;
+     vp9_d63_predictor_16x16 = vp9_d63_predictor_16x16_c;
+-    if (flags & HAS_SSSE3) vp9_d63_predictor_16x16 = vp9_d63_predictor_16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d63_predictor_16x16 = vp9_d63_predictor_16x16_ssse3;
+     vp9_d63_predictor_32x32 = vp9_d63_predictor_32x32_c;
+-    if (flags & HAS_SSSE3) vp9_d63_predictor_32x32 = vp9_d63_predictor_32x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d63_predictor_32x32 = vp9_d63_predictor_32x32_ssse3;
+     vp9_d63_predictor_4x4 = vp9_d63_predictor_4x4_c;
+-    if (flags & HAS_SSSE3) vp9_d63_predictor_4x4 = vp9_d63_predictor_4x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d63_predictor_4x4 = vp9_d63_predictor_4x4_ssse3;
+     vp9_d63_predictor_8x8 = vp9_d63_predictor_8x8_c;
+-    if (flags & HAS_SSSE3) vp9_d63_predictor_8x8 = vp9_d63_predictor_8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_d63_predictor_8x8 = vp9_d63_predictor_8x8_ssse3;
+     vp9_dc_predictor_16x16 = vp9_dc_predictor_16x16_c;
+     if (flags & HAS_SSE2) vp9_dc_predictor_16x16 = vp9_dc_predictor_16x16_sse2;
+     vp9_dc_predictor_32x32 = vp9_dc_predictor_32x32_c;
+@@ -980,7 +980,7 @@ static void setup_rtcd_internal(void)
+     if (flags & HAS_SSE2) vp9_fdct8x8_1 = vp9_fdct8x8_1_sse2;
+     vp9_fdct8x8_quant = vp9_fdct8x8_quant_c;
+     if (flags & HAS_SSE2) vp9_fdct8x8_quant = vp9_fdct8x8_quant_sse2;
+-    if (flags & HAS_SSSE3) vp9_fdct8x8_quant = vp9_fdct8x8_quant_ssse3;
++//    if (flags & HAS_SSSE3) vp9_fdct8x8_quant = vp9_fdct8x8_quant_ssse3;
+     vp9_fht16x16 = vp9_fht16x16_c;
+     if (flags & HAS_SSE2) vp9_fht16x16 = vp9_fht16x16_sse2;
+     vp9_fht4x4 = vp9_fht4x4_c;
+@@ -988,8 +988,8 @@ static void setup_rtcd_internal(void)
+     vp9_fht8x8 = vp9_fht8x8_c;
+     if (flags & HAS_SSE2) vp9_fht8x8 = vp9_fht8x8_sse2;
+     vp9_full_search_sad = vp9_full_search_sad_c;
+-    if (flags & HAS_SSE3) vp9_full_search_sad = vp9_full_search_sadx3;
+-    if (flags & HAS_SSE4_1) vp9_full_search_sad = vp9_full_search_sadx8;
++//    if (flags & HAS_SSE3) vp9_full_search_sad = vp9_full_search_sadx3;
++//    if (flags & HAS_SSE4_1) vp9_full_search_sad = vp9_full_search_sadx8;
+     vp9_fwht4x4 = vp9_fwht4x4_c;
+     if (flags & HAS_MMX) vp9_fwht4x4 = vp9_fwht4x4_mmx;
+     vp9_get16x16var = vp9_get16x16var_c;
+@@ -999,21 +999,21 @@ static void setup_rtcd_internal(void)
+     vp9_get_mb_ss = vp9_get_mb_ss_c;
+     if (flags & HAS_SSE2) vp9_get_mb_ss = vp9_get_mb_ss_sse2;
+     vp9_h_predictor_16x16 = vp9_h_predictor_16x16_c;
+-    if (flags & HAS_SSSE3) vp9_h_predictor_16x16 = vp9_h_predictor_16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_h_predictor_16x16 = vp9_h_predictor_16x16_ssse3;
+     vp9_h_predictor_32x32 = vp9_h_predictor_32x32_c;
+-    if (flags & HAS_SSSE3) vp9_h_predictor_32x32 = vp9_h_predictor_32x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_h_predictor_32x32 = vp9_h_predictor_32x32_ssse3;
+     vp9_h_predictor_4x4 = vp9_h_predictor_4x4_c;
+-    if (flags & HAS_SSSE3) vp9_h_predictor_4x4 = vp9_h_predictor_4x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_h_predictor_4x4 = vp9_h_predictor_4x4_ssse3;
+     vp9_h_predictor_8x8 = vp9_h_predictor_8x8_c;
+-    if (flags & HAS_SSSE3) vp9_h_predictor_8x8 = vp9_h_predictor_8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_h_predictor_8x8 = vp9_h_predictor_8x8_ssse3;
+     vp9_idct16x16_10_add = vp9_idct16x16_10_add_c;
+     if (flags & HAS_SSE2) vp9_idct16x16_10_add = vp9_idct16x16_10_add_sse2;
+-    if (flags & HAS_SSSE3) vp9_idct16x16_10_add = vp9_idct16x16_10_add_ssse3;
++//    if (flags & HAS_SSSE3) vp9_idct16x16_10_add = vp9_idct16x16_10_add_ssse3;
+     vp9_idct16x16_1_add = vp9_idct16x16_1_add_c;
+     if (flags & HAS_SSE2) vp9_idct16x16_1_add = vp9_idct16x16_1_add_sse2;
+     vp9_idct16x16_256_add = vp9_idct16x16_256_add_c;
+     if (flags & HAS_SSE2) vp9_idct16x16_256_add = vp9_idct16x16_256_add_sse2;
+-    if (flags & HAS_SSSE3) vp9_idct16x16_256_add = vp9_idct16x16_256_add_ssse3;
++//    if (flags & HAS_SSSE3) vp9_idct16x16_256_add = vp9_idct16x16_256_add_ssse3;
+     vp9_idct32x32_1024_add = vp9_idct32x32_1024_add_c;
+     if (flags & HAS_SSE2) vp9_idct32x32_1024_add = vp9_idct32x32_1024_add_sse2;
+     vp9_idct32x32_1_add = vp9_idct32x32_1_add_c;
+@@ -1075,8 +1075,8 @@ static void setup_rtcd_internal(void)
+     vp9_sad16x16_avg = vp9_sad16x16_avg_c;
+     if (flags & HAS_SSE2) vp9_sad16x16_avg = vp9_sad16x16_avg_sse2;
+     vp9_sad16x16x3 = vp9_sad16x16x3_c;
+-    if (flags & HAS_SSE3) vp9_sad16x16x3 = vp9_sad16x16x3_sse3;
+-    if (flags & HAS_SSSE3) vp9_sad16x16x3 = vp9_sad16x16x3_ssse3;
++//    if (flags & HAS_SSE3) vp9_sad16x16x3 = vp9_sad16x16x3_sse3;
++//    if (flags & HAS_SSSE3) vp9_sad16x16x3 = vp9_sad16x16x3_ssse3;
+     vp9_sad16x16x4d = vp9_sad16x16x4d_c;
+     if (flags & HAS_SSE2) vp9_sad16x16x4d = vp9_sad16x16x4d_sse2;
+     vp9_sad16x32 = vp9_sad16x32_c;
+@@ -1090,8 +1090,8 @@ static void setup_rtcd_internal(void)
+     vp9_sad16x8_avg = vp9_sad16x8_avg_c;
+     if (flags & HAS_SSE2) vp9_sad16x8_avg = vp9_sad16x8_avg_sse2;
+     vp9_sad16x8x3 = vp9_sad16x8x3_c;
+-    if (flags & HAS_SSE3) vp9_sad16x8x3 = vp9_sad16x8x3_sse3;
+-    if (flags & HAS_SSSE3) vp9_sad16x8x3 = vp9_sad16x8x3_ssse3;
++//    if (flags & HAS_SSE3) vp9_sad16x8x3 = vp9_sad16x8x3_sse3;
++//    if (flags & HAS_SSSE3) vp9_sad16x8x3 = vp9_sad16x8x3_ssse3;
+     vp9_sad16x8x4d = vp9_sad16x8x4d_c;
+     if (flags & HAS_SSE2) vp9_sad16x8x4d = vp9_sad16x8x4d_sse2;
+     vp9_sad32x16 = vp9_sad32x16_c;
+@@ -1117,7 +1117,7 @@ static void setup_rtcd_internal(void)
+     vp9_sad4x4_avg = vp9_sad4x4_avg_c;
+     if (flags & HAS_SSE) vp9_sad4x4_avg = vp9_sad4x4_avg_sse;
+     vp9_sad4x4x3 = vp9_sad4x4x3_c;
+-    if (flags & HAS_SSE3) vp9_sad4x4x3 = vp9_sad4x4x3_sse3;
++//    if (flags & HAS_SSE3) vp9_sad4x4x3 = vp9_sad4x4x3_sse3;
+     vp9_sad4x4x4d = vp9_sad4x4x4d_c;
+     if (flags & HAS_SSE) vp9_sad4x4x4d = vp9_sad4x4x4d_sse;
+     vp9_sad4x8 = vp9_sad4x8_c;
+@@ -1143,7 +1143,7 @@ static void setup_rtcd_internal(void)
+     vp9_sad8x16_avg = vp9_sad8x16_avg_c;
+     if (flags & HAS_SSE2) vp9_sad8x16_avg = vp9_sad8x16_avg_sse2;
+     vp9_sad8x16x3 = vp9_sad8x16x3_c;
+-    if (flags & HAS_SSE3) vp9_sad8x16x3 = vp9_sad8x16x3_sse3;
++//    if (flags & HAS_SSE3) vp9_sad8x16x3 = vp9_sad8x16x3_sse3;
+     vp9_sad8x16x4d = vp9_sad8x16x4d_c;
+     if (flags & HAS_SSE2) vp9_sad8x16x4d = vp9_sad8x16x4d_sse2;
+     vp9_sad8x4 = vp9_sad8x4_c;
+@@ -1157,87 +1157,87 @@ static void setup_rtcd_internal(void)
+     vp9_sad8x8_avg = vp9_sad8x8_avg_c;
+     if (flags & HAS_SSE2) vp9_sad8x8_avg = vp9_sad8x8_avg_sse2;
+     vp9_sad8x8x3 = vp9_sad8x8x3_c;
+-    if (flags & HAS_SSE3) vp9_sad8x8x3 = vp9_sad8x8x3_sse3;
++//    if (flags & HAS_SSE3) vp9_sad8x8x3 = vp9_sad8x8x3_sse3;
+     vp9_sad8x8x4d = vp9_sad8x8x4d_c;
+     if (flags & HAS_SSE2) vp9_sad8x8x4d = vp9_sad8x8x4d_sse2;
+     vp9_sub_pixel_avg_variance16x16 = vp9_sub_pixel_avg_variance16x16_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance16x16 = vp9_sub_pixel_avg_variance16x16_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance16x16 = vp9_sub_pixel_avg_variance16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance16x16 = vp9_sub_pixel_avg_variance16x16_ssse3;
+     vp9_sub_pixel_avg_variance16x32 = vp9_sub_pixel_avg_variance16x32_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance16x32 = vp9_sub_pixel_avg_variance16x32_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance16x32 = vp9_sub_pixel_avg_variance16x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance16x32 = vp9_sub_pixel_avg_variance16x32_ssse3;
+     vp9_sub_pixel_avg_variance16x8 = vp9_sub_pixel_avg_variance16x8_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance16x8 = vp9_sub_pixel_avg_variance16x8_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance16x8 = vp9_sub_pixel_avg_variance16x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance16x8 = vp9_sub_pixel_avg_variance16x8_ssse3;
+     vp9_sub_pixel_avg_variance32x16 = vp9_sub_pixel_avg_variance32x16_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance32x16 = vp9_sub_pixel_avg_variance32x16_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance32x16 = vp9_sub_pixel_avg_variance32x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance32x16 = vp9_sub_pixel_avg_variance32x16_ssse3;
+     vp9_sub_pixel_avg_variance32x32 = vp9_sub_pixel_avg_variance32x32_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance32x32 = vp9_sub_pixel_avg_variance32x32_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance32x32 = vp9_sub_pixel_avg_variance32x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance32x32 = vp9_sub_pixel_avg_variance32x32_ssse3;
+     vp9_sub_pixel_avg_variance32x64 = vp9_sub_pixel_avg_variance32x64_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance32x64 = vp9_sub_pixel_avg_variance32x64_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance32x64 = vp9_sub_pixel_avg_variance32x64_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance32x64 = vp9_sub_pixel_avg_variance32x64_ssse3;
+     vp9_sub_pixel_avg_variance4x4 = vp9_sub_pixel_avg_variance4x4_c;
+     if (flags & HAS_SSE) vp9_sub_pixel_avg_variance4x4 = vp9_sub_pixel_avg_variance4x4_sse;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance4x4 = vp9_sub_pixel_avg_variance4x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance4x4 = vp9_sub_pixel_avg_variance4x4_ssse3;
+     vp9_sub_pixel_avg_variance4x8 = vp9_sub_pixel_avg_variance4x8_c;
+     if (flags & HAS_SSE) vp9_sub_pixel_avg_variance4x8 = vp9_sub_pixel_avg_variance4x8_sse;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance4x8 = vp9_sub_pixel_avg_variance4x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance4x8 = vp9_sub_pixel_avg_variance4x8_ssse3;
+     vp9_sub_pixel_avg_variance64x32 = vp9_sub_pixel_avg_variance64x32_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance64x32 = vp9_sub_pixel_avg_variance64x32_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance64x32 = vp9_sub_pixel_avg_variance64x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance64x32 = vp9_sub_pixel_avg_variance64x32_ssse3;
+     vp9_sub_pixel_avg_variance64x64 = vp9_sub_pixel_avg_variance64x64_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance64x64 = vp9_sub_pixel_avg_variance64x64_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance64x64 = vp9_sub_pixel_avg_variance64x64_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance64x64 = vp9_sub_pixel_avg_variance64x64_ssse3;
+     vp9_sub_pixel_avg_variance8x16 = vp9_sub_pixel_avg_variance8x16_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance8x16 = vp9_sub_pixel_avg_variance8x16_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance8x16 = vp9_sub_pixel_avg_variance8x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance8x16 = vp9_sub_pixel_avg_variance8x16_ssse3;
+     vp9_sub_pixel_avg_variance8x4 = vp9_sub_pixel_avg_variance8x4_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance8x4 = vp9_sub_pixel_avg_variance8x4_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance8x4 = vp9_sub_pixel_avg_variance8x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance8x4 = vp9_sub_pixel_avg_variance8x4_ssse3;
+     vp9_sub_pixel_avg_variance8x8 = vp9_sub_pixel_avg_variance8x8_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_avg_variance8x8 = vp9_sub_pixel_avg_variance8x8_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance8x8 = vp9_sub_pixel_avg_variance8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_avg_variance8x8 = vp9_sub_pixel_avg_variance8x8_ssse3;
+     vp9_sub_pixel_variance16x16 = vp9_sub_pixel_variance16x16_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance16x16 = vp9_sub_pixel_variance16x16_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance16x16 = vp9_sub_pixel_variance16x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance16x16 = vp9_sub_pixel_variance16x16_ssse3;
+     vp9_sub_pixel_variance16x32 = vp9_sub_pixel_variance16x32_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance16x32 = vp9_sub_pixel_variance16x32_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance16x32 = vp9_sub_pixel_variance16x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance16x32 = vp9_sub_pixel_variance16x32_ssse3;
+     vp9_sub_pixel_variance16x8 = vp9_sub_pixel_variance16x8_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance16x8 = vp9_sub_pixel_variance16x8_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance16x8 = vp9_sub_pixel_variance16x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance16x8 = vp9_sub_pixel_variance16x8_ssse3;
+     vp9_sub_pixel_variance32x16 = vp9_sub_pixel_variance32x16_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance32x16 = vp9_sub_pixel_variance32x16_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance32x16 = vp9_sub_pixel_variance32x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance32x16 = vp9_sub_pixel_variance32x16_ssse3;
+     vp9_sub_pixel_variance32x32 = vp9_sub_pixel_variance32x32_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance32x32 = vp9_sub_pixel_variance32x32_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance32x32 = vp9_sub_pixel_variance32x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance32x32 = vp9_sub_pixel_variance32x32_ssse3;
+     vp9_sub_pixel_variance32x64 = vp9_sub_pixel_variance32x64_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance32x64 = vp9_sub_pixel_variance32x64_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance32x64 = vp9_sub_pixel_variance32x64_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance32x64 = vp9_sub_pixel_variance32x64_ssse3;
+     vp9_sub_pixel_variance4x4 = vp9_sub_pixel_variance4x4_c;
+     if (flags & HAS_SSE) vp9_sub_pixel_variance4x4 = vp9_sub_pixel_variance4x4_sse;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance4x4 = vp9_sub_pixel_variance4x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance4x4 = vp9_sub_pixel_variance4x4_ssse3;
+     vp9_sub_pixel_variance4x8 = vp9_sub_pixel_variance4x8_c;
+     if (flags & HAS_SSE) vp9_sub_pixel_variance4x8 = vp9_sub_pixel_variance4x8_sse;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance4x8 = vp9_sub_pixel_variance4x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance4x8 = vp9_sub_pixel_variance4x8_ssse3;
+     vp9_sub_pixel_variance64x32 = vp9_sub_pixel_variance64x32_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance64x32 = vp9_sub_pixel_variance64x32_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance64x32 = vp9_sub_pixel_variance64x32_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance64x32 = vp9_sub_pixel_variance64x32_ssse3;
+     vp9_sub_pixel_variance64x64 = vp9_sub_pixel_variance64x64_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance64x64 = vp9_sub_pixel_variance64x64_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance64x64 = vp9_sub_pixel_variance64x64_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance64x64 = vp9_sub_pixel_variance64x64_ssse3;
+     vp9_sub_pixel_variance8x16 = vp9_sub_pixel_variance8x16_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance8x16 = vp9_sub_pixel_variance8x16_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance8x16 = vp9_sub_pixel_variance8x16_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance8x16 = vp9_sub_pixel_variance8x16_ssse3;
+     vp9_sub_pixel_variance8x4 = vp9_sub_pixel_variance8x4_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance8x4 = vp9_sub_pixel_variance8x4_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance8x4 = vp9_sub_pixel_variance8x4_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance8x4 = vp9_sub_pixel_variance8x4_ssse3;
+     vp9_sub_pixel_variance8x8 = vp9_sub_pixel_variance8x8_c;
+     if (flags & HAS_SSE2) vp9_sub_pixel_variance8x8 = vp9_sub_pixel_variance8x8_sse2;
+-    if (flags & HAS_SSSE3) vp9_sub_pixel_variance8x8 = vp9_sub_pixel_variance8x8_ssse3;
++//    if (flags & HAS_SSSE3) vp9_sub_pixel_variance8x8 = vp9_sub_pixel_variance8x8_ssse3;
+     vp9_subtract_block = vp9_subtract_block_c;
+     if (flags & HAS_SSE2) vp9_subtract_block = vp9_subtract_block_sse2;
+     vp9_temporal_filter_apply = vp9_temporal_filter_apply_c;
+diff --git a/source/config/linux/ia32/vpx_config.asm b/source/config/linux/ia32/vpx_config.asm
+index a615962..8659c2f 100644
+--- a/source/config/linux/ia32/vpx_config.asm
++++ b/source/config/linux/ia32/vpx_config.asm
+@@ -14,9 +14,9 @@
+ %define HAVE_MMX 1
+ %define HAVE_SSE 1
+ %define HAVE_SSE2 1
+-%define HAVE_SSE3 1
+-%define HAVE_SSSE3 1
+-%define HAVE_SSE4_1 1
++%define HAVE_SSE3 0
++%define HAVE_SSSE3 0
++%define HAVE_SSE4_1 0
+ %define HAVE_AVX 1
+ %define HAVE_AVX2 0
+ %define HAVE_ALTIVEC 0
+diff --git a/source/config/linux/ia32/vpx_config.h b/source/config/linux/ia32/vpx_config.h
+index e756fe5..8096f46 100644
+--- a/source/config/linux/ia32/vpx_config.h
++++ b/source/config/linux/ia32/vpx_config.h
+@@ -26,9 +26,9 @@
+ #define HAVE_MMX 1
+ #define HAVE_SSE 1
+ #define HAVE_SSE2 1
+-#define HAVE_SSE3 1
+-#define HAVE_SSSE3 1
+-#define HAVE_SSE4_1 1
++#define HAVE_SSE3 0
++#define HAVE_SSSE3 0
++#define HAVE_SSE4_1 0
+ #define HAVE_AVX 1
+ #define HAVE_AVX2 0
+ #define HAVE_ALTIVEC 0

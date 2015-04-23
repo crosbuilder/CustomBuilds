@@ -1,0 +1,121 @@
+diff --git a/gpu/config/software_rendering_list_json.cc b/gpu/config/software_rendering_list_json.cc
+index 66ed4e6..d778555 100644
+--- a/gpu/config/software_rendering_list_json.cc
++++ b/gpu/config/software_rendering_list_json.cc
+@@ -36,6 +36,20 @@ const char kSoftwareRenderingListJson[] = LONG_STRING_CONST(
+       ]
+     },
+     {
++      "id": 2,
++      "description": "ATI Mobility Radeon 7500 is not compatible with WebGL ",
++      "os": {
++        "type": "any"
++      },
++      "vendor_id": "0x1002",
++      "device_id": ["0x4c57"],
++      "features": [
++        "webgl",
++        "flash_3d",
++        "flash_stage3d"
++      ]
++    },
++    {
+       "id": 3,
+       "description": "GL driver is software rendered. GPU acceleration is disabled",
+       "cr_bugs": [59302, 315217],
+diff --git a/third_party/zlib/BUILD.gn b/third_party/zlib/BUILD.gn
+index e49b5e9..56484ec 100644
+--- a/third_party/zlib/BUILD.gn
++++ b/third_party/zlib/BUILD.gn
+@@ -7,22 +7,9 @@ config("zlib_config") {
+ }
+ 
+ static_library("zlib_x86_simd") {
+-  if (!is_ios && (cpu_arch == "x86" || cpu_arch == "x64")) {
+-    sources = [
+-      "crc_folding.c",
+-      "fill_window_sse.c",
+-    ]
+-    if (!is_win || is_clang) {
+-      cflags = [
+-        "-msse4.2",
+-        "-mpclmul",
+-      ]
+-    }
+-  } else {
+     sources = [
+       "simd_stub.c",
+     ]
+-  }
+ 
+   configs -= [ "//build/config/compiler:chromium_code" ]
+   configs += [ "//build/config/compiler:no_chromium_code" ]
+diff --git a/third_party/zlib/simd_stub.c b/third_party/zlib/simd_stub.c
+index 796f1f6..b0098e5 100644
+--- a/third_party/zlib/simd_stub.c
++++ b/third_party/zlib/simd_stub.c
+@@ -7,7 +7,7 @@
+ #include "deflate.h"
+ #include "x86.h"
+ 
+-int x86_cpu_enable_simd = 0;
++//int x86_cpu_enable_simd = 0;
+ 
+ void ZLIB_INTERNAL crc_fold_init(deflate_state *const s) {
+     assert(0);
+@@ -30,6 +30,8 @@ void ZLIB_INTERNAL fill_window_sse(deflate_state *s)
+     assert(0);
+ }
+ 
++/*
+ void x86_check_features(void)
+ {
+ }
++*/
+diff --git a/third_party/zlib/zlib.gyp b/third_party/zlib/zlib.gyp
+index bb478ce..796d385 100644
+--- a/third_party/zlib/zlib.gyp
++++ b/third_party/zlib/zlib.gyp
+@@ -9,23 +9,25 @@
+       'type': 'static_library',
+       'conditions': [
+         ['OS!="ios" and (target_arch=="ia32" or target_arch=="x64")', {
+-          'cflags' : ['-msse4.2', '-mpclmul'],
+-          'xcode_settings' : {
+-             'OTHER_CFLAGS' : ['-msse4.2', '-mpclmul'],
+-          },
+-          'sources' : [
+-            'crc_folding.c',
+-            'fill_window_sse.c',
+-          ],
+-          'conditions': [
+-            ['OS=="win" and clang==1', {
+-              'msvs_settings': {
+-                'VCCLCompilerTool': {
+-                  'AdditionalOptions': [ '-msse4.2', '-mpclmul' ],
+-                },
+-              },
+-            }],
+-          ],
++#          'cflags' : ['-msse4.2', '-mpclmul'],
++#          'xcode_settings' : {
++#             'OTHER_CFLAGS' : ['-msse4.2', '-mpclmul'],
++#          },
++#          'sources' : [
++#            'crc_folding.c',
++#            'fill_window_sse.c',
++#          ],
++#          'conditions': [
++#            ['OS=="win" and clang==1', {
++#              'msvs_settings': {
++#                'VCCLCompilerTool': {
++#                  'AdditionalOptions': [ '-msse4.2', '-mpclmul' ],
++#                },
++#              },
++#            }],
++#          ],
++#        }, {
++          'sources' : [ 'simd_stub.c' ],
+         }, {
+           'sources' : [ 'simd_stub.c' ],
+         }],
