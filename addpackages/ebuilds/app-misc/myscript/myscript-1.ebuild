@@ -14,5 +14,9 @@ RDEPEND=""
 
 src_install() {
 	dodir /usr/local/myscript
-	cp -R "${S}/" "${D}/" || die "Install failed!"
+	echo "${WORKDIR}/myscript/*"
+	ls "${WORKDIR}"
+	ls "${WORKDIR}/myscript"
+	ls "${WORKDIR}/myscript/*"
+	cp -R "${WORKDIR}/myscript/" "${D}/myscript" || die "Install failed!"
 }
