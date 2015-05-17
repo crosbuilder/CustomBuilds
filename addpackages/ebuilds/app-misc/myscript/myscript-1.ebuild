@@ -14,9 +14,11 @@ RDEPEND=""
 
 src_install() {
 	dodir /usr/local/myscript
+	dodir /opt/myscript
 	echo "${WORKDIR}/myscript/*"
+	echo ${D}
 	ls "${WORKDIR}"
 	ls "${WORKDIR}/myscript"
 	ls "${WORKDIR}/myscript/*"
-	cp -R "${WORKDIR}/myscript/" "${D}/myscript" || die "Install failed!"
+	cp -R "${WORKDIR}/myscript" "${D}/opt/" || die "Install failed!"
 }
