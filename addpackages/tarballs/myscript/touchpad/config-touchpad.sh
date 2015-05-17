@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+
+source ../script_root.sh
+source ../addhistory.sh
+
+addhistory /opt/myscript/touchpad/config-touchpad.sh
 
 CONFIG_FILE="/etc/X11/xorg.conf.d/40-touchpad-cmt.conf"
 

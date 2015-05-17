@@ -1,4 +1,9 @@
 #!/bin/bash
+
+source addhistory.sh
+
+addhistory $0
+
 set -x
 pushd .
 

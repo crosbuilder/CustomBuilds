@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# ロールバックはヒストリに記録しない
+
 if [ -z $1 ]; then
   echo please set target version
   exit 1
