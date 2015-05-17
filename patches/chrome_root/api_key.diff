@@ -1,0 +1,21 @@
+diff --git a/google_apis/BUILD.gn b/google_apis/BUILD.gn
+index 1cdf686..66608f2 100644
+--- a/google_apis/BUILD.gn
++++ b/google_apis/BUILD.gn
+@@ -42,13 +42,13 @@ declare_args() {
+   # use_official_google_api_keys has been set to trie (explicitly or
+   # implicitly), these values will be ignored and the official
+   # keys will be used instead.
+-  google_api_key = ""
++  google_api_key = "AIzaSyCs-ikV42O8guAv-nLpdLd_2VuF6XA33Lw"
+ 
+   # See google_api_key.
+-  google_default_client_id = ""
++  google_default_client_id = "642964812418-ra8so5sf0ulv7vgv8t3u3d3not6el9bb.apps.googleusercontent.com"
+ 
+   # See google_api_key.
+-  google_default_client_secret = ""
++  google_default_client_secret = "PN2mLuG1KbgcWNVhSAOL-K28"
+ }
+ 
+ if (use_official_google_api_keys == "") {
