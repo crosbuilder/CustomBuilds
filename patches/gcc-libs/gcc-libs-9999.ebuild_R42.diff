@@ -1,0 +1,15 @@
+diff --git a/sys-libs/gcc-libs/gcc-libs-9999.ebuild b/sys-libs/gcc-libs/gcc-libs-9999.ebuild
+index beee9c2..2e794db 100644
+--- a/sys-libs/gcc-libs/gcc-libs-9999.ebuild
++++ b/sys-libs/gcc-libs/gcc-libs-9999.ebuild
+@@ -138,8 +138,8 @@ src_configure() {
+ 	# This is necessary because the emerge-${BOARD} machinery sometimes
+ 	# adds machine-specific options to thsee flags that are not
+ 	# appropriate for configuring and building the compiler libraries.
+-	export CFLAGS='-g -O2 -pipe'
+-	export CXXFLAGS='-g -O2 -pipe'
++	export CFLAGS='-g -O2 -pipe -mno-sse3 -mno-ssse3 -mno-sse4.2'
++	export CXXFLAGS='-g -O2 -pipe -mno-sse3 -mno-ssse3 -mno-sse4.2'
+ 	export LDFLAGS="-Wl,-O2 -Wl,--as-needed"
+ 
+ 	# and now to do the actual configuration
