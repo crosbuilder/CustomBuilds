@@ -9,7 +9,8 @@ cp -r overlay-x86-generic overlay-x86-pentiumm
 
 # コンパイルフラグからsse3を除去する
 cd overlay-x86-pentiumm
-sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -e 's/^CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-i386"$/CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-pentiumm"/' -i make.conf
+#sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -e 's/^CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-i386"$/CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-pentiumm"/' -i make.conf
+sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -i make.conf
 
 # オーバレイ名を書き換える
 cd metadata
