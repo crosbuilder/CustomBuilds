@@ -1,5 +1,11 @@
 #!/bin/bash
 # search wireless device
+
+source script_root.sh
+source addhistory.sh
+
+addhistory $0
+
 for path in /sys/class/net/*
 do
   if [ -e ${path}/wireless ]; then
@@ -45,7 +51,7 @@ g=`grep Dwext /etc/init/wpasupplicant.conf`
 if [ -z "$g" ]; then
   echo wpasupplicant.conf is not modified
   cp /etc/init/wpasupplicant.conf /etc/init/wpasupplicant.conf.old
-  sed -e "s@/usr/sbin/wpa_supplicant\(.*$\)@/usr/sbin/wpa_supplicant -B -Dwext -i ${dev} \1 -c /usr/local/myscript/wpa.conf@" -i /etc/init/wpasupplicant.conf
+  sed -e "s@/usr/sbin/wpa_supplicant\(.*$\)@/usr/sbin/wpa_supplicant -B -Dwext -i ${dev} \1 -c ${script_root}/wpa.conf@" -i /etc/init/wpasupplicant.conf
   echo wpasupplicant.conf has been modified.
 else
   echo wpasupplicant.conf is already modified skip.

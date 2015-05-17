@@ -1,5 +1,9 @@
 #!/bin/bash
 
+source addhistory.sh
+
+addhistory $0
+
 cleanup() {
   cd /home/chronos/user/Downloads
   rm -rf chrome_work
