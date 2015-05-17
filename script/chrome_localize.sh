@@ -12,3 +12,6 @@ fi
 cd /var/cache/chromeos-cache/distfiles/target/chrome-src
 tar cvf - . | (cd ${chrome_root}; tar xf -)
 
+# ebuildfaにパッチ当てをする(audio/mp3対策、--mno-sse*のフィルタリング )
+cd ~/trunk/src/third_party/chromiumos-overlay
+patch -p1 < ~/myenv/patches/chromeos-chrome/chromeos-chrome-9999.ebuild.diff
