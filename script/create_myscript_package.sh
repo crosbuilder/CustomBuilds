@@ -57,14 +57,14 @@ emerge-${BOARD} app-misc/myscript --pretend --verbose
 
 
 # 依存関係を追加
-cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os-dev
-search=`grep 'myscript' target-chromium-os-dev-1.ebuild`
+cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
+search=`grep 'myscript' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
-        echo myscript is not included in dev overlay. append to dev overlay now.
-        sed -e '/^RDEPEND="${RDEPEND}/a \\tapp-misc\/myscript' -i target-chromium-os-dev-1.ebuild || exit 1
+        echo myscript is not included in base overlay. append to base overlay now.
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tapp-misc\/myscript' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else
-        echo myscript is already included in dev overlay. skip.
+        echo myscript is already included in base overlay. skip.
 fi
 popd > /dev/null
