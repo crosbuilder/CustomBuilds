@@ -13,7 +13,7 @@ mount -r -o remount /
 
 if [ -e /opt/google/chrome/PepperFlash/manifest.json ]; then
 
-  local old_version=`grep version /opt/google/chrome/PepperFlash/manifest.json | grep -o -E '[0-9\.]*'`
+  old_version=`grep version /opt/google/chrome/PepperFlash/manifest.json | grep -o -E '[0-9\.]*'`
   echo Installed Flash Version: ${old_version}
   echo Start update...
 else
@@ -34,6 +34,10 @@ if [ -e google-chrome-stable_current_i386.deb ]; then
   rm google-chrome-stable_current_i386.deb
 fi
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_i386.deb
+if [ 0 -ne $? ]; then
+  echo Download failed. Abort..
+  exit 1
+fi
 echo
 echo Download Completed.
 echo
@@ -57,7 +61,7 @@ else
 fi
 
 echo copy plugins for rollback...
-local backupdir=/usr/local/myscript/flash_backup/${flash_version}
+backupdir=/usr/local/myscript/flash_backup/${flash_version}
 if [ ! -e /usr/local/myscript/flash_backup ]; then
   mkdir /usr/local/myscript/flash_backup
 fi
