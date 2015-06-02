@@ -45,14 +45,14 @@ fi
 
 
 # 依存関係を追加
-cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os-dev
-search=`grep 'p7zip' target-chromium-os-dev-1.ebuild`
+cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
+search=`grep 'p7zip' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
-        echo p7zip is not included in dev overlay. append to dev overlay now.
-        sed -e '/^RDEPEND="${RDEPEND}/a \\tapp-arch\/p7zip' -i target-chromium-os-dev-1.ebuild || exit 1
+        echo p7zip is not included in base overlay. append to base overlay now.
+        sed -e '/^RDEPEND="${RDEPEND}/a \\tapp-arch\/p7zip' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else
-        echo p7zip is already included in dev overlay. skip.
+        echo p7zip is already included in base overlay. skip.
 fi
 
