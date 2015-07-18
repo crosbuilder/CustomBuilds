@@ -1,0 +1,13 @@
+diff --git a/login_manager/init/ui.conf b/login_manager/init/ui.conf
+index b64b5da..5d8e706 100644
+--- a/login_manager/init/ui.conf
++++ b/login_manager/init/ui.conf
+@@ -37,6 +37,8 @@ env UI_LOG_DIR=/var/log/ui
+ env UI_LOG_FILE=ui.LATEST
+ 
+ pre-start script
++
++  /opt/myscript/inspect_hw.sh
+   mkdir -p $UI_LOG_DIR
+   ln -sf ui.$(date +%Y%m%d-%H%M%S) $UI_LOG_DIR/$UI_LOG_FILE
+ 
