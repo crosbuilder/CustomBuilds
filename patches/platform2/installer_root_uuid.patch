@@ -1,0 +1,81 @@
+diff --git a/installer/chromeos_legacy.cc b/installer/chromeos_legacy.cc
+index 58f9b64..05f336e 100644
+--- a/installer/chromeos_legacy.cc
++++ b/installer/chromeos_legacy.cc
+@@ -10,10 +10,64 @@
+ #include <vector>
+ 
+ #include "installer/inst_util.h"
++#include <iostream>
++#include <dirent.h>
++#include <cstdlib>
++#include <string.h>
++
+ 
+ using std::string;
+ using std::vector;
+ 
++
++int dirlist(const char* dir, vector<string>& entries)
++{
++	DIR *dp;
++	dirent* entry;
++
++	dp = opendir(dir);
++	if (dp == NULL)
++		return 1;
++
++	do {
++		entry = readdir(dp);
++		if (entry != NULL)
++			entries.push_back(string(entry->d_name));
++	} while (entry != NULL);
++
++	return 0;
++
++}
++
++string searchlink(const char* dir, const char* target)
++{
++        vector<string> entries;
++	dirlist(dir, entries);
++	
++	for (unsigned int i = 0; i < entries.size(); i++){
++		string path = string(dir) + entries[i];
++		//cout << path << endl;
++		char buf[4096];
++		//readlink(path.c_str(), buf, 4096);
++		char* pReal = realpath(path.c_str(), buf);
++		//cout << buf << endl;
++		string strtarget(target);
++		string real(pReal);
++		if (strtarget == real)
++			return path;
++	}
++	return string("");
++}
++
++string get_partuuid(string devpath)
++{
++	string realpath=searchlink("/dev/disk/by-partuuid/", devpath.c_str());
++	if (realpath == "")
++		return devpath;
++	return string(basename(realpath.c_str()));
++}
++
++
+ bool UpdateLegacyKernel(const InstallConfig& install_config) {
+   string kernel_from = StringPrintf("%s/boot/vmlinuz",
+                                     install_config.root.mount().c_str());
+@@ -86,8 +140,10 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
+     return false;
+ 
+   // Insert the proper root device for non-verity boots
++  string uuid="PARTUUID=" + get_partuuid(install_config.root.device());
+   if (!ReplaceInFile(StringPrintf("HDROOT%s", install_config.slot.c_str()),
+-                     install_config.root.device(),
++  //                   install_config.root.device(),
++                     uuid,
+                      root_cfg_file))
+     return false;
+ 
