@@ -12,6 +12,13 @@ cd overlay-x86-pentiumm
 #sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -e 's/^CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-i386"$/CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-pentiumm"/' -i make.conf
 sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -i make.conf
 
+# USEフラグにpenmを追加
+sed -e 's/peerd/peerd penm/g' -i make.conf
+
+
+# ignore collision of libffmpegsumo.so
+echo 'COLLISION_IGNORE="/opt/google/chrome/libffmpegsumo.so"' >> make.conf
+
 # オーバレイ名を書き換える
 cd metadata
 sed -e 's/generic/pentiumm/g' -i layout.conf
