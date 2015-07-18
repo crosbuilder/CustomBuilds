@@ -1,0 +1,40 @@
+diff --git a/content/browser/compositor/gpu_process_transport_factory.cc b/content/browser/compositor/gpu_process_transport_factory.cc
+index 4fc6a67..e38ea50 100644
+--- a/content/browser/compositor/gpu_process_transport_factory.cc
++++ b/content/browser/compositor/gpu_process_transport_factory.cc
+@@ -165,10 +165,11 @@ scoped_ptr<cc::OverlayCandidateValidator> CreateOverlayCandidateValidator(
+ }
+ 
+ static bool ShouldCreateGpuOutputSurface(ui::Compositor* compositor) {
+-#if defined(OS_CHROMEOS)
+-  // Software fallback does not happen on Chrome OS.
+-  return true;
+-#endif
++// enable Software fallback on Chrome OS for EEE PC 900.
++//#if defined(OS_CHROMEOS)
++//  // Software fallback does not happen on Chrome OS.
++//  return true;
++//#endif
+ 
+ #if defined(OS_WIN)
+   if (::GetProp(compositor->widget(), kForceSoftwareCompositor) &&
+diff --git a/content/browser/gpu/gpu_process_host.cc b/content/browser/gpu/gpu_process_host.cc
+index be14374..8316a6c 100644
+--- a/content/browser/gpu/gpu_process_host.cc
++++ b/content/browser/gpu/gpu_process_host.cc
+@@ -1035,12 +1035,13 @@ void GpuProcessHost::RecordProcessCrash() {
+       if ((gpu_recent_crash_count_ >= kGpuMaxCrashCount &&
+            !disable_crash_limit) ||
+           !initialized_) {
+-#if !defined(OS_CHROMEOS)
++	// enable falldown to software rendering with CHROMEOS
++//#if !defined(OS_CHROMEOS)
+         // The GPU process is too unstable to use. Disable it for current
+         // session.
+         hardware_gpu_enabled_ = false;
+         GpuDataManagerImpl::GetInstance()->DisableHardwareAcceleration();
+-#endif
++//#endif
+       }
+     }
+   }
