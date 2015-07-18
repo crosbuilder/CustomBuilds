@@ -1,8 +1,9 @@
 #!/bin/bash
 
-source addhistory.sh
+. ./script_root.sh
+. ./addhistory.sh
 
-addhistory $0
+addhistory $0 "$@"
 
 set -x
 pushd .

@@ -1,9 +1,10 @@
 #!/bin/bash
+dir=`dirname $0`
 
-source ../script_root.sh
-source ../addhistory.sh
+source ${dir}/../script_root.sh
+source ${dir}/../addhistory.sh
 
-addhistory /opt/myscript/touchpad/config-touchpad.sh
+addhistory /opt/myscript/touchpad/config-touchpad.sh "$@"
 
 CONFIG_FILE="/etc/X11/xorg.conf.d/40-touchpad-cmt.conf"
 
@@ -32,6 +33,6 @@ fi
 
 echo "Installing the configuration file for your touchpad..."
 rm $CONFIG_FILE
-cp ./$TOUCHPAD.xorg.conf $CONFIG_FILE
+cp ${dir}/$TOUCHPAD.xorg.conf $CONFIG_FILE
 
 echo "Configuration finished. Please reboot to make the change effective."

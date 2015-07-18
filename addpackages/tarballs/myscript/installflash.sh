@@ -1,8 +1,10 @@
 #!/bin/bash
 
+. ./script_root.sh
 source addhistory.sh
 
-addhistory $0
+# installflashはヒストリに記録しない（必ず手動で起動してインストールする）
+#addhistory $0
 
 cleanup() {
   cd /home/chronos/user/Downloads
