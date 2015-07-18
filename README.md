@@ -1,2 +1,2 @@
-# Patch for Chromium OS custom build
+# Patches for Chromium OS custom build
 
