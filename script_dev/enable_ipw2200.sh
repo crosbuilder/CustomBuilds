@@ -1,23 +1,9 @@
 #!/bin/bash
-# search wireless device
 
 source script_root.sh
 source addhistory.sh
 
-addhistory $0
-
-for path in /sys/class/net/*
-do
-  if [ -e ${path}/wireless ]; then
-    dev=${path##*/}
-    echo wireless device is ${dev}
-    break
-  fi
-done
-if [ -z "${dev}" ]; then
-  echo wireless device not found. Aborted.
-  exit 1
-fi
+addhistory $0 "$@"
 
 # remount root rw
 mount -o remount,rw /
@@ -51,7 +37,10 @@ g=`grep Dwext /etc/init/wpasupplicant.conf`
 if [ -z "$g" ]; then
   echo wpasupplicant.conf is not modified
   cp /etc/init/wpasupplicant.conf /etc/init/wpasupplicant.conf.old
-  sed -e "s@/usr/sbin/wpa_supplicant\(.*$\)@/usr/sbin/wpa_supplicant -B -Dwext -i ${dev} \1 -c ${script_root}/wpa.conf@" -i /etc/init/wpasupplicant.conf
+  sed -e "s@/usr/sbin/wpa_supplicant\(.*$\)@/usr/sbin/wpa_supplicant -B -Dwext -i \${dev} \1 -c ${script_root}/wpa.conf@" -i /etc/init/wpasupplicant.conf
+  sed -e "/^respawn$/a respawn limit 20 20" -i /etc/init/wpasupplicant.conf
+  sed -e "/exec minijail0/i sleep 3" -i /etc/init/wpasupplicant.conf
+  sed -e "/exec minijail0/i dev=\`${script_root}/find_wirelessdev.sh\`" -i /etc/init/wpasupplicant.conf
   echo wpasupplicant.conf has been modified.
 else
   echo wpasupplicant.conf is already modified skip.
@@ -59,9 +48,9 @@ fi
 
 # create preload-network-drivers
 if [ ! -e /var/lib/preload-network-drivers ]; then
-  preload-network-drivers not found. create it.
+  echo preload-network-drivers not found. create it.
   echo ipw2200 > /var/lib/preload-network-drivers
-  preload-network-drivers created.
+  echo preload-network-drivers created.
 else
   g=`grep ipw2200 /var/lib/preload-network-drivers`
   if [ -z "$g" ]; then
