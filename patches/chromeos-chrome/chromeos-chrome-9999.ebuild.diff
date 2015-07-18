@@ -1,5 +1,5 @@
 diff --git a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
-index 21a11a1..ec0d7fd 100644
+index d5d4de9..dad1bf0 100644
 --- a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 +++ b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 @@ -36,7 +36,7 @@ IUSE="
@@ -11,3 +11,12 @@ index 21a11a1..ec0d7fd 100644
  	+chrome_remoting
  	clang
  	component_build
+@@ -731,7 +731,7 @@ setup_test_lists() {
+ setup_compile_flags() {
+ 	# The chrome makefiles specify -O and -g flags already, so remove the
+ 	# portage flags.
+-	filter-flags -g -O*
++	filter-flags -g -O* -mno-sse3 -mno-ssse3 -mno-sse4.2
+ 
+ 	# There are some flags we want to only use in the ebuild.
+ 	# The rest will be exported to the simple chrome workflow.
