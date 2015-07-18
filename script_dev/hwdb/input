@@ -1,0 +1,3 @@
+Vendor=0002 Product=000e Version=0000	"ETPS/2 Elantech Touchpad"	touchpad/config-touchpad.sh	Incompatible touchpad found. Configure touchpad settings.
+Vendor=0002 Product=0007 Version=2cb1	"SynPS/2 Synaptics TouchPad"	touchpad/config-touchpad.sh	Incompatible touchpad found. Configure touchpad settings.
+Vendor=0002 Product=0007 Version=39b2	"SynPS/2 Synaptics TouchPad"	touchpad/config-touchpad.sh	Incompatible touchpad found. Configure touchpad settings.
