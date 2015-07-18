@@ -8,10 +8,16 @@ cros_workon --board=x86-pentiumm start chromeos-base/chromeos-chrome
 chrome_root=/home/chromium/chrome_root
 if [ ! -e /home/chromium/chrome_root ]; then
   mkdir ${chrome_root}
+else
+  mv ${chrome_root} ${chrome_root_old}
 fi
 cd /var/cache/chromeos-cache/distfiles/target/chrome-src
 tar cvf - . | (cd ${chrome_root}; tar xf -)
 
-# ebuildfaにパッチ当てをする(audio/mp3対策、--mno-sse*のフィルタリング )
+# ebuildにパッチ当てをする(audio/mp3対策、--mno-sse*のフィルタリング )
 cd ~/trunk/src/third_party/chromiumos-overlay
 patch -p1 < ~/myenv/patches/chromeos-chrome/chromeos-chrome-9999.ebuild.diff
+
+# R43以降でSoftware Compositingがガードされたのを解除する
+cd ${chrome_root}/src
+patch -p1 < ~/myenv/patches/chrome_root/src/enable_software_compositor.patch
