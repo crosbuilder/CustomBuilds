@@ -2,3 +2,4 @@ radeonfb	radeon_modeset.sh	VGA Driver radeonfb was installed. Add radeon.modeset
 nouveau	nouveau_modeset.sh	VGA Driver nouveau was installed. Add nouveau.modeset=1 to boot option.
 i915	i915_modeset.sh	VGA Driver i915 was installed. Add i915.modeset=1 to boot option.
 gma500	gma500.sh	VGA Driver gma500 was installed. Disable VESA driver.
+cirrus	i915_modeset.sh	VGA Driver cirrus was installed. Disable VESA driver.

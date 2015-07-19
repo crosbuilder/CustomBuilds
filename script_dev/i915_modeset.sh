@@ -5,6 +5,8 @@
 
 addhistory $0 "$@"
 
+# NOTICE: cirrus uses this script too.
+
 # mount EFI-SYSLINUX partition
 root=`rootdev`
 #root=/dev/sda3
