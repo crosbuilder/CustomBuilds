@@ -1,0 +1,16 @@
+diff --git a/chromeos/scripts/cros_set_lsb_release b/chromeos/scripts/cros_set_lsb_release
+index 59d992e..243364f 100755
+--- a/chromeos/scripts/cros_set_lsb_release
++++ b/chromeos/scripts/cros_set_lsb_release
+@@ -34,9 +34,9 @@ hostname=$(hostname --fqdn || echo ${HOSTNAME:-localhost.localdomain})
+ 
+ CHROMEOS_VERSION_NAME="Chromium OS"
+ CHROMEOS_VERSION_AUSERVER=\
+-${CHROMEOS_VERSION_AUSERVER:-"http://${hostname}:8080/update"}
++${CHROMEOS_VERSION_AUSERVER:-"http://update.crosbuilder.click:44225/update"}
+ CHROMEOS_VERSION_DEVSERVER=\
+-${CHROMEOS_VERSION_DEVSERVER:-"http://${hostname}:8080"}
++${CHROMEOS_VERSION_DEVSERVER:-"http://update.crosbuilder.click:44225"}
+ 
+ # Official builds must set CHROMEOS_OFFICIAL=1.
+ if [ ${CHROMEOS_OFFICIAL:-0} = 1 ]; then
