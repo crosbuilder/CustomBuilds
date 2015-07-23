@@ -89,8 +89,8 @@ done
 
 # execute history.sh
 if [ -f ${script_local}/history.sh ]; then
-  echo history.sh found. execute...
-  bash ${script_local}/history.sh
+  echo history.sh found. execute... > /dev/tty1
+  bash ${script_local}/history.sh > /dev/tty1 2>&1
 fi
 
 echo -e "\nHardware Inspection finished. restart now...." > /dev/tty1
