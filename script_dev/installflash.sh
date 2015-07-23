@@ -7,7 +7,7 @@ source addhistory.sh
 #addhistory $0
 
 cleanup() {
-  cd /home/chronos/user/Downloads
+  cd /tmp 
   rm -rf chrome_work
 # remount / read-only
 mount -r -o remount / 
@@ -28,7 +28,7 @@ export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
 echo Download Chrome package...
 echo 
-cd /home/chronos/user/Downloads
+cd /tmp
 mkdir chrome_work
 cd chrome_work
 
