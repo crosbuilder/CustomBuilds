@@ -69,7 +69,7 @@ if [ ! -e /usr/local/myscript/flash_backup ]; then
 fi
 mkdir ${backupdir}
 cp -r ../PepperFlash ${backupdir}
-cp ../libffmpegsumo.so ${backupdir}
+#cp ../libffmpegsumo.so ${backupdir}
 #cp ../libwidevinecdm.so ${backupdir}
 #cp ../libwidevinecdmadapter.so ${backupdir}
 
@@ -83,7 +83,7 @@ mkdir /opt/google/chrome/PepperFlash
 cp libpepflashplayer.so /opt/google/chrome/PepperFlash -f
 cp manifest.json /opt/google/chrome/PepperFlash -f
 cd ..
-cp libffmpegsumo.so /opt/google/chrome
+#cp libffmpegsumo.so /opt/google/chrome
 #cp libwidevinecdm.so /opt/google/chrome
 #cp libwidevinecdmadapter.so /opt/google/chrome
 
