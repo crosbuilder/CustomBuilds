@@ -1,7 +1,7 @@
 #!/bin/bash
 
-source ./path.sh
-source ./getKernelPackage.sh
+. ./path.sh
+. ./getKernelPackage.sh
 
 # ${BOARD}で指定されたオーバレイで使用しているカーネルのソースディレクトリを取得する
 getKernelSourcePath() {
@@ -24,12 +24,14 @@ getKernelSourcePath() {
 	pushd . > /dev/null
 
 	cd ~/trunk/src/scripts
-	local kernel_source_path=`cros_workon --board=${BOARD} info --all | grep "${kernel_name}" | grep -e "${kernel_version}$" | cut -d " " -f 3`
+	# R44ではcros_workon info --allの結果がおかしい(sys-kernel/kernel-3_14のソースパスがkernel/v3.8となる)ので使うのをやめる
+#	local kernel_source_path=`cros_workon --board=${BOARD} info --all | grep "${kernel_name}" | grep -e "${kernel_version}$" | cut -d " " -f 3`
+#	if [ -z ${kernel_source_path} ]; then
+#		echo "[ERROR] Failed to get Kernel Source Path." >&2
+#		return 1
+#	fi
 
-	if [ -z ${kernel_source_path} ]; then
-		echo "[ERROR] Failed to get Kernel Source Path." >&2
-		return 1
-	fi
+	local kernel_source_path="src/third_party/kernel/v3.${kernel_version}"
 
 	KERNEL_SOURCE_FULLPATH=${SDK_ROOT}/${kernel_source_path}
 	echo ${KERNEL_SOURCE_FULLPATH}
