@@ -1,8 +1,8 @@
-diff --git a/app-arch/p7zip/p7zip-9.20.1-r4.ebuild b/app-arch/p7zip/p7zip-9.20.1-r4.ebuild
-index 61b9de1..9bac0c5 100644
+diff --git a/app-arch/p7zip/p7zip-9.20.1-r5.ebuild b/app-arch/p7zip/p7zip-9.20.1-r5.ebuild
+index 76e6799..e3c274f 100644
 --- a/app-arch/p7zip/p7zip-9.20.1-r5.ebuild
 +++ b/app-arch/p7zip/p7zip-9.20.1-r5.ebuild
-@@ -91,6 +91,7 @@ src_prepare() {
+@@ -94,6 +94,7 @@ src_prepare() {
  }
  
  src_compile() {
@@ -10,4 +10,3 @@ index 61b9de1..9bac0c5 100644
  	emake all3
  	if use kde || use wxwidgets; then
  		emake -- 7zG
- 
