@@ -1,5 +1,5 @@
 diff --git a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
-index d5d4de9..dad1bf0 100644
+index fb315a9..5c6973b 100644
 --- a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 +++ b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 @@ -36,7 +36,7 @@ IUSE="
@@ -11,7 +11,34 @@ index d5d4de9..dad1bf0 100644
  	+chrome_remoting
  	clang
  	component_build
-@@ -731,7 +731,7 @@ setup_test_lists() {
+@@ -285,12 +285,18 @@ set_build_defines() {
+ 		"disable_nacl=$(! use_nacl; echo10)"
+ 		"icu_use_data_file_flag=1"
+ 		"use_cras=1"
++		# create ffmpeg as shared lib
++		#"build_ffmpegsumo=0"
++		#"media_use_ffmpeg=1"
++		"ffmpeg_component=shared_library"
+ 
+ 		# Clang features.
+ 		asan=$(use10 asan)
+ 		clang=$(use10 clang)
+ 		clang_use_chrome_plugins=0
+ 		host_clang=0
++
++		
+ 	)
+ 
+ 	# Disable tcmalloc on ARMv6 since it fails to build (crbug.com/181385)
+@@ -667,7 +673,6 @@ src_prepare() {
+ 
+ setup_test_lists() {
+ 	TEST_FILES=(
+-		libffmpegsumo.so
+ 		media_unittests
+ 		sandbox_linux_unittests
+ 		ppapi_example_video_decode
+@@ -710,7 +715,7 @@ setup_test_lists() {
  setup_compile_flags() {
  	# The chrome makefiles specify -O and -g flags already, so remove the
  	# portage flags.
@@ -20,3 +47,12 @@ index d5d4de9..dad1bf0 100644
  
  	# There are some flags we want to only use in the ebuild.
  	# The rest will be exported to the simple chrome workflow.
+@@ -1156,4 +1161,8 @@ src_install() {
+ 		dodir "${chromedriver_dir}"
+ 		cp -pPR "${FROM}"/chromedriver "${D}/${chromedriver_dir}" || die
+ 	fi
++
++	# install ffmpeg shared library
++	insinto /usr/lib
++	doins "${FROM}"/lib/libffmpeg.so
+ }
