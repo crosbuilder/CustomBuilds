@@ -1,18 +1,18 @@
 #!/bin/bash
 
-source ./revisionup_ebuild.sh
+. ./revisionup_ebuild.sh
 
 if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".
 	exit
 fi
 
-# libffmpegsumo.soをtarにまとめる
+# libffmpeg.soをtarにまとめる
 
 mkdir ../addpackages/tarballs/libffmpeg-free
-cp /build/x86-pentiumm/opt/google/chrome/libffmpegsumo.so ../addpackages/tarballs/libffmpeg-free/
+cp /build/x86-pentiumm/usr/lib/libffmpeg.so ../addpackages/tarballs/libffmpeg-free/
 if [ 0 -ne $? ]; then
-	echo "[ERROR]Copy libffmpegsumo.so failed. Abort."
+	echo "[ERROR]Copy libffmpeg.so failed. Abort."
 	exit
 fi
 

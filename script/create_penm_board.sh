@@ -15,9 +15,12 @@ sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -i make.conf
 # USEフラグにpenmを追加
 sed -e 's/peerd/peerd penm/g' -i make.conf
 
+# vesaを追加
+sed -e 's/radeon/radeon vesa' -i make.conf
+
 
 # ignore collision of libffmpegsumo.so
-echo 'COLLISION_IGNORE="/opt/google/chrome/libffmpegsumo.so"' >> make.conf
+echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so"' >> make.conf
 
 # オーバレイ名を書き換える
 cd metadata
