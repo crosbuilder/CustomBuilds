@@ -44,7 +44,7 @@ mkdir /opt/google/chrome/PepperFlash
 cp libpepflashplayer.so /opt/google/chrome/PepperFlash -f
 cp manifest.json /opt/google/chrome/PepperFlash -f
 cd ..
-cp libffmpegsumo.so /opt/google/chrome
+#cp libffmpegsumo.so /opt/google/chrome
 
 echo add option to /etc/chrome_dev.conf
 
