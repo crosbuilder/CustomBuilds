@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./revisionup_ebuild.sh
+. ./revisionup_ebuild.sh
 
 if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".

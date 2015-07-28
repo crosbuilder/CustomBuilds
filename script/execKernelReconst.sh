@@ -1,9 +1,9 @@
 #!/bin/bash
 
-source ./path.sh
-source ./getKernelSourcePath.sh
-source ./getKernelPackage.sh
-source ./createBranch.sh
+. ./path.sh
+. ./getKernelSourcePath.sh
+. ./getKernelPackage.sh
+. ./createBranch.sh
 
 # カーネルソースディレクトリの取得
 kernel_path=`getKernelSourcePath`

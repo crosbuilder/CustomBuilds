@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./createBranch.sh
+. ./createBranch.sh
 
 # 指定したパッケージをインストールメディアに追加する
 # 現状ではportage-stableの下のみを対象にする。
