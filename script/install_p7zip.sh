@@ -38,7 +38,7 @@ fi
 # 9.20.1.r4ではそのままではビルドできなかったのでebuildにパッチを当てる
 patch -p1 --dry-run < ~/myenv/patches/p7zip/p7zip-9.20.1-r4.ebuild.diff
 read -p 'above is results of dry-running patch. apply patch?[N/y]' status
-if [ ${status} -eq 'y' ]; then
+if [ ${status} = 'y' ]; then
 	patch -p1 < ~/myenv/patches/p7zip/p7zip-9.20.1-r4.ebuild.diff || exit 1
 	echo patch applied.
 else

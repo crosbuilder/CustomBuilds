@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 getKernelPackageName() {
 	source ./path.sh
 	if [ -z "$BOARD" ]; then
