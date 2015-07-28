@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd `dirname $0`
 . ./script_root.sh
 source addhistory.sh
 
@@ -7,7 +8,7 @@ source addhistory.sh
 #addhistory $0
 
 cleanup() {
-  cd /home/chronos/user/Downloads
+  cd /tmp 
   rm -rf chrome_work
 # remount / read-only
 mount -r -o remount / 
@@ -28,7 +29,7 @@ export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
 echo Download Chrome package...
 echo 
-cd /home/chronos/user/Downloads
+cd /tmp
 mkdir chrome_work
 cd chrome_work
 
@@ -69,7 +70,7 @@ if [ ! -e /usr/local/myscript/flash_backup ]; then
 fi
 mkdir ${backupdir}
 cp -r ../PepperFlash ${backupdir}
-cp ../libffmpegsumo.so ${backupdir}
+#cp ../libffmpegsumo.so ${backupdir}
 #cp ../libwidevinecdm.so ${backupdir}
 #cp ../libwidevinecdmadapter.so ${backupdir}
 
@@ -83,7 +84,7 @@ mkdir /opt/google/chrome/PepperFlash
 cp libpepflashplayer.so /opt/google/chrome/PepperFlash -f
 cp manifest.json /opt/google/chrome/PepperFlash -f
 cd ..
-cp libffmpegsumo.so /opt/google/chrome
+#cp libffmpegsumo.so /opt/google/chrome
 #cp libwidevinecdm.so /opt/google/chrome
 #cp libwidevinecdmadapter.so /opt/google/chrome
 

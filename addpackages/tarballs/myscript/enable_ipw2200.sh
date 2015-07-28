@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd `dirname $0`
 source script_root.sh
 source addhistory.sh
 

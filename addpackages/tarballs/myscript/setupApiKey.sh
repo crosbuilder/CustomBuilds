@@ -14,7 +14,7 @@ if [ -n "${apiKey}" ]; then
   echo "CLIENT_SECRET:${clientSecret}"
   echo "API_KEY:      ${apiKey}"
   echo
-  read -p "Do you want to change API Key?(y/N)" status
+  read -p "Do you want to change API Key?(N/y)" status
   if [ ! "y" = ${status} ]; then
     exit
   fi
@@ -31,7 +31,7 @@ do
   echo "CLIENT SECRET is " ${clientSecret}
   echo "API KEY is       " ${apiKey}
   echo
-  read -p "Is this correct?(y/N)" status
+  read -p "Is this correct?(N/y)" status
 done
 
 mount -o remount,rw /
