@@ -50,17 +50,3 @@ index 059b6b3..c04e0e7 100755
  EOF
    info "Emitted ${SYSLINUX_DIR}/root.B.cfg"
  
-diff --git a/build_packages b/build_packages
-index 8363153..931cd49 100755
---- a/build_packages
-+++ b/build_packages
-@@ -146,7 +146,8 @@ fi
- sudo_clear_shadow_locks "/build/${FLAGS_board}"
- 
- # Setup all the emerge command/flags.
--EMERGE_FLAGS=( -uDNv --backtrack=30 --select --newrepo )
-+#EMERGE_FLAGS=( -uDNv --backtrack=30 --select --newrepo)
-+EMERGE_FLAGS=( --emptytree --backtrack=30 )
- 
- if [[ "${FLAGS_fast}" -eq "${FLAGS_TRUE}" ]]; then
-   EMERGE_CMD=(
