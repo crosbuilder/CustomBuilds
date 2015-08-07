@@ -1,0 +1,90 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 7303cc5..1b14fb3 100755
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -58,16 +58,16 @@ config("ffmpeg_dependent_config") {
+   ]
+ }
+ 
+-if (is_chromeos) {
+-  # This short-lived hack allows chromium changes to statically link ffmpeg to
+-  # be independent from chrome-os changes to ebuild files that explicitly
+-  # mention libffmpegsumo.so as a target.
+-  # TODO(chcunningham): Remove this once ebuilds are patched.
+-  shared_library("ffmpegsumo") {
+-    # Reusing an existing dummy file.
+-    sources = [ "xcode_hack.c" ]
+-  }
+-}
++#if (is_chromeos) {
++#  # This short-lived hack allows chromium changes to statically link ffmpeg to
++#  # be independent from chrome-os changes to ebuild files that explicitly
++#  # mention libffmpegsumo.so as a target.
++#  # TODO(chcunningham): Remove this once ebuilds are patched.
++#  shared_library("ffmpegsumo") {
++#    # Reusing an existing dummy file.
++#    sources = [ "xcode_hack.c" ]
++#  }
++#}
+ 
+ if (is_win) {
+   # Stub generator script and signatures of all functions used by Chrome.
+@@ -91,7 +91,7 @@ if (is_win) {
+ }
+ 
+ source_set("ffmpeg_internal") {
+-  if (build_ffmpegsumo) {
++#  if (build_ffmpegsumo) {
+     sources = ffmpeg_c_sources + ffmpeg_gas_sources + [
+       "$platform_config_root/config.h",
+       "$platform_config_root/libavutil/avconfig.h",
+@@ -360,7 +360,7 @@ source_set("ffmpeg_internal") {
+         os_config != "linux-noasm") {
+       deps += [ ":ffmpeg_yasm" ]
+     }
+-  }
++#  }
+ }
+ 
+ if (is_component_ffmpeg) {
+diff --git a/ffmpeg.gyp b/ffmpeg.gyp
+index 07f229e..702b32b 100755
+--- a/ffmpeg.gyp
++++ b/ffmpeg.gyp
+@@ -90,21 +90,21 @@
+     'sig_files': ['chromium/ffmpeg.sigs'],
+   },
+   'conditions': [
+-    ['chromeos == 1', {
+-      # This short-lived hack allows chromium changes to statically link ffmpeg to be independent
+-      # from chrome-os changes to ebuild files that explicitly mention libffmpegsumo.so as a target.
+-      # TODO(chcunningham): Remove this once ebuilds are patched.
+-      'targets': [
+-        {
+-          'target_name': 'ffmpegsumo',
+-          'type': 'loadable_module',
+-          'sources': [
+-            # Reusing an existing dummy file.
+-            'xcode_hack.c',
+-          ],
+-        },
+-      ], # targets
+-    }], # (chromeos == 1)
++#    ['chromeos == 1', {
++#      # This short-lived hack allows chromium changes to statically link ffmpeg to be independent
++#      # from chrome-os changes to ebuild files that explicitly mention libffmpegsumo.so as a target.
++#      # TODO(chcunningham): Remove this once ebuilds are patched.
++#      'targets': [
++#        {
++#          'target_name': 'ffmpegsumo',
++#          'type': 'loadable_module',
++#          'sources': [
++#            # Reusing an existing dummy file.
++#            'xcode_hack.c',
++#          ],
++#        },
++#      ], # targets
++#    }], # (chromeos == 1)
+     ['(target_arch == "ia32" or target_arch == "x64") and os_config != "linux-noasm"', {
+       'targets': [
+         {
