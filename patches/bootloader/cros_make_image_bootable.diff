@@ -1,0 +1,23 @@
+diff --git a/bin/cros_make_image_bootable b/bin/cros_make_image_bootable
+index 310c80a..f85219c 100755
+--- a/bin/cros_make_image_bootable
++++ b/bin/cros_make_image_bootable
+@@ -243,7 +243,9 @@ make_image_bootable() {
+   # This is required because postinst will copy new legacy boot configurations
+   # from rootfs partition instead of modifying existing entries in partition 12
+   # (EFI partition).
+-  if [ ${FLAGS_force_developer_mode} -eq ${FLAGS_TRUE} ]; then
++  
++  # customize: set cros_debug as defauilt for touble shooting
++  #if [ ${FLAGS_force_developer_mode} -eq ${FLAGS_TRUE} ]; then
+     append_boot_flag "${FLAGS_rootfs_mountpoint}/boot/syslinux/root.A.cfg" \
+       "cros_debug" "cros_legacy"
+     append_boot_flag "${FLAGS_rootfs_mountpoint}/boot/syslinux/root.B.cfg" \
+@@ -253,6 +255,7 @@ make_image_bootable() {
+     append_boot_flag "${FLAGS_rootfs_mountpoint}/boot/efi/boot/grub.cfg" \
+       "cros_debug" "cros_efi"
+ 
++  if [ ${FLAGS_force_developer_mode} -eq ${FLAGS_TRUE} ]; then
+     # No more modifications required after this point.
+     remount_image --safe
+   fi
