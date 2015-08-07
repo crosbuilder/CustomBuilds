@@ -1,0 +1,17 @@
+diff --git a/chromeos-base/tty/files/tty-base.conf b/chromeos-base/tty/files/tty-base.conf
+index 8158365..125832c 100644
+--- a/chromeos-base/tty/files/tty-base.conf
++++ b/chromeos-base/tty/files/tty-base.conf
+@@ -10,4 +10,11 @@ stop on stopping boot-services
+ respawn
+ 
+ # This file is generated at build time by chromeos-base/tty.
+-exec agetty 115200 %PORT% linux
++
++# execute agetty only there is no cros_debug in /proc/cmdline
++script
++  debug=`cat /proc/cmdline | grep cros_debug`
++  if [ -n "${debug}" ]; then
++    exec agetty 115200 %PORT% linux
++  fi
++end script
