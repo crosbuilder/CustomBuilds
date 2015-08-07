@@ -1,0 +1,18 @@
+diff --git a/crosh/crosh b/crosh/crosh
+index ac6a15f..b72aa40 100755
+--- a/crosh/crosh
++++ b/crosh/crosh
+@@ -246,6 +246,13 @@ load_extra_crosh() {
+     . "${crosh_dir}/crosh-dev"
+     ;;
+   esac
++
++  # check guest session
++  guest=`df -f | grep guestfs`
++  if [ -z "${guest}" ]; then
++    # load custom commands if not guest session
++    . "${crosh_dir}/crosh-custom"
++  fi
+ }
+ 
+ shell_read() {

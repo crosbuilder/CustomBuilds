@@ -1,0 +1,36 @@
+#!/bin/dash
+
+# Custom Chrosh commands. 
+
+CUSTOM_HELP='
+ devmode
+  Enter Developer Mode on next boot. 
+
+ normalmode
+  Return to Normal Mode on next boot.
+
+ rootdev
+  Display the device name of the ROOT partition.
+
+ disklist
+  Display a list of disks and partitions.
+
+'
+
+HELP="$HELP$CUSTOM_HELP"
+
+cmd_devmode() (
+  sudo /opt/myscript/devmode.sh
+)
+
+cmd_normalmode() (
+  sudo /opt/myscript/normalmode.sh
+)
+
+cmd_rootdev() (
+  rootdev
+)
+
+cmd_disklist() (
+  sudo fdisk -l
+)
