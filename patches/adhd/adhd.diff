@@ -1,0 +1,158 @@
+diff --git a/cras/src/server/audio_thread.c b/cras/src/server/audio_thread.c
+index 0907572..d101b15 100644
+--- a/cras/src/server/audio_thread.c
++++ b/cras/src/server/audio_thread.c
+@@ -1018,56 +1018,16 @@ static int get_next_stream_wake_from_list(struct dev_stream *streams,
+ 	return ret;
+ }
+ 
+-static int get_next_output_wake(struct audio_thread *thread,
++static int get_next_stream_wake(struct audio_thread *thread,
+ 				 struct timespec *min_ts,
+ 				 const struct timespec *now)
+ {
+ 	struct open_dev *adev;
+-	struct timespec sleep_time;
+-	unsigned int hw_level;
+-	int ret = 0;
+-	int rc;
++	int ret = 0; /* The total number of streams to wait on. */
+ 
+ 	DL_FOREACH(thread->open_devs[CRAS_STREAM_OUTPUT], adev)
+-		ret += get_next_stream_wake_from_list(
+-				adev->dev->streams,
+-				min_ts);
+-
+-	DL_FOREACH(thread->open_devs[CRAS_STREAM_OUTPUT], adev) {
+-		rc = cras_iodev_frames_queued(adev->dev);
+-		hw_level = (rc < 0) ? 0 : rc;
+-
+-		audio_thread_event_log_data(atlog,
+-					    AUDIO_THREAD_SET_DEV_WAKE,
+-					    adev->dev->info.idx,
+-					    adev->coarse_rate_adjust,
+-					    adev->dev->min_cb_level);
+-
+-		adev->wake_ts = *now;
+-
+-		/* Use the estimated dev rate to schedule that audio thread
+-		 * will wake up when output dev buffer level drops below
+-		 * min_cb_level.
+-		 */
+-		if (hw_level > adev->dev->min_cb_level) {
+-			double est_rate = adev->dev->ext_format->frame_rate *
+-				cras_iodev_get_est_rate_ratio(adev->dev);
+-			cras_frames_to_time_precise(
+-					hw_level - adev->dev->min_cb_level,
+-					est_rate,
+-					&sleep_time);
+-			add_timespecs(&adev->wake_ts, &sleep_time);
+-		}
+-
+-		ret++;
+-		audio_thread_event_log_data(atlog,
+-					    AUDIO_THREAD_DEV_SLEEP_TIME,
+-					    adev->dev->info.idx,
+-					    adev->wake_ts.tv_sec,
+-					    adev->wake_ts.tv_nsec);
+-		if (timespec_after(min_ts, &adev->wake_ts))
+-			*min_ts = adev->wake_ts;
+-	}
++		ret += get_next_stream_wake_from_list(adev->dev->streams,
++						      min_ts);
+ 
+ 	return ret;
+ }
+@@ -1087,13 +1047,27 @@ static int input_adev_ignore_wake(const struct open_dev *adev)
+ 	return 0;
+ }
+ 
+-static int get_next_input_wake(struct audio_thread *thread,
+-			       struct timespec *min_ts,
+-			       const struct timespec *now)
++static int get_next_dev_wake(struct audio_thread *thread,
++			     struct timespec *min_ts,
++			     const struct timespec *now)
+ {
+ 	struct open_dev *adev;
+ 	int ret = 0; /* The total number of devices to wait on. */
+ 
++	DL_FOREACH(thread->open_devs[CRAS_STREAM_OUTPUT], adev) {
++		/* Only wake up for devices when they don't have streams. */
++		if (!cras_iodev_is_open(adev->dev) || adev->dev->streams)
++			continue;
++		ret++;
++		audio_thread_event_log_data(atlog,
++					    AUDIO_THREAD_DEV_SLEEP_TIME,
++					    adev->dev->info.idx,
++					    adev->wake_ts.tv_sec,
++					    adev->wake_ts.tv_nsec);
++		if (timespec_after(min_ts, &adev->wake_ts))
++			*min_ts = adev->wake_ts;
++	}
++
+ 	DL_FOREACH(thread->open_devs[CRAS_STREAM_INPUT], adev) {
+ 		if (input_adev_ignore_wake(adev))
+ 			continue;
+@@ -1139,6 +1113,41 @@ int fill_output_no_streams(struct open_dev *adev)
+ 	return 0;
+ }
+ 
++static void set_odev_wake_times(struct open_dev *dev_list)
++{
++	struct open_dev *adev;
++	struct timespec now;
++
++	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
++
++	DL_FOREACH(dev_list, adev) {
++		struct timespec sleep_time;
++		unsigned int hw_level;
++		int rc;
++
++		if (!cras_iodev_is_open(adev->dev))
++			continue;
++
++		rc = cras_iodev_frames_queued(adev->dev);
++		hw_level = (rc < 0) ? 0 : rc;
++
++		audio_thread_event_log_data(atlog,
++					    AUDIO_THREAD_SET_DEV_WAKE,
++					    adev->dev->info.idx,
++					    adev->coarse_rate_adjust,
++					    adev->dev->min_cb_level);
++
++		adev->wake_ts = now;
++		if (hw_level < adev->dev->min_cb_level)
++			return;
++
++		cras_frames_to_time(hw_level - adev->dev->min_cb_level,
++				    adev->dev->ext_format->frame_rate,
++				    &sleep_time);
++		add_timespecs(&adev->wake_ts, &sleep_time);
++	}
++}
++
+ static int output_stream_fetch(struct audio_thread *thread)
+ {
+ 	struct open_dev *odev_list = thread->open_devs[CRAS_STREAM_OUTPUT];
+@@ -1302,6 +1311,8 @@ static int do_playback(struct audio_thread *thread)
+ 		}
+ 	}
+ 
++	set_odev_wake_times(thread->open_devs[CRAS_STREAM_OUTPUT]);
++
+ 	return 0;
+ }
+ 
+@@ -1494,8 +1505,8 @@ int fill_next_sleep_interval(struct audio_thread *thread, struct timespec *ts)
+ 	min_ts.tv_nsec = 0;
+ 	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+ 	add_timespecs(&min_ts, &now);
+-	ret = get_next_output_wake(thread, &min_ts, &now);
+-	ret += get_next_input_wake(thread, &min_ts, &now);
++	ret = get_next_stream_wake(thread, &min_ts, &now);
++	ret += get_next_dev_wake(thread, &min_ts, &now);
+ 	if (timespec_after(&min_ts, &now))
+ 		subtract_timespecs(&min_ts, &now, ts);
+ 
