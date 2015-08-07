@@ -10,7 +10,7 @@ index 59d992e..243364f 100755
 +${CHROMEOS_VERSION_AUSERVER:-"http://update.crosbuilder.click:44225/update"}
  CHROMEOS_VERSION_DEVSERVER=\
 -${CHROMEOS_VERSION_DEVSERVER:-"http://${hostname}:8080"}
-+${CHROMEOS_VERSION_DEVSERVER:-"http://update.crosbuilder.click:44225"}
++${CHROMEOS_VERSION_DEVSERVER:-"http:///updateupdate.crosbuilder.click:44225"}
  
  # Official builds must set CHROMEOS_OFFICIAL=1.
  if [ ${CHROMEOS_OFFICIAL:-0} = 1 ]; then
