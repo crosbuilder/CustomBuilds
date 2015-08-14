@@ -15,6 +15,9 @@ CUSTOM_HELP='
  disklist
   Display a list of disks and partitions.
 
+ installflash
+  Install Flash Player plugin.
+
 '
 
 HELP="$HELP$CUSTOM_HELP"
@@ -24,7 +27,7 @@ cmd_devmode() (
 )
 
 cmd_normalmode() (
-  sudo /opt/myscript/normalmode.sh
+  sudo /opt/myscript/normalmode.sh $@
 )
 
 cmd_rootdev() (
@@ -33,4 +36,8 @@ cmd_rootdev() (
 
 cmd_disklist() (
   sudo fdisk -l
+)
+
+cmd_installflash() (
+  sudo /opt/myscript/downloadflash.sh
 )
