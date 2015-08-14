@@ -1,8 +1,8 @@
 diff --git a/content/browser/compositor/gpu_process_transport_factory.cc b/content/browser/compositor/gpu_process_transport_factory.cc
-index 4fc6a67..e38ea50 100644
+index 95c3f1d..1abb988 100644
 --- a/content/browser/compositor/gpu_process_transport_factory.cc
 +++ b/content/browser/compositor/gpu_process_transport_factory.cc
-@@ -165,10 +165,11 @@ scoped_ptr<cc::OverlayCandidateValidator> CreateOverlayCandidateValidator(
+@@ -172,10 +172,11 @@ CreateOverlayCandidateValidator(gfx::AcceleratedWidget widget) {
  }
  
  static bool ShouldCreateGpuOutputSurface(ui::Compositor* compositor) {
@@ -19,10 +19,10 @@ index 4fc6a67..e38ea50 100644
  #if defined(OS_WIN)
    if (::GetProp(compositor->widget(), kForceSoftwareCompositor) &&
 diff --git a/content/browser/gpu/gpu_process_host.cc b/content/browser/gpu/gpu_process_host.cc
-index be14374..8316a6c 100644
+index 9c72997..80de8f9 100644
 --- a/content/browser/gpu/gpu_process_host.cc
 +++ b/content/browser/gpu/gpu_process_host.cc
-@@ -1035,12 +1035,13 @@ void GpuProcessHost::RecordProcessCrash() {
+@@ -1041,12 +1041,13 @@ void GpuProcessHost::RecordProcessCrash() {
        if ((gpu_recent_crash_count_ >= kGpuMaxCrashCount &&
             !disable_crash_limit) ||
            !initialized_) {
