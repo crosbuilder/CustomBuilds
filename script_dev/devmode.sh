@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# historyには登録しない
+cd `dirname $0`
+. ./script_root.sh
+# historyからnormalmodeを消す
+. ./delhistory.sh
+delhistory /opt/myscript/normalmode.sh > /dev/null
 
 cd /tmp
 if [ ! -e /tmp/mnt ]; then

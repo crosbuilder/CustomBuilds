@@ -1,6 +1,15 @@
 #!/bin/bash
 
-# historyには登録しない
+cd `dirname $0`
+# -fオプションがあるときだけhistoryに登録する
+. ./script_root.sh
+. ./addhistory.sh
+if [ "$1" = "-f" ]; then
+  msg=" -f option specified. Normal mode will be forced after updating the Chromium OS."
+  addhistory /opt/myscript/normalmode.sh -q > /dev/null
+else
+  msg=" ( After updating the Chromium OS, it will return to Developer mode. Use -f option to force Normal mode after the update. )"
+fi
 
 cd /tmp
 if [ ! -e /tmp/mnt ]; then
@@ -35,4 +44,7 @@ sudo umount /tmp/mnt
 rmdir /tmp/mnt
 
 echo Return to Normal mode on next boot. 
+if [ "$1" != "-q" ]; then
+  echo ${msg}
+fi
 
