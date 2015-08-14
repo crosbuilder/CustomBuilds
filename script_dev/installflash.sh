@@ -10,63 +10,54 @@ source addhistory.sh
 cleanup() {
   cd /tmp 
   rm -rf chrome_work
-# remount / read-only
-mount -r -o remount / 
+  unlink ${script_root}/pre-shutdown.sh
+
+  # remount / read-only
+  mount -r -o remount / 
 }
+
+# enable echo on /dev/tty1
+(stty -F /dev/tty1 echo echonl icanon iexten isig; sleep 5) > /dev/tty1
 
 if [ -e /opt/google/chrome/PepperFlash/manifest.json ]; then
 
   old_version=`grep version /opt/google/chrome/PepperFlash/manifest.json | grep -o -E '[0-9\.]*'`
-  echo Installed Flash Version: ${old_version}
-  echo Start update...
+  echo -e "Installed Flash Version: ${old_version}\n" | tee /dev/tty1 | logger -t myscript
+  echo -e "Start update...\n" | tee /dev/tty1 | logger -t myscript
 else
-  echo "Flash isn't installed."
-  echo Start new installation...
+  echo -e "Flash isn't installed.\n" | tee /dev/tty1 | logger -t myscript
+  echo -e "Start new installation...\n" | tee /dev/tty1 | logger -t myscript
 fi
 
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
 export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
-echo Download Chrome package...
-echo 
-cd /tmp
-mkdir chrome_work
-cd chrome_work
 
-if [ -e google-chrome-stable_current_i386.deb ]; then
-  rm google-chrome-stable_current_i386.deb
-fi
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_i386.deb
-if [ 0 -ne $? ]; then
-  echo Download failed. Abort..
-  exit 1
-fi
-echo
-echo Download Completed.
-echo
-echo Extract package...
-ar x google-chrome-stable_current_i386.deb
-#tar xf data.tar.lzma --lzma
-xz -dv data.tar.xz
-tar xf data.tar
-echo 
-echo Extracted.
-echo
-echo get flash version...
-cd opt/google/chrome/PepperFlash
-flash_version=`grep version manifest.json | grep -o -E '[0-9\.]*'`
-if [ -n version ]; then
-  echo flash version is ${flash_version}
-else
-  echo failed to get flash version. Abort.
+# check workdir is exist
+if [ ! -d /tmp/chrome_work ]; then
+  echo -e "/tmp/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
+  echo -e "Please run downloadflash.sh before.\n" | tee /dev/tty1 | logger -t myscript
   cleanup
   exit 1
 fi
 
-echo copy plugins for rollback...
-backupdir=/usr/local/myscript/flash_backup/${flash_version}
-if [ ! -e /usr/local/myscript/flash_backup ]; then
-  mkdir /usr/local/myscript/flash_backup
+cd /tmp/chrome_work
+
+echo -e "get flash version...\n" | tee /dev/tty1 | logger -t myscript
+cd opt/google/chrome/PepperFlash
+flash_version=`grep version manifest.json | grep -o -E '[0-9\.]*'`
+if [ -n version ]; then
+  echo -e "flash version is ${flash_version}\n" | tee /dev/tty1 | logger -t myscript
+else
+  echo -e "failed to get flash version. Abort.\n" | tee /dev/tty1 | logger -t myscript
+  cleanup
+  exit 1
+fi
+
+echo -e "copy plugins for rollback...\n" | tee /dev/tty1 | logger -t myscript
+backupdir=${script_local}/flash_backup/${flash_version}
+if [ ! -e ${script_local}/flash_backup ]; then
+  mkdir ${script_local}/flash_backup
 fi
 mkdir ${backupdir}
 cp -r ../PepperFlash ${backupdir}
@@ -74,12 +65,12 @@ cp -r ../PepperFlash ${backupdir}
 #cp ../libwidevinecdm.so ${backupdir}
 #cp ../libwidevinecdmadapter.so ${backupdir}
 
-echo install flash plugin
+echo -e "install flash plugin\n" | tee /dev/tty1 | logger -t myscript
 
 # remount / writable
 mount -o remount,rw /
 
-echo copy plugins
+echo -e "copy plugins\n" | tee /dev/tty1 | logger -t myscript
 mkdir /opt/google/chrome/PepperFlash
 cp libpepflashplayer.so /opt/google/chrome/PepperFlash -f
 cp manifest.json /opt/google/chrome/PepperFlash -f
@@ -88,7 +79,7 @@ cd ..
 #cp libwidevinecdm.so /opt/google/chrome
 #cp libwidevinecdmadapter.so /opt/google/chrome
 
-echo add option to /etc/chrome_dev.conf
+echo -e "add option to /etc/chrome_dev.conf\n" | tee /dev/tty1 | logger -t myscript
 
 sed -e '/^--ppapi-flash-path=\/opt\/google\/chrome\/PepperFlash\/libpepflashplayer.so/d' -i /etc/chrome_dev.conf 
 sed -e '/^--ppapi-flash-version.*/d' -i /etc/chrome_dev.conf
@@ -96,8 +87,6 @@ sed -e '/^--ppapi-flash-version.*/d' -i /etc/chrome_dev.conf
 echo '--ppapi-flash-path=/opt/google/chrome/PepperFlash/libpepflashplayer.so' >> /etc/chrome_dev.conf
 echo "--ppapi-flash-version=${flash_version}" >> /etc/chrome_dev.conf
 
+echo -e "The installation is Completed.\n" | tee /dev/tty1 | logger -t myscript
 cleanup
-echo install Completed.
 
-echo 
-echo Please Restert your machine.
