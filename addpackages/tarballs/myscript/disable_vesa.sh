@@ -11,7 +11,7 @@ mount -o remount,rw /
 cd /usr/lib/xorg/modules/drivers/
 if [ -f vesa_drv.so ]; then
   mv vesa_drv.so vesa_drv.so-
-  echo disable vesa driver > /dev/tty1
+  echo disable vesa driver | tee /dev/tty1 | logger -t myscript
 fi
 
 

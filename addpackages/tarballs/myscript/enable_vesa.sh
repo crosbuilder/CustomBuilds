@@ -14,5 +14,5 @@ if [ -f vesa_drv.so- ]; then
 fi
 cd /etc
 echo X_ROOT >> ui_use_flags.txt
-echo enable VESA. change X user to root > /dev/tty1
+echo enable VESA. change X user to root | tee /dev/tty1 | logger -t myscript
 
