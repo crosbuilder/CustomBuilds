@@ -16,7 +16,7 @@ sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -i make.conf
 sed -e 's/peerd/peerd penm/g' -i make.conf
 
 # vesaを追加
-sed -e 's/radeon/radeon vesa' -i make.conf
+sed -e 's/radeon/radeon vesa/g' -i make.conf
 
 
 # ignore collision of libffmpegsumo.so
