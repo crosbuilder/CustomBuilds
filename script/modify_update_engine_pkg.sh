@@ -12,6 +12,10 @@ fi
 echo copy public key to package dir
 PACKAGE_DIR=~/trunk/src/third_party/chromiumos-overlay/chromeos-base/update_engine/
 cp ~/keys/publickey.pem ${PACKAGE_DIR}/files/update-payload-key.pub.pem
+if [ 0 -ne $? ]; then
+  echo copy public key failed. please check public key file in ~/keys
+  exit 1
+fi
 
 # ebuildファイルに公開鍵のインストール処理を追加するパッチを当てる
 echo patching ebuild to install public key.
