@@ -5,14 +5,14 @@ patch -p1 --dry-run < ~/myenv/patches/chromiumos-overlay/crosh/crosh-9999.ebuild
 
 read -p 'check dry-run patching result and if NG then press Ctrl-C ' status
 
-patch -p1 --dry-run < ~/myenv/patches/chromiumos-overlay/crosh/crosh-9999.ebuild.diff
+patch -p1 < ~/myenv/patches/chromiumos-overlay/crosh/crosh-9999.ebuild.diff
 
 cd ~/trunk/src/platform2/
-patch -p1 --dry-run < ~/myenv/patches/platform2/crosh.diff checking file crosh/crosh
+patch -p1 --dry-run < ~/myenv/patches/platform2/crosh.diff
 
 read -p 'check dry-run patching result and if NG then press Ctrl-C ' status
 
-patch -p1 --dry-run < ~/myenv/patches/platform2/crosh.diff checking file crosh/crosh
+patch -p1 < ~/myenv/patches/platform2/crosh.diff
 
 #cp cp ~/myenv/patches/platform2/crosh-custom ./crosh/
 cd /mnt/host/source/src/platform2/crosh
