@@ -8,7 +8,7 @@ if [ "$1" = "-f" ]; then
   msg=" -f option specified. Normal mode will be forced after updating the Chromium OS."
   addhistory /opt/myscript/normalmode.sh -q > /dev/null
 else
-  msg=" ( After updating the Chromium OS, it will return to Developer mode. Use -f option to force Normal mode after the update. )"
+  msg=" ( If you update Chromium OS, PC will return to Developer mode. Use -f option to set Normal mode after the update. )"
 fi
 
 cd /tmp

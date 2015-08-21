@@ -56,7 +56,7 @@ if [ 0 -ne $? ]; then
   exit 1
 fi
 
-ln -s ${script_root}/installflash.sh ${script_root}/pre-shutdown.sh
+ln -s ${script_root}/installflash.sh ${script_local}/pre-shutdown.sh
 if [ 0 -ne $? ]; then
   echo Failed to create symlink. Abort..
   exit 1

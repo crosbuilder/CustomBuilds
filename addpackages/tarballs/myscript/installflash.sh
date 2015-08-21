@@ -10,7 +10,7 @@ source addhistory.sh
 cleanup() {
   cd /tmp 
   rm -rf chrome_work
-  unlink ${script_root}/pre-shutdown.sh
+  unlink ${script_local}/pre-shutdown.sh
 
   # remount / read-only
   mount -r -o remount / 
