@@ -61,7 +61,7 @@ cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
 search=`grep 'myscript' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo myscript is not included in base overlay. append to base overlay now.
-        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tapp-misc\/myscript' -i target-chromium-os-1.ebuild || exit 1
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( app-misc\/myscript )' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else

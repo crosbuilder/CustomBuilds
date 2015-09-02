@@ -42,8 +42,8 @@ cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
 search=`grep 'app-arch/zip' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo zip is not included in base overlay. append to base overlay now.
-        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tapp-arch\/zip' -i target-chromium-os-1.ebuild || exit 1
-        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tapp-arch\/unzip' -i target-chromium-os-1.ebuild || exit 1
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( app-arch\/zip )' -i target-chromium-os-1.ebuild || exit 1
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( app-arch\/unzip )' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else
