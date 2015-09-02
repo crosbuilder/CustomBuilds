@@ -1,0 +1,22 @@
+diff --git a/x11-base/xorg-server/xorg-server-1.12.4-r41.ebuild b/x11-base/xorg-server/xorg-server-1.12.4-r41.ebuild
+deleted file mode 120000
+index 1c5b53a..0000000
+--- a/x11-base/xorg-server/xorg-server-1.12.4-r41.ebuild
++++ /dev/null
+@@ -1 +0,0 @@
+-xorg-server-1.12.4.ebuild
+\ No newline at end of file
+diff --git a/x11-base/xorg-server/xorg-server-1.12.4.ebuild b/x11-base/xorg-server/xorg-server-1.12.4.ebuild
+index b088906..7bab5e0 100644
+--- a/x11-base/xorg-server/xorg-server-1.12.4.ebuild
++++ b/x11-base/xorg-server/xorg-server-1.12.4.ebuild
+@@ -294,6 +294,9 @@ pkg_setup() {
+ 
+ 	# Make breakage less obvious, bug #402285.
+ 	replace-flags -O3 -O2
++	append-cppflags -fstack-protector
++	append-flags -fstack-protector
++	append-ldflags -fstack-protector
+ }
+ 
+ src_install() {
