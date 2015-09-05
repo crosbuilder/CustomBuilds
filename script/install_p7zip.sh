@@ -51,7 +51,7 @@ cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
 search=`grep 'p7zip' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo p7zip is not included in base overlay. append to base overlay now.
-        sed -e '/^RDEPEND="${RDEPEND}/a \\tapp-arch\/p7zip' -i target-chromium-os-1.ebuild || exit 1
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( app-arch\/p7zip )' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else
