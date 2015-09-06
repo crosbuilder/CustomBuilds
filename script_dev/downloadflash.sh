@@ -22,7 +22,7 @@ export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
 echo Download the Chrome package...
 echo 
-cd /tmp
+cd /var/tmp
 mkdir chrome_work
 cd chrome_work
 

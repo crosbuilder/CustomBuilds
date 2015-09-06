@@ -26,14 +26,14 @@ export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
 
 # check workdir is exist
-if [ ! -d /tmp/chrome_work ]; then
-  echo -e "/tmp/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
+if [ ! -d /var/tmp/chrome_work ]; then
+  echo -e "/var/tmp/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
   echo -e "Please run downloadflash.sh before.\n" | tee /dev/tty1 | logger -t myscript
   cleanup
   exit 1
 fi
 
-cd /tmp/chrome_work
+cd /var/tmp/chrome_work
 
 echo -e "get flash version...\n" | tee /dev/tty1 | logger -t myscript
 cd opt/google/chrome/PepperFlash
