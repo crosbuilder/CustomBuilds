@@ -2,42 +2,42 @@
 
 # Custom Chrosh commands. 
 
-CUSTOM_HELP='
- devmode
-  Enter Developer Mode on next boot. 
-
- normalmode
-  Return to Normal Mode on next boot.
-
- rootdev
-  Display the device name of the ROOT partition.
-
- disklist
-  Display a list of disks and partitions.
-
- installflash
-  Install Flash Player plugin.
-
+USAGE_devmode=''
+HELP_devmode='
+  Enter Developer Mode on next boot.
 '
-
-HELP="$HELP$CUSTOM_HELP"
-
 cmd_devmode() (
   sudo /opt/myscript/devmode.sh
 )
 
+USAGE_normalmode='[ -f]'
+HELP_normalmode='
+  Return to Normal Mode on next boot.
+'
 cmd_normalmode() (
   sudo /opt/myscript/normalmode.sh $@
 )
 
+USAGE_rootdev=''
+HELP_rootdev='
+  Display the device name of the ROOT partition.
+'
 cmd_rootdev() (
   rootdev
 )
 
+USAGE_disklist=''
+HELP_disklist='
+  Display a list of disks and partitions.
+'
 cmd_disklist() (
   sudo fdisk -l
 )
 
+USAGE_installflash=''
+HELP_installflash='
+  Install Flash Player plugin.
+'
 cmd_installflash() (
   sudo /opt/myscript/downloadflash.sh
 )
