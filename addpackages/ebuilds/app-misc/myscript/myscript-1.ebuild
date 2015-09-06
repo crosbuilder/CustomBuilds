@@ -1,10 +1,10 @@
 # install misc helper scripts
 
 DESCRIPTION="Install helper scripts"
-HOMEPAGE="http://pcmemo.take-uma.net/"
+HOMEPAGE="http://chromiumosde.gozaru.jp/"
 SRC_URI="http://192.168.12.14/chromium/myscript.tar.gz"
 
-LICENSE="GPL-2"
+LICENSE="BSD-Google"
 SLOT="0"
 KEYWORDS="*"
 IUSE=""
