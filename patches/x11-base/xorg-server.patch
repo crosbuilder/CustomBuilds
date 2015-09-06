@@ -1,11 +1,3 @@
-diff --git a/x11-base/xorg-server/xorg-server-1.12.4-r41.ebuild b/x11-base/xorg-server/xorg-server-1.12.4-r41.ebuild
-deleted file mode 120000
-index 1c5b53a..0000000
---- a/x11-base/xorg-server/xorg-server-1.12.4-r41.ebuild
-+++ /dev/null
-@@ -1 +0,0 @@
--xorg-server-1.12.4.ebuild
-\ No newline at end of file
 diff --git a/x11-base/xorg-server/xorg-server-1.12.4.ebuild b/x11-base/xorg-server/xorg-server-1.12.4.ebuild
 index b088906..7bab5e0 100644
 --- a/x11-base/xorg-server/xorg-server-1.12.4.ebuild
