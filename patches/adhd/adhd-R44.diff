@@ -1,8 +1,8 @@
 diff --git a/cras/src/server/audio_thread.c b/cras/src/server/audio_thread.c
-index c883af1..ac618c3 100644
+index 0907572..d101b15 100644
 --- a/cras/src/server/audio_thread.c
 +++ b/cras/src/server/audio_thread.c
-@@ -994,56 +994,16 @@ static int get_next_stream_wake_from_list(struct dev_stream *streams,
+@@ -1018,56 +1018,16 @@ static int get_next_stream_wake_from_list(struct dev_stream *streams,
  	return ret;
  }
  
@@ -63,7 +63,7 @@ index c883af1..ac618c3 100644
  
  	return ret;
  }
-@@ -1063,13 +1023,27 @@ static int input_adev_ignore_wake(const struct open_dev *adev)
+@@ -1087,13 +1047,27 @@ static int input_adev_ignore_wake(const struct open_dev *adev)
  	return 0;
  }
  
@@ -94,7 +94,7 @@ index c883af1..ac618c3 100644
  	DL_FOREACH(thread->open_devs[CRAS_STREAM_INPUT], adev) {
  		if (input_adev_ignore_wake(adev))
  			continue;
-@@ -1116,6 +1090,41 @@ int fill_output_no_streams(struct open_dev *adev)
+@@ -1139,6 +1113,41 @@ int fill_output_no_streams(struct open_dev *adev)
  	return 0;
  }
  
@@ -136,7 +136,7 @@ index c883af1..ac618c3 100644
  static int output_stream_fetch(struct audio_thread *thread)
  {
  	struct open_dev *odev_list = thread->open_devs[CRAS_STREAM_OUTPUT];
-@@ -1279,6 +1288,8 @@ static int do_playback(struct audio_thread *thread)
+@@ -1302,6 +1311,8 @@ static int do_playback(struct audio_thread *thread)
  		}
  	}
  
@@ -145,7 +145,7 @@ index c883af1..ac618c3 100644
  	return 0;
  }
  
-@@ -1471,8 +1482,8 @@ int fill_next_sleep_interval(struct audio_thread *thread, struct timespec *ts)
+@@ -1494,8 +1505,8 @@ int fill_next_sleep_interval(struct audio_thread *thread, struct timespec *ts)
  	min_ts.tv_nsec = 0;
  	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
  	add_timespecs(&min_ts, &now);
