@@ -40,7 +40,7 @@ if [ -z "$g" ]; then
   cp /etc/init/wpasupplicant.conf /etc/init/wpasupplicant.conf.old
   sed -e "s@/usr/sbin/wpa_supplicant\(.*$\)@/usr/sbin/wpa_supplicant -B -Dwext -i \${dev} \1 -c ${script_root}/wpa.conf@" -i /etc/init/wpasupplicant.conf
   sed -e "/^respawn$/a respawn limit 20 20" -i /etc/init/wpasupplicant.conf
-  sed -e "/exec minijail0/i sleep 3" -i /etc/init/wpasupplicant.conf
+  #sed -e "/exec minijail0/i sleep 3" -i /etc/init/wpasupplicant.conf
   sed -e "/exec minijail0/i dev=\`${script_root}/find_wirelessdev.sh\`" -i /etc/init/wpasupplicant.conf
   echo wpasupplicant.conf has been modified.
 else

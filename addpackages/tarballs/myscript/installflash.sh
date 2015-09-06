@@ -7,14 +7,6 @@ source addhistory.sh
 # installflashはヒストリに記録しない（必ず手動で起動してインストールする）
 #addhistory $0
 
-cleanup() {
-  cd /tmp 
-  rm -rf chrome_work
-  unlink ${script_local}/pre-shutdown.sh
-
-  # remount / read-only
-  mount -r -o remount / 
-}
 
 # enable echo on /dev/tty1
 (stty -F /dev/tty1 echo echonl icanon iexten isig; sleep 5) > /dev/tty1
@@ -34,14 +26,14 @@ export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
 
 # check workdir is exist
-if [ ! -d /tmp/chrome_work ]; then
-  echo -e "/tmp/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
+if [ ! -d /var/tmp/chrome_work ]; then
+  echo -e "/var/tmp/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
   echo -e "Please run downloadflash.sh before.\n" | tee /dev/tty1 | logger -t myscript
   cleanup
   exit 1
 fi
 
-cd /tmp/chrome_work
+cd /var/tmp/chrome_work
 
 echo -e "get flash version...\n" | tee /dev/tty1 | logger -t myscript
 cd opt/google/chrome/PepperFlash
@@ -88,5 +80,13 @@ echo '--ppapi-flash-path=/opt/google/chrome/PepperFlash/libpepflashplayer.so' >>
 echo "--ppapi-flash-version=${flash_version}" >> /etc/chrome_dev.conf
 
 echo -e "The installation is Completed.\n" | tee /dev/tty1 | logger -t myscript
-cleanup
+  echo script_local=${script_local} | tee /dev/tty1 | logger -t myscript
 
+  echo cleanup... | tee /dev/tty1 | logger -t myscript
+  cd /tmp 
+  rm -rf chrome_work
+#  unlink ${script_local}/pre-shutdown.sh 2>&1 | tee /dev/tty1 | logger -t myscript
+  unlink /mnt/stateful_partition/dev_image/myscript/pre-shutdown.sh 2>&1 | tee /dev/tty1 | logger -t myscript
+
+  # remount / read-only
+  mount -r -o remount / 
