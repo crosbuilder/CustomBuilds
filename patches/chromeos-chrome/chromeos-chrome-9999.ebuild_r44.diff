@@ -30,6 +30,14 @@ index fb315a9..5c6973b 100644
  	)
  
  	# Disable tcmalloc on ARMv6 since it fails to build (crbug.com/181385)
+@@ -667,7 +673,6 @@ src_prepare() {
+ 
+ setup_test_lists() {
+ 	TEST_FILES=(
+-		libffmpegsumo.so
+ 		media_unittests
+ 		sandbox_linux_unittests
+ 		ppapi_example_video_decode
 @@ -710,7 +715,7 @@ setup_test_lists() {
  setup_compile_flags() {
  	# The chrome makefiles specify -O and -g flags already, so remove the
