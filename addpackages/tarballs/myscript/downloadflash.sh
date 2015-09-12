@@ -22,7 +22,7 @@ export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
 echo Download the Chrome package...
 echo 
-cd /var/tmp
+cd /mnt/stateful_partition/dev_image/myscript
 mkdir chrome_work
 cd chrome_work
 
@@ -32,6 +32,8 @@ fi
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_i386.deb
 if [ 0 -ne $? ]; then
   echo Download failed. Abort..
+  cd ..
+  rm -rf chrome_work
   exit 1
 fi
 echo
@@ -40,9 +42,28 @@ echo
 
 echo Extract the package...
 ar x google-chrome-stable_current_i386.deb
+if [ 0 -ne $? ]; then
+  echo "Failed to extract package(ar). Abort.."
+  cd ..
+  rm -rf chrome_work
+  exit 1
+fi
 #tar xf data.tar.lzma --lzma
 xz -dv data.tar.xz
+if [ 0 -ne $? ]; then
+  echo "Failed to extract package(xz). Abort.."
+  cd ..
+  rm -rf chrome_work
+  exit 1
+fi
+
 tar xf data.tar
+if [ 0 -ne $? ]; then
+  echo Failed to unpack package. Abort..
+  cd ..
+  rm -rf chrome_work
+  exit 1
+fi
 echo 
 echo Extracted.
 echo
@@ -53,12 +74,16 @@ echo Create symlink.
 mount -o remount,rw /
 if [ 0 -ne $? ]; then
   echo Failed to remount root partition. Abort..
+  cd ..
+  rm -rf chrome_work
   exit 1
 fi
 
 ln -s ${script_root}/installflash.sh ${script_local}/pre-shutdown.sh
 if [ 0 -ne $? ]; then
   echo Failed to create symlink. Abort..
+  cd ..
+  rm -rf chrome_work
   exit 1
 fi
 
