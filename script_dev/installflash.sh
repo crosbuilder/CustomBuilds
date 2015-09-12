@@ -26,14 +26,14 @@ export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
 
 # check workdir is exist
-if [ ! -d /var/tmp/chrome_work ]; then
-  echo -e "/var/tmp/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
+if [ ! -d /mnt/stateful_partition/dev_image/myscript/chrome_work ]; then
+  echo -e "/mnt/stateful_partition/dev_image/myscript/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
   echo -e "Please run downloadflash.sh before.\n" | tee /dev/tty1 | logger -t myscript
   cleanup
   exit 1
 fi
 
-cd /var/tmp/chrome_work
+cd /mnt/stateful_partition/dev_image/myscript/chrome_work
 
 echo -e "get flash version...\n" | tee /dev/tty1 | logger -t myscript
 cd opt/google/chrome/PepperFlash
@@ -83,7 +83,7 @@ echo -e "The installation is Completed.\n" | tee /dev/tty1 | logger -t myscript
   echo script_local=${script_local} | tee /dev/tty1 | logger -t myscript
 
   echo cleanup... | tee /dev/tty1 | logger -t myscript
-  cd /tmp 
+  cd /mnt/stateful_partition/dev_image/myscript 
   rm -rf chrome_work
 #  unlink ${script_local}/pre-shutdown.sh 2>&1 | tee /dev/tty1 | logger -t myscript
   unlink /mnt/stateful_partition/dev_image/myscript/pre-shutdown.sh 2>&1 | tee /dev/tty1 | logger -t myscript
