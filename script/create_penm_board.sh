@@ -18,6 +18,9 @@ sed -e 's/peerd/peerd penm/g' -i make.conf
 # ignore collision of libffmpeg.so
 echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so"' >> make.conf
 
+# broadcom wifi用ファームウェアを追加
+sed -e 's/iwlwifi-all/iwlwifi-all brcmfmac-all/g' -i make.conf
+
 # vesaを追加
 cd profiles/base
 sed -e 's/radeon/radeon vesa/g' -i make.defaults
