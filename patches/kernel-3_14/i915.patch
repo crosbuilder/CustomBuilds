@@ -1,80 +1,17 @@
-diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
-index da4a070..caca105 100644
---- a/drivers/gpu/drm/i915/i915_drv.h
-+++ b/drivers/gpu/drm/i915/i915_drv.h
-@@ -1224,15 +1224,6 @@ struct intel_vbt_data {
- 		u16 pwm_freq_hz;
- 		bool active_low_pwm;
- 
--		/* NB: We expect this to be an absolute value (percentage)
--		 * indicating the minimum duty cycle. This value is provided by
--		 * the panel spec, and should be provided in some way/shape/form
--		 * from VBIOS.  It's unclear as of this point whether or not
--		 * this is the proper way.
--		 *
--		 * Example, 5 = 5% = .05
--		 */
--		u8 min_duty_cycle_percentage;
- 		u8 min_brightness;	/* min_brightness/255 of max */
- 	} backlight;
- 
 diff --git a/drivers/gpu/drm/i915/intel_bios.c b/drivers/gpu/drm/i915/intel_bios.c
-index 673d351..d7245c3 100644
+index 673d351..6c6b4f2 100644
 --- a/drivers/gpu/drm/i915/intel_bios.c
 +++ b/drivers/gpu/drm/i915/intel_bios.c
-@@ -281,20 +281,6 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
- 	}
- }
- 
--#define VLV_DEFAULT_MIN_DUTY_CYCLE_RATIO 5
--static void fake_vlv_backlight(struct drm_i915_private *dev_priv)
--{
--	dev_priv->vbt.backlight.pwm_freq_hz = 200;
--	dev_priv->vbt.backlight.active_low_pwm = 0;
--	dev_priv->vbt.backlight.min_duty_cycle_percentage = VLV_DEFAULT_MIN_DUTY_CYCLE_RATIO;
--
--	DRM_DEBUG_KMS("VBT backlight PWM modulation frequency %u Hz, "
--		      "active %s, min brightness %u\n",
--		      dev_priv->vbt.backlight.pwm_freq_hz,
--		      dev_priv->vbt.backlight.active_low_pwm ? "low" : "high",
--		      dev_priv->vbt.backlight.min_duty_cycle_percentage);
--}
--
- static void
- parse_lfp_backlight(struct drm_i915_private *dev_priv, struct bdb_header *bdb)
- {
-@@ -302,10 +288,8 @@ parse_lfp_backlight(struct drm_i915_private *dev_priv, struct bdb_header *bdb)
+@@ -302,8 +302,10 @@ parse_lfp_backlight(struct drm_i915_private *dev_priv, struct bdb_header *bdb)
  	const struct bdb_lfp_backlight_data_entry *entry;
  
  	backlight_data = find_section(bdb, BDB_LVDS_BACKLIGHT);
 -	if (!backlight_data && IS_VALLEYVIEW(dev_priv->dev)) {
 -		fake_vlv_backlight(dev_priv);
-+	if (!backlight_data)
++	if (!backlight_data){
++		if (IS_VALLEYVIEW(dev_priv->dev)) {
++			fake_vlv_backlight(dev_priv);
++		}
  		return;
--	}
+ 	}
  
- 	if (backlight_data->entry_size != sizeof(backlight_data->data[0])) {
- 		DRM_DEBUG_KMS("Unsupported backlight data entry size %u\n",
-@@ -319,22 +303,6 @@ parse_lfp_backlight(struct drm_i915_private *dev_priv, struct bdb_header *bdb)
- 	dev_priv->vbt.backlight.active_low_pwm = entry->active_low_pwm;
- 	dev_priv->vbt.backlight.min_brightness = entry->min_brightness;
- 
--	/* NB: It's probably safe to do this for !VLV platforms too. */
--	if (IS_VALLEYVIEW(dev_priv->dev) && !entry->min_brightness)
--		dev_priv->vbt.backlight.min_duty_cycle_percentage = VLV_DEFAULT_MIN_DUTY_CYCLE_RATIO;
--	else if (entry->min_brightness) {
--		/* Scale min_duty_cycle_percentage down to an absolute value */
--		u32 scaled_bright = entry->min_brightness;
--		u32 abs_bright = scaled_bright * 100 / 255;
--		DRM_DEBUG_KMS("Scaling VBT brightness from %d down to absolute %d\n",
--				scaled_bright, abs_bright);
--		dev_priv->vbt.backlight.min_duty_cycle_percentage = abs_bright;
--	}
--
--	/* All platforms should have a PWM */
--	if (WARN_ON(!dev_priv->vbt.backlight.pwm_freq_hz))
--		dev_priv->vbt.backlight.pwm_freq_hz = 200;
--
- 	DRM_DEBUG_KMS("VBT backlight PWM modulation frequency %u Hz, "
- 		      "active %s, min brightness %u, level %u\n",
- 		      dev_priv->vbt.backlight.pwm_freq_hz,
