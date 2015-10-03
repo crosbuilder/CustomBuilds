@@ -1,0 +1,22 @@
+diff --git a/sys-kernel/linux-firmware/linux-firmware-9999.ebuild b/sys-kernel/linux-firmware/linux-firmware-9999.ebuild
+index afc1020..29c6857 100644
+--- a/sys-kernel/linux-firmware/linux-firmware-9999.ebuild
++++ b/sys-kernel/linux-firmware/linux-firmware-9999.ebuild
+@@ -120,7 +120,7 @@ src_install() {
+ 	local x
+ 	insinto "${FIRMWARE_INSTALL_ROOT}"
+ 	use_fw ath9k_htc && doins htc_*.fw
+-	use_fw bcm4354-bt && doins_subdir brcm/BCM4354_*.hcd
++	use_fw bcm4354-bt && doins_subdir brcm/BCM4354_*.hcd && doins_subdir brcm/bcm*
+ 	use_fw cros-pd && doins_subdir cros-pd/*
+ 	use_fw fw_sst && doins_subdir intel/fw_sst*
+ 	use_fw fw_sst2 && doins_subdir intel/IntcSST2.bin
+@@ -157,7 +157,7 @@ src_install() {
+ 	for x in "${IUSE_BRCMWIFI[@]}"; do
+ 		use_fw ${x} || continue
+ 		case ${x} in
+-		brcmfmac-all)      doins_subdir brcm/brcmfmac* ;;
++		brcmfmac-all)      doins_subdir brcm/brcmfmac* && doins_subdir brcm/bcm*;;
+ 		brcmfmac4354-sdio) doins_subdir brcm/brcmfmac4354-sdio.* ;;
+ 		brcmfmac4356-pcie) doins_subdir brcm/brcmfmac4356-pcie.* ;;
+ 		esac
