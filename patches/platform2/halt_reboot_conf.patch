@@ -1,7 +1,7 @@
 diff --git a/init/halt.conf b/init/halt.conf
 index 06e1893..a462409 100644
---- a/init/halt.conf
-+++ b/init/halt.conf
+--- a/init/halt/halt.conf
++++ b/init/halt/halt.conf
 @@ -8,5 +8,10 @@ author          "chromium-os-dev@chromium.org"
  start on runlevel 0
  stop on runlevel [!0]
