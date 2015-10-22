@@ -15,8 +15,8 @@ sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -i make.conf
 # USEフラグにpenmを追加
 sed -e 's/peerd/peerd penm/g' -i make.conf
 
-# ignore collision of libffmpeg.so
-echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so"' >> make.conf
+# ignore collision of libffmpeg.so and ar
+echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so /usr/bin/ar"' >> make.conf
 
 # broadcom wifi用ファームウェアを追加
 sed -e 's/iwlwifi-all/iwlwifi-all brcmfmac-all/g' -i make.conf
