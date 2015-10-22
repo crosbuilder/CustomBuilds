@@ -1,13 +1,13 @@
 diff --git a/chromeos-base/update_engine/update_engine-9999.ebuild b/chromeos-base/update_engine/update_engine-9999.ebuild
-index fcf0176..6cc37f4 100644
+index 213f8be..99e8508 100644
 --- a/chromeos-base/update_engine/update_engine-9999.ebuild
 +++ b/chromeos-base/update_engine/update_engine-9999.ebuild
-@@ -109,4 +109,8 @@ src_install() {
- 
- 	insinto /etc/init
- 	doins init/update-engine.conf
+@@ -133,4 +133,8 @@ src_install() {
+ 	insinto "/usr/$(get_libdir)/pkgconfig"
+ 	doins "${OUT}/libupdate_engine-client.pc"
+ 	doins "${OUT}/libupdate_engine-client-test.pc"
 +
-+    PUBKEY_DIR=/usr/share/update_engine
-+    insinto "${PUBKEY_DIR}"
-+    doins "${FILESDIR}"/*.pem
++	PUBKEY_DIR=/usr/share/update_engine
++	insinto "${PUBKEY_DIR}"
++	doins "${FILESDIR}"/*.pem
  }
