@@ -7,7 +7,9 @@ if [ -z ${BOARD} ]; then
 	exit
 fi
 # binutilsのバージョン：違うときは修正する
-binutil_ver=`ar --version | grep -o -e '[0-9.]\+[0-9a-zA-Z]$'`
+libbfd_ver=`ar --version | grep -o -e '[0-9.]\+[0-9a-zA-Z]$'`
+binutil_ver=`ar --version | grep -o -e '[0-9]\+\.[0-9]\+\.[0-9]\+' |head -n 1`
+
 
 # arとlibbfdをtarにまとめる
 
@@ -17,7 +19,7 @@ if [ 0 -ne $? ]; then
 	echo "[ERROR]Copy ar failed. Abort."
 	exit
 fi
-cp /build/${BOARD}/usr/lib/binutils/i686-pc-linux-gnu/${binutil_ver}/libbfd-${binutil_ver}.so ../addpackages/tarballs/ar/
+cp /build/${BOARD}/usr/lib/binutils/i686-pc-linux-gnu/${binutil_ver}/libbfd-${libbfd_ver}.so ../addpackages/tarballs/ar/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Copy libbfd failed. Abort."
 	exit
@@ -44,6 +46,7 @@ fi
 
 # ebuildを所定の場所に置く
 cd ../../ebuilds/app-misc
+sed -e "s/libbfd-.*.so/libbfd-${libbfd_ver}.so/" -i ar/ar-1.ebuild
 tar cvf - ar | (cd ~/trunk/src/third_party/portage-stable/app-misc; tar xf -)
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy ebuild to portage-stable failed. Abort."

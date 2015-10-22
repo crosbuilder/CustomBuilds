@@ -14,5 +14,5 @@ RDEPEND=""
 
 src_install() {
 	dobin ar || die
-	dolib.so libbfd-2.24.so || die
+	dolib.so libbfd-2.25.51.20141117.so || die
 }
