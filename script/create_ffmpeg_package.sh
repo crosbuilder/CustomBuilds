@@ -7,8 +7,13 @@ if [ -z ${BOARD} ]; then
 	exit
 fi
 
-# libffmpeg.soをtarにまとめる
+# 間違って有料コーデックありのもので上書きしてしまうミスを連発したためガードする
+if [ -d ../addpackages/tarballs/libffmpeg-free ]; then
+  echo Directory libffmpeg-free found. Abort.
+  exit 0
+fi
 
+# libffmpeg.soをtarにまとめる
 mkdir ../addpackages/tarballs/libffmpeg-free
 cp /build/x86-pentiumm/usr/lib/libffmpeg.so ../addpackages/tarballs/libffmpeg-free/
 if [ 0 -ne $? ]; then
