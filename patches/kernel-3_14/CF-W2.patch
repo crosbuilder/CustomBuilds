@@ -1,0 +1,50 @@
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 0de19bd..300bfc1 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -1909,6 +1909,7 @@ static void intel_enable_primary_plane(struct drm_i915_private *dev_priv,
+ 
+ 	I915_WRITE(reg, val | DISPLAY_PLANE_ENABLE);
+ 	intel_flush_primary_plane(dev_priv, plane);
++	intel_wait_for_vblank(dev_priv->dev, pipe);
+ 
+ 	/*
+ 	 * BDW signals flip done immediately if the plane
+@@ -1946,6 +1947,7 @@ static void intel_disable_primary_plane(struct drm_i915_private *dev_priv,
+ 
+ 	I915_WRITE(reg, val & ~DISPLAY_PLANE_ENABLE);
+ 	intel_flush_primary_plane(dev_priv, plane);
++	intel_wait_for_vblank(dev_priv->dev, pipe);
+ }
+ 
+ static bool need_vtd_wa(struct drm_device *dev)
+@@ -2612,6 +2614,15 @@ static void ironlake_fdi_link_train(struct drm_crtc *crtc)
+ 
+ 	DRM_DEBUG_KMS("FDI train done\n");
+ 
++	/*
++	 * There seems to be a race in PCH platform hw (at least on some
++	 * outputs) where an enabled pipe still completes any pageflip right
++	 * away (as if the pipe is off) instead of waiting for vblank. As soon
++	 * as the first vblank happend, everything works as expected. Hence just
++	 * wait for one vblank before returning to avoid strange things
++	 * happening.
++	 */
++	intel_wait_for_vblank(dev, intel_crtc->pipe);
+ }
+ 
+ static const int snb_b_fdi_train_param[] = {
+@@ -4354,13 +4365,6 @@ static void i9xx_crtc_disable(struct drm_crtc *crtc)
+ 	for_each_encoder_on_crtc(dev, crtc, encoder)
+ 		encoder->disable(encoder);
+ 
+-	/*
+-	 * On gen2 planes are double buffered but the pipe isn't, so we must
+-	 * wait for planes to fully turn off before disabling the pipe.
+-	 */
+-	if (IS_GEN2(dev))
+-		intel_wait_for_vblank(dev, pipe);
+-
+ 	/* Give the overlay scaler a chance to disable if it's on this pipe */
+ 	intel_crtc_wait_for_pending_flips(crtc);
+ 	drm_vblank_off(dev, pipe);
