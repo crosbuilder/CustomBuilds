@@ -1,7 +1,25 @@
 diff --git a/bin/cros_make_image_bootable b/bin/cros_make_image_bootable
-index 98f8b69..c3c1cdd 100755
+index 98f8b69..f7b53de 100755
 --- a/bin/cros_make_image_bootable
 +++ b/bin/cros_make_image_bootable
+@@ -232,7 +232,7 @@ make_image_bootable() {
+   # This is required because postinst will copy new legacy boot configurations
+   # from rootfs partition instead of modifying existing entries in partition 12
+   # (EFI partition).
+-  if [ ${FLAGS_force_developer_mode} -eq ${FLAGS_TRUE} ]; then
++  #if [ ${FLAGS_force_developer_mode} -eq ${FLAGS_TRUE} ]; then
+     trap "unmount_image ; die 'cros_make_image_bootable failed.'" EXIT
+     mount_image "${image}" "${FLAGS_rootfs_mountpoint}" \
+       "${FLAGS_statefulfs_mountpoint}" "" ""
+@@ -248,7 +248,7 @@ make_image_bootable() {
+ 
+     unmount_image
+     trap - EXIT
+-  fi
++  #fi
+ 
+   # Make the filesystem un-mountable as read-write.
+   # mount_gpt_image.sh will undo this as needed.
 @@ -289,9 +289,10 @@ make_image_bootable() {
      info "DEBUG: use recovery keyblock"
    fi
