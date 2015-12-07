@@ -25,7 +25,7 @@ cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
 search=`grep 'ipw2200-firmware' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
 	echo ipw-firmware is not included in overlay. append to overlay now.
-	sed -e '/^	sys-fs\/udev/a \\tsys-firmware\/ipw2200-firmware' -i target-chromium-os-1.ebuild || exit 1
+	sed -e '/RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( sys-firmware\/ipw2200-firmware )' -i target-chromium-os-1.ebuild || exit 1
 	echo done
 	revisionup_ebuild
 else
