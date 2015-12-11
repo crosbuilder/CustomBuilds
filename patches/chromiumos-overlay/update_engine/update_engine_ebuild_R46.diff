@@ -1,11 +1,11 @@
 diff --git a/chromeos-base/update_engine/update_engine-9999.ebuild b/chromeos-base/update_engine/update_engine-9999.ebuild
-index fa18ee4..24da2c6 100644
+index 213f8be..99e8508 100644
 --- a/chromeos-base/update_engine/update_engine-9999.ebuild
 +++ b/chromeos-base/update_engine/update_engine-9999.ebuild
-@@ -126,4 +126,8 @@ src_install() {
- 	# Install DBus configuration
- 	insinto /etc/dbus-1/system.d
- 	doins UpdateEngine.conf
+@@ -133,4 +133,8 @@ src_install() {
+ 	insinto "/usr/$(get_libdir)/pkgconfig"
+ 	doins "${OUT}/libupdate_engine-client.pc"
+ 	doins "${OUT}/libupdate_engine-client-test.pc"
 +
 +	PUBKEY_DIR=/usr/share/update_engine
 +	insinto "${PUBKEY_DIR}"
