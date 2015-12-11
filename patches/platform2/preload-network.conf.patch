@@ -1,0 +1,13 @@
+diff --git a/init/preload-network.conf b/init/preload-network.conf
+index a4046ab..c8dc338 100644
+--- a/init/preload-network.conf
++++ b/init/preload-network.conf
+@@ -39,7 +39,7 @@ post-stop script
+   # TODO(ggg): can shill share the "user selected" network device?
+ 
+   newdrv=''
+-  for dev in eth0 wlan0 mlan0; do
++  for dev in eth0 eth1 wlan0 wlan1 mlan0 mlan1 ; do
+     # Get the module name
+     mod_link="/sys/class/net/${dev}/device/driver/module"
+     if [ -e "$mod_link" ]; then
