@@ -17,3 +17,4 @@
 14e4:432c	setup_b43firmware.sh	Broadcom BCM4322 found.
 14e4:4331	setup_b43firmware.sh	Broadcom BCM4331 found.
 14e4:4350	setup_b43firmware.sh	Broadcom BCM43222 found.
+10ec:8199	enable_r8187se.sh	RTL8187SE Wireless LAN Controller found. Enable module r8187se.
