@@ -1,8 +1,8 @@
 diff --git a/crosh/crosh b/crosh/crosh
-index ac6a15f..8a85093 100755
+index 26b3aa5..a637271 100755
 --- a/crosh/crosh
 +++ b/crosh/crosh
-@@ -246,6 +246,13 @@ load_extra_crosh() {
+@@ -99,6 +99,13 @@ load_extra_crosh() {
      . "${crosh_dir}/crosh-dev"
      ;;
    esac
@@ -16,3 +16,21 @@ index ac6a15f..8a85093 100755
  }
  
  shell_read() {
+diff --git a/crosh/crosh-usb b/crosh/crosh-usb
+index c243078..4a3cdb7 100755
+--- a/crosh/crosh-usb
++++ b/crosh/crosh-usb
+@@ -76,3 +76,13 @@ HELP_upgrade='
+ cmd_upgrade() (
+   do_install "$1" --preserve_stateful
+ )
++
++USAGE_easyinstall=''
++HELP_easyinstall='
++  Easy Installer of Chromium OS. (Beta version)
++'
++cmd_easyinstall() (
++  sudo /opt/myscript/install.sh
++)
++
++

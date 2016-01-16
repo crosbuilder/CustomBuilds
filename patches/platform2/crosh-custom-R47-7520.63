@@ -41,28 +41,3 @@ HELP_installflash='
 cmd_installflash() (
   sudo /opt/myscript/downloadflash.sh
 )
-
-USAGE_chgroot=''
-HELP_chgroot='
-  Switch the ROOT partition between ROOT-A and ROOT-B.
-'
-cmd_chgroot() (
-  sudo /opt/myscript/chgroot.sh
-)
-
-USAGE_suspend_lid=''
-HELP_suspend_lid='
-  Change the suspension settings of when closing the lid.
-'
-cmd_suspend_lid() (
-  sudo /opt/myscript/change_use_lid.sh
-)
-
-USAGE_restoreflash=''
-HELP_restoreflash='
-  Restore PepperFlash plugin from the old Chromium OS environment.
-'
-cmd_restoreflash() (
-  sudo /opt/myscript/restoreflash.sh
-)
-
