@@ -6,9 +6,9 @@ checkatadisk() {
 }
 
 getinternaldisk(){
-  sudo fdisk -l 2>/dev/null| grep '^Disk /dev/sd' | sed -e 's/:/,/' -e 's/Disk//' |while IFS=',' read disk size_g size_b size_s; do
+  sudo fdisk -l 2>/dev/null| grep '^Disk /dev/sd' | sed -e 's/:/,/' -e 's/Disk //' |while IFS=',' read disk size_g size_b size_s; do
     isata=`checkatadisk ${disk}`
-    root=`rootdev|sed -e "s@${disk}[35]@@"`
+    root=`rootdev -d|sed -e "s@${disk}@@" -e "s/[\r\n ]\+//"`
     if [ -n "${root}" -a -n "${isata}" ]; then
       echo ${disk} ${size_g} ${isata}
     fi
