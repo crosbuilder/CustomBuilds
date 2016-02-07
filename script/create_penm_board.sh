@@ -6,30 +6,59 @@ pushd . > /dev/null
 # x86-genericのオーバレイ定義をコピー
 cd ~/trunk/src/overlays
 cp -r overlay-x86-generic overlay-x86-pentiumm
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
 
 # コンパイルフラグからsse3を除去する
 cd overlay-x86-pentiumm
 #sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -e 's/^CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-i386"$/CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-pentiumm"/' -i make.conf
 sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -i make.conf
 
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
+
 # USEフラグにpenmを追加
 sed -e 's/peerd/peerd penm/g' -i make.conf
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
+
 
 # ignore collision of libffmpeg.so and ar
 echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so /usr/bin/ar"' >> make.conf
 
 # broadcom wifi用ファームウェアを追加
 sed -e 's/iwlwifi-all/iwlwifi-all brcmfmac-all/g' -i make.conf
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
+
 
 # vesaを追加
 cd profiles/base
 sed -e 's/radeon/radeon vesa/g' -i make.defaults
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
+
 cd ../..
 
 
 # オーバレイ名を書き換える
 cd metadata
 sed -e 's/generic/pentiumm/g' -i layout.conf
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
+
 
 # ~/trunk/src/overlaysでrepo startする
 repo start my_overlay .
@@ -41,6 +70,11 @@ repo start my-chromiumos-overlay .
 # cros-board.eclassに新しいboardの名前を登録する
 cd eclass
 sed -e '/^\tx86-generic$/a \\tx86-pentiumm' -i cros-board.eclass
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
+
 
 read -p 'ready to setup board. continue?' status
 
@@ -48,6 +82,11 @@ read -p 'ready to setup board. continue?' status
 # boardのセットアップ
 cd ~/trunk/src/scripts
 ./setup_board --board=x86-pentiumm --nousepkg
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
+
 
 # x86-genericでcros_workon startしているパッケージをx86-pentiummでもstartする
 cros_workon --board=x86-generic list | cut -d "/" -f 2 | xargs -L 1 cros_workon --board=x86-pentiumm start
