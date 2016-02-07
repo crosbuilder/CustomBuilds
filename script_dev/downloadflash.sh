@@ -4,6 +4,14 @@ cd `dirname $0`
 . ./script_root.sh
 source addhistory.sh
 
+# リブートせずに二度起動した時は何もしない
+
+if [ -f ${script_local}/pre-shutdown.sh ]; then
+  echo "installflash has been already executed. Skip."
+  echo "Please reboot to start the installation. "
+  exit 0
+fi
+
 # downloadflashはヒストリに記録しない（必ず手動で起動してインストールする）
 #addhistory $0
 
