@@ -1,12 +1,14 @@
 #!/bin/bash
 
 cd ~/trunk/src/overlays
+~/myenv/script/repostart.sh my-overlays
 git add overlay-x86-generic/make.conf
 git commit -m "wifi_bootstrap無効化"
 git add overlay-x86-pentiumm
 git commit -m "x86-pentiumm追加"
 
 cd ~/trunk/src/platform2
+~/myenv/script/repostart.sh my-platform2
 git add crosh
 git commit -m "croshカスタムコマンド追加"
 git add init/halt/halt.conf
@@ -24,6 +26,7 @@ git add login_manager/init/ui.conf
 git commit -m "ハードウェアインスペクションを初回ブート時に実行する"
 
 cd ~/trunk/src/third_party/chromiumos-overlay/
+~/myenv/script/repostart.sh my-chromiumos-overlay
 git add chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 git commit -m "chromeカスタマイズ"
 git add chromeos-base/chromeos-dev-root
@@ -49,8 +52,10 @@ git add virtual/target-chromium-os
 git commit -m "各種パッケージをメインebuildに追加"
 git add x11-base/xorg-server
 git commit -m "VirtualBoxで起動できない問題を修正"
-
+git add sys-kernel/linux-firmware/
+git commit -m "デフォルトでインストールされないbrcm/bcm*がインストールされるように修正"
 cd ~/trunk/src/third_party/kernel/v3.14/
+~/myenv/script/repostart.sh mykernel
 git add drivers/usb/core/usb.c
 git add drivers/usb/host/ehci-hcd.c
 git add drivers/usb/host/ehci-pci.c
@@ -71,12 +76,18 @@ git add kernel/panic.c
 git commit -m "PAEパッチ適用"
 
 cd ~/trunk/src/third_party/portage-stable/
+~/myenv/script/repostart.sh my-portage-stable
 git add app-misc/ar
 git commit -m "arパッケージ追加"
 git add app-misc/myscript
 git commit -m "myscriptパッケージ追加"
+git add app-arch/p7zip
+git commit -m "p7zip追加"
+git add net-wireless/ralink-rt2860-firmware/
+git commit -m "RT2860 Firmwareパッケージ追加"
 
 cd ~/trunk/src/scripts
+~/myenv/script/repostart.sh my-scripts
 git add bin/cros_make_image_bootable
 git commit -m "baseイメージでもブートパラメータにcros_debugがデフォルトで付加されるようにする"
 git add build_library/create_legacy_bootloader_templates.sh
