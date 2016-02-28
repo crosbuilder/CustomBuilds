@@ -1,5 +1,5 @@
 
-PATCH_FILES = preload-network.conf.diff login_manager_X_ROOT.diff ui_conf_inspect_hw.diff installer_root_uuid.diff chromeos-setdevpasswd.diff halt_reboot_conf.diff
+PATCH_FILES = preload-network.conf.diff login_manager_X_ROOT.diff ui_conf_inspect_hw.diff installer_root_uuid.diff chromeos-setdevpasswd.diff halt_reboot_conf.diff chromeos-installer.diff
 DRYRUN_TARGET = $(PATCH_FILES:.diff=.dryrun)
 APPLY_TARGET = $(PATCH_FILES:.diff=.apply)
 TARGET_DIR = ~/trunk/src/platform2

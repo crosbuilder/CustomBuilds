@@ -1,0 +1,15 @@
+diff --git a/build_image b/build_image
+index e7aec67..e97c2fc 100755
+--- a/build_image
++++ b/build_image
+@@ -256,6 +256,10 @@ summarize() {
+     dir_path="${OUTPUT_DIR}"
+   fi
+ 
++  # Add boot flag to image
++  echo Add boot flag to image
++  printf "%b" "\x80" | sudo dd of=${dir_path}/${img} bs=1 seek=446 count=1 conv=notrunc
++
+   info "${name} image created as ${img}"
+   info "To copy the image to a USB key, use:"
+   if [[ "${FLAGS_toolset}" == "brillo" ]]; then

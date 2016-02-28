@@ -1,0 +1,15 @@
+diff --git a/installer/chromeos-install b/installer/chromeos-install
+index adef552..15e86ec 100755
+--- a/installer/chromeos-install
++++ b/installer/chromeos-install
+@@ -829,6 +829,10 @@ main() {
+ 
+   do_post_install
+ 
++  # add boot flag to ${DST}
++  echo Add boot flag to ${DST}
++  bash -c "printf '%b' '\x80' | sudo dd of=${DST} bs=1 seek=446 count=1"
++
+   # Force data to disk before we declare done.
+   sync
+   cleanup
