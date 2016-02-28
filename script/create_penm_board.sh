@@ -30,7 +30,7 @@ fi
 
 
 # ignore collision of libffmpeg.so and ar
-echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so /usr/bin/ar"' >> make.conf
+echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so /usr/bin/ar /etc/nsswitch.conf"' >> make.conf
 
 # broadcom wifi用ファームウェアを追加
 sed -e 's/iwlwifi-all/iwlwifi-all brcmfmac-all/g' -i make.conf
@@ -87,6 +87,11 @@ if [ 0 -ne $? ]; then
   exit 1
 fi
 
+# glibcをビルドし直す(SSE3対策)
+# まずpackage.providedからglibcのエントリを消す
+sudo sed -e '/.*\/glibc.*/d' -i /build/x86-pentiumm/etc/portage/profile/package.provided
+
+FEATURES="-collision-detect -protect-owned" emerge-x86-pentiumm sys-libs/glibc
 
 # x86-genericでcros_workon startしているパッケージをx86-pentiummでもstartする
 cros_workon --board=x86-generic list | cut -d "/" -f 2 | xargs -L 1 cros_workon --board=x86-pentiumm start
