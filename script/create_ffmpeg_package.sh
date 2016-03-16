@@ -7,15 +7,23 @@ if [ -z ${BOARD} ]; then
 	exit
 fi
 
+# BOARDの設定内容を表示して確認を取る
+echo Start to create libffmpeg package for BOARD : ${BOARD}
+echo 
+read -p 'continue?' status
+
+tarfile=libffmpeg-free_${BOARD}.tar.gz
+
+
 # 間違って有料コーデックありのもので上書きしてしまうミスを連発したためガードする
-if [ -d ../addpackages/tarballs/libffmpeg-free ]; then
+if [ -d ../addpackages/tarballs/libffmpeg-free-${BOARD} ]; then
   echo Directory libffmpeg-free found. Abort.
   exit 0
 fi
 
 # libffmpeg.soをtarにまとめる
-mkdir ../addpackages/tarballs/libffmpeg-free
-cp /build/x86-pentiumm/usr/lib/libffmpeg.so ../addpackages/tarballs/libffmpeg-free/
+mkdir ../addpackages/tarballs/libffmpeg-free-${BOARD}
+cp /build/${BOARD}/usr/lib/libffmpeg.so ../addpackages/tarballs/libffmpeg-free-${BOARD}/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Copy libffmpeg.so failed. Abort."
 	exit
@@ -23,8 +31,8 @@ fi
 
 pushd . > /dev/null
 
-cd ../addpackages/tarballs/libffmpeg-free
-tar zcvf ../libffmpeg-free.tar.gz .
+cd ../addpackages/tarballs/libffmpeg-free-${BOARD}
+tar zcvf ../${tarfile} .
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Create tar failed. Abort."
 	exit
@@ -33,7 +41,7 @@ fi
 
 # 作成したtar.gzをキャッシュディレクトリに置く
 
-cp ../libffmpeg-free.tar.gz /var/cache/chromeos-cache/distfiles/target/
+cp ../${tarfile} /var/cache/chromeos-cache/distfiles/target/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy tar to cache dir failed. Abort."
 	exit
@@ -66,20 +74,20 @@ cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
 search=`grep 'chromeos-base/libffmpeg-free' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo libffmpeg-free is not included in base overlay. append to base overlay now.
-        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( chromeos-base\/libffmpeg-free )' -i target-chromium-os-1.ebuild || exit 1
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tmybuild? ( chromeos-base\/libffmpeg-free )' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else
         echo libffmpeg-free is already included in base overlay. skip.
 fi
 
-search2=`grep -e 'IUSE=.* penm$' target-chromium-os-1.ebuild`
+search2=`grep -e 'IUSE=.* penm x64c mybuild$' target-chromium-os-1.ebuild`
 if [ -z "${search2}" ]; then
-	echo add penm to IUSE.
-	sed -e 's/\(IUSE=.*$\)/\1 penm/' -i target-chromium-os-1.ebuild || exit 1
+	echo add penm/x64c/mybuild to IUSE.
+	sed -e 's/\(IUSE=.*$\)/\1 penm x64c mybuild/' -i target-chromium-os-1.ebuild || exit 1
 	echo done
 else
-	echo target-chromium-os-1.ebuild already has penm in IUSE.
+	echo target-chromium-os-1.ebuild already has penm/x64c/mybuild in IUSE.
 fi
 
 popd > /dev/null

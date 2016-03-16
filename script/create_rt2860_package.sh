@@ -66,7 +66,7 @@ cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
 search=`grep 'ralink-rt2860-firmware' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo ralink-rt2860-firmware is not included in base overlay. append to base overlay now.
-        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( net-wireless\/ralink-rt2860-firmware )' -i target-chromium-os-1.ebuild || exit 1
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tmybuild? ( net-wireless\/ralink-rt2860-firmware )' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else

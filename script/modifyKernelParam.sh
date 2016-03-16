@@ -16,7 +16,13 @@ getTargetConfigName(){
 
 	cd ${kernel_fullpath}/chromeos/config
 
-	local target_line=`find . -name '*.config' -print | grep -e 'base\|i386/' | xargs grep $1`
+	local arch="i386"
+	if [ $(echo ${BOARD} | grep -e 'amd64') ]; then
+	  arch="x86_64"
+	fi
+
+	#local target_line=`find . -name '*.config' -print | grep -e 'base\|x86_64/' | xargs grep $1`
+	local target_line=`find . -name '*.config' -print | grep -e "base\|${arch}/" | xargs grep $1`
 	local target_configname=${kernel_fullpath}/chromeos/config/`echo ${target_line}|cut -d ":" -f 1 `
 	echo ${target_configname}
 
@@ -49,3 +55,4 @@ if [ 0 -ne $? ]; then
 	exit
 fi
 modifyKernelParam $1 ${config_path}
+#echo ${config_path}

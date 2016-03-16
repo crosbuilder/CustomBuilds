@@ -6,6 +6,14 @@ if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".
 	exit
 fi
+
+# BOARDの設定内容を表示して確認を取る
+echo Start to create ar package for BOARD : ${BOARD}
+echo 
+read -p 'continue?' status
+
+tarfile=ar_${BOARD}.tar.gz
+
 # binutilsのバージョン：違うときは修正する
 libbfd_ver=`ar --version | grep -o -e '[0-9.]\+[0-9a-zA-Z]$'`
 binutil_ver=`ar --version | grep -o -e '[0-9]\+\.[0-9]\+\.[0-9]\+' |head -n 1`
@@ -13,13 +21,20 @@ binutil_ver=`ar --version | grep -o -e '[0-9]\+\.[0-9]\+\.[0-9]\+' |head -n 1`
 
 # arとlibbfdをtarにまとめる
 
-mkdir ../addpackages/tarballs/ar
-cp /build/${BOARD}/usr/i686-pc-linux-gnu/binutils-bin/${binutil_ver}/ar ../addpackages/tarballs/ar/
+mkdir ../addpackages/tarballs/ar-${BOARD}
+arch="i686-pc-linux-gnu"
+lib="lib"
+if [ "${BOARD}" = "amd64-custom" ]; then
+  arch="x86_64-cros-linux-gnu"
+  lib="lib64"
+fi
+
+cp /build/${BOARD}/usr/${arch}/binutils-bin/${binutil_ver}/ar ../addpackages/tarballs/ar-${BOARD}/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Copy ar failed. Abort."
 	exit
 fi
-cp /build/${BOARD}/usr/lib/binutils/i686-pc-linux-gnu/${binutil_ver}/libbfd-${libbfd_ver}.so ../addpackages/tarballs/ar/
+cp /build/${BOARD}/usr/${lib}/binutils/${arch}/${binutil_ver}/libbfd-${libbfd_ver}.so ../addpackages/tarballs/ar-${BOARD}/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Copy libbfd failed. Abort."
 	exit
@@ -27,8 +42,8 @@ fi
 
 pushd . > /dev/null
 
-cd ../addpackages/tarballs/ar
-tar zcvf ../ar.tar.gz .
+cd ../addpackages/tarballs/ar-${BOARD}
+tar zcvf ../${tarfile} .
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Create tar failed. Abort."
 	exit
@@ -37,7 +52,7 @@ fi
 
 # 作成したtar.gzをキャッシュディレクトリに置く
 
-cp ../ar.tar.gz /var/cache/chromeos-cache/distfiles/target/
+cp ../${tarfile} /var/cache/chromeos-cache/distfiles/target/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy tar to cache dir failed. Abort."
 	exit
@@ -71,7 +86,7 @@ cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
 search=`grep 'app-misc/ar' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo ar is not included in base overlay. append to base overlay now.
-        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( app-misc\/ar )' -i target-chromium-os-1.ebuild || exit 1
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tmybuild? ( app-misc\/ar )' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else

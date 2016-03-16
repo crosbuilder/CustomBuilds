@@ -37,11 +37,11 @@ fi
 
 # 9.20.1.r4ではそのままではビルドできなかったのでebuildにパッチを当てる
 patch -p1 --dry-run < ~/myenv/patches/p7zip/p7zip-9.20.1-r4.ebuild.diff
-read -p 'above is results of dry-running patch. apply patch?[N/y]' status
-if [ ${status} = 'y' ]; then
+read -p 'above is results of dry-running patch. apply patch?[N/y/(s)kip]' status
+if [ "${status}" = "y" ]; then
 	patch -p1 < ~/myenv/patches/p7zip/p7zip-9.20.1-r4.ebuild.diff || exit 1
 	echo patch applied.
-else
+elif [ "${status}" = "N" ]; then
 	exit 1
 fi
 
@@ -51,7 +51,7 @@ cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
 search=`grep 'p7zip' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo p7zip is not included in base overlay. append to base overlay now.
-        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tpenm? ( app-arch\/p7zip )' -i target-chromium-os-1.ebuild || exit 1
+        sed -e '/^RDEPEND="${CROS_COMMON_RDEPEND}/a \\tmybuild? ( app-arch\/p7zip )' -i target-chromium-os-1.ebuild || exit 1
         echo done
         revisionup_ebuild
 else
