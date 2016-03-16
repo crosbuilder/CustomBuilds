@@ -39,7 +39,12 @@ HELP_installflash='
   Install Flash Player plugin.
 '
 cmd_installflash() (
-  sudo /opt/myscript/downloadflash.sh
+  is_x86=`uname -a | grep -o -e 'i686'`
+  if [ -n "${is_x86}" ]; then
+    sudo /opt/myscript/downloadflash_ubuntu.sh
+  else
+    sudo /opt/myscript/downloadflash.sh
+  fi
 )
 
 USAGE_chgroot=''
