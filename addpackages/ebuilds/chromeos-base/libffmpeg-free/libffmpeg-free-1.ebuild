@@ -2,12 +2,14 @@
 
 DESCRIPTION="Install libffmpeg.so non-propr version "
 HOMEPAGE="http://pcmemo.take-uma.net/"
-SRC_URI="http://192.168.12.14/chromium/libffmpeg-free.tar.gz"
+SRC_URI="
+    penm? ( http://192.168.12.14/chromium/libffmpeg-free_x86-pentiumm.tar.gz )
+	x64c? ( http://192.168.12.14/chromium/libffmpeg-free_amd64-custom.tar.gz )"
 
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="*"
-IUSE=""
+IUSE="penm x64c"
 
 RDEPEND="chromeos-base/chromeos-chrome"
 DEPEND=""
