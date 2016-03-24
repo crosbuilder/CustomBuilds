@@ -1,11 +1,11 @@
 diff --git a/content/browser/compositor/gpu_process_transport_factory.cc b/content/browser/compositor/gpu_process_transport_factory.cc
-index 95c3f1d..1abb988 100644
+index 874debf..ef14437 100644
 --- a/content/browser/compositor/gpu_process_transport_factory.cc
 +++ b/content/browser/compositor/gpu_process_transport_factory.cc
-@@ -172,10 +172,11 @@ CreateOverlayCandidateValidator(gfx::AcceleratedWidget widget) {
- }
+@@ -197,10 +197,11 @@ static bool ShouldCreateGpuOutputSurface(ui::Compositor* compositor) {
+   }
+ #endif
  
- static bool ShouldCreateGpuOutputSurface(ui::Compositor* compositor) {
 -#if defined(OS_CHROMEOS)
 -  // Software fallback does not happen on Chrome OS.
 -  return true;
