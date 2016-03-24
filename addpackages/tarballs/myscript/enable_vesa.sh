@@ -8,7 +8,15 @@ addhistory $0 "$@"
 
 # enable vesa
 mount -o remount,rw /
-cd /usr/lib/xorg/modules/drivers/
+
+# 32bitと64bitで場所が違う
+is_x64=`uname -a | grep x86_64`
+if [ -n "${is_x64}" ]; then
+  cd /usr/lib64/xorg/modules/drivers/
+else
+  cd /usr/lib/xorg/modules/drivers/
+fi
+
 if [ -f vesa_drv.so- ]; then
   mv vesa_drv.so- vesa_drv.so
 fi

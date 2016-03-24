@@ -4,13 +4,6 @@ cd `dirname $0`
 . ./script_root.sh
 source addhistory.sh
 
-# x86ではエラーにする
-is_x86=`uname -a | grep i686`
-if [ -n "{is_x86}" ]; then
-  echo Flash suport ended on x86 build. Abort. 
-  exit 1
-fi
-
 # リブートせずに二度起動した時は何もしない
 
 if [ -f ${script_local}/pre-shutdown.sh ]; then
@@ -19,49 +12,62 @@ if [ -f ${script_local}/pre-shutdown.sh ]; then
   exit 0
 fi
 
+# 32bit/64bit判定
+arch="amd64"
+is_x86=`uname -a | grep i686`
+if [ -n "{is_x86}" ]; then
+  arch="i386"
+fi
+
 # downloadflashはヒストリに記録しない（必ず手動で起動してインストールする）
 #addhistory $0
 
-if [ -e /opt/google/chrome/PepperFlash/manifest.json ]; then
 
-  old_version=`grep version /opt/google/chrome/PepperFlash/manifest.json | grep -o -E '[0-9\.]*'`
-  echo The current version of Flash Player is : ${old_version}
-  echo Start the update...
-else
-  echo "Flash Player isn't installed."
-  echo Start a new installation...
-fi
-
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
-export PATH=${PATH}:/usr/local/bin
-# download chrome stable version(x86)
-echo Download the Chrome package...
-echo 
 if [ ! -d /mnt/stateful_partition/dev_image/myscript ]; then
   rm /mnt/stateful_partition/dev_image/myscript > /dev/null 2>&1
   mkdir /mnt/stateful_partition/dev_image/myscript
 fi
 
+# Packages.gzをダウンロードする
 cd /mnt/stateful_partition/dev_image/myscript
 mkdir chrome_work
 cd chrome_work
 
-if [ -e google-chrome-stable_current_amd64.deb ]; then
-  rm google-chrome-stable_current_amd64.deb
-fi
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-if [ 0 -ne $? ]; then
-  echo Download failed. Abort..
+echo download Packages.gz.
+wget http://archive.canonical.com/ubuntu/dists/trusty/partner/binary-${arch}/Packages.gz
+if [ $? -ne 0 ]; then
+  echo Failed to download Packages.gz. Abort.
   cd ..
   rm -rf chrome_work
   exit 1
 fi
+
+gunzip -f Packages.gz
+
+version=`grep -A10 -e "Package: adobe-flashplugin$" Packages | grep Version | sed -e 's/Version:.*://'`
+echo version=${version}
+package="adobe-flashplugin_${version}_${arch}.deb"
+
+url="http://archive.canonical.com/ubuntu/pool/partner/a/adobe-flashplugin/${package}"
+
+echo ${url}
+
+echo Download Flash package...
+wget ${url}
+
+if [ $? -ne 0 ]; then
+  echo Failed to download Flash Package. Abort.
+  cd ..
+  rm -rf chrome_work
+  exit 1
+fi
+
 echo
 echo Download is completed.
 echo
 
 echo Extract the package...
-ar x google-chrome-stable_current_amd64.deb
+ar x ${package}
 if [ 0 -ne $? ]; then
   echo "Failed to extract package(ar). Abort.."
   cd ..
@@ -99,7 +105,7 @@ if [ 0 -ne $? ]; then
   exit 1
 fi
 
-ln -s ${script_root}/installflash.sh ${script_local}/pre-shutdown.sh
+ln -s ${script_root}/installflash_ubuntu.sh ${script_local}/pre-shutdown.sh
 if [ 0 -ne $? ]; then
   echo Failed to create symlink. Abort..
   cd ..
