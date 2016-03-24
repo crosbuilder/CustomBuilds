@@ -1,0 +1,33 @@
+commit 111206511e3963f6d827ca4b2cd4cedb9929f3e2
+Author: Haixia Shi <hshi@chromium.org>
+Date:   Mon Jan 4 12:23:19 2016 -0800
+
+    Migrate amd64-generic and x86-generic to freon
+    
+    BUG=chromium:532719
+    TEST=local build packages for amd64-generic, x86-generic
+    CQ-DEPEND=CL:320118
+    
+    Change-Id: Ia5fe9e5f0d3ec8699564b0f50d39d09cfe6f2cd3
+    Reviewed-on: https://chromium-review.googlesource.com/320117
+    Commit-Ready: Haixia Shi <hshi@chromium.org>
+    Tested-by: Haixia Shi <hshi@chromium.org>
+    Reviewed-by: Michael Spang <spang@chromium.org>
+
+diff --git a/overlay-x86-generic/metadata/layout.conf b/overlay-x86-generic/metadata/layout.conf
+index d00dc62..3a6d1ba 100644
+--- a/metadata/layout.conf
++++ b/metadata/layout.conf
+@@ -1,4 +1,4 @@
+-masters = portage-stable chromiumos eclass-overlay
++masters = portage-stable chromiumos eclass-overlay freon
+ profile-formats = portage-2 profile-default-eapi
+ profile_eapi_when_unspecified = 5-progress
+ repo-name = x86-generic
+diff --git a/overlay-x86-generic/profiles/base/parent b/overlay-x86-generic/profiles/base/parent
+index 3e15022..23aa0e1 100644
+--- a/profiles/base/parent
++++ b/profiles/base/parent
+@@ -1 +1,2 @@
+ chromiumos:default/linux/x86/10.0/chromeos
++freon:base/x86
