@@ -63,11 +63,11 @@ cmd_suspend_lid() (
   sudo /opt/myscript/change_use_lid.sh
 )
 
-USAGE_restoreflash=''
-HELP_restoreflash='
-  Restore PepperFlash plugin from the old Chromium OS environment.
-'
-cmd_restoreflash() (
-  sudo /opt/myscript/restoreflash.sh
-)
+#USAGE_restoreflash=''
+#HELP_restoreflash='
+#  Restore PepperFlash plugin from the old Chromium OS environment.
+#'
+#cmd_restoreflash() (
+#  sudo /opt/myscript/restoreflash.sh
+#)
 
