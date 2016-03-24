@@ -11,7 +11,7 @@ mount -o remount,rw /
 
 # 32bitと64bitで場所が違う
 is_x64=`uname -a | grep x86_64`
-if [ -n "{is_x64}" ]; then
+if [ -n "${is_x64}" ]; then
   cd /usr/lib64/xorg/modules/drivers/
 else
   cd /usr/lib/xorg/modules/drivers/
