@@ -11,8 +11,15 @@ if [ 0 -ne $? ]; then
   exit 1
 fi
 
-# コンパイルフラグからsse3を除去する
+# freon->Xorgパッチを当てる
 cd overlay-x86-pentiumm
+patch -p1 -R < ~/myenv/patches/overlays/disable_freon.patch
+if [ $? -ne 0 ]; then
+  echo Failed to patch disable Freon. Abort.
+  exit 1
+fi
+
+# コンパイルフラグからsse3を除去する
 #sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -e 's/^CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-i386"$/CHROMEOS_KERNEL_SPLITCONFIG="chromiumos-pentiumm"/' -i make.conf
 sed -e 's/-msse3/-mno-sse3 -mno-ssse3 -mno-sse4.2/g' -i make.conf
 
