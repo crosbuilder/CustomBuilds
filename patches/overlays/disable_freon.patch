@@ -14,7 +14,7 @@ Date:   Mon Jan 4 12:23:19 2016 -0800
     Tested-by: Haixia Shi <hshi@chromium.org>
     Reviewed-by: Michael Spang <spang@chromium.org>
 
-diff --git a/overlay-x86-generic/metadata/layout.conf b/overlay-x86-generic/metadata/layout.conf
+diff --git a/overlay-x86-pentiumm/metadata/layout.conf b/overlay-x86-pentiumm/metadata/layout.conf
 index d00dc62..3a6d1ba 100644
 --- a/metadata/layout.conf
 +++ b/metadata/layout.conf
@@ -23,8 +23,8 @@ index d00dc62..3a6d1ba 100644
 +masters = portage-stable chromiumos eclass-overlay freon
  profile-formats = portage-2 profile-default-eapi
  profile_eapi_when_unspecified = 5-progress
- repo-name = x86-generic
-diff --git a/overlay-x86-generic/profiles/base/parent b/overlay-x86-generic/profiles/base/parent
+ repo-name = x86-pentiumm
+diff --git a/overlay-x86-pentiumm/profiles/base/parent b/overlay-x86-pentiumm/profiles/base/parent
 index 3e15022..23aa0e1 100644
 --- a/profiles/base/parent
 +++ b/profiles/base/parent
