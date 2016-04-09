@@ -20,6 +20,8 @@ git add installer/chromeos-setdevpasswd
 git commit -m "chromeos-setdevpasswdでデフォルトパスワードが消えない問題を修正"
 git add installer/chromeos_legacy.cc
 git commit -m "内蔵ディスクからのブート時にrootパーティションをPARTITION_UUIDで指定する"
+git add installer/chromeos-install
+git commit -m "インストール先ディスクにブートフラグを付加する"
 git add login_manager/chrome_setup.cc
 git commit -m "Xをroot起動できるようにする"
 git add login_manager/init/ui.conf
@@ -95,4 +97,7 @@ git add build_library/create_legacy_bootloader_templates.sh.orig
 git commit -m "ブートパラメータにpaeを追加"
 git add build_packages
 git commit -m "EMERGE_FLAGにemptytreeを追加(今はコメントアウト)"
-
+git add build_image
+git commit -m "生成したイメージにブートフラグを付加する"
+git add lib/cros_vm_lib.sh
+git commit -m "仮想マシン起動時のcpuのデフォルトをkvm32に変更"
