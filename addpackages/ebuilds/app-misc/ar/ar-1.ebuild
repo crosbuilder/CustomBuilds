@@ -3,8 +3,8 @@
 DESCRIPTION="Install ar command"
 HOMEPAGE="http://pcmemo.take-uma.net/"
 SRC_URI="
-    penm? ( http://192.168.12.14/chromium/ar_x86-pentiumm.tar.gz )
-	x64c? ( http://192.168.12.14/chromium/ar_amd64-custom.tar.gz )"
+    penm? ( http://192.168.12.14/chromium/ar_x86-pentiumm.tar.gz )"
+#	x64c? ( http://192.168.12.14/chromium/ar_amd64-custom.tar.gz )"
 
 LICENSE="GPL-2"
 SLOT="0"
