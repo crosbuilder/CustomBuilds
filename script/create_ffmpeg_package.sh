@@ -1,10 +1,12 @@
 #!/bin/bash
+myname=$0
+cd ${myname%/*}
 
 . ./revisionup_ebuild.sh
 
 if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".
-	exit
+	exit 1
 fi
 
 # BOARDの設定内容を表示して確認を取る
@@ -14,11 +16,20 @@ read -p 'continue?' status
 
 tarfile=libffmpeg-free_${BOARD}.tar.gz
 
+if [ -d ../addpackages/tarballs/libffmpeg-free-${BOARD}-old ]; then
+  rm -rf ../addpackages/tarballs/libffmpeg-free-${BOARD}-old
+  if [ $? -ne 0 ]; then
+    echo Failed to remove old dir. Abort.
+    exit 1
+  fi
+fi
 
-# 間違って有料コーデックありのもので上書きしてしまうミスを連発したためガードする
 if [ -d ../addpackages/tarballs/libffmpeg-free-${BOARD} ]; then
-  echo Directory libffmpeg-free found. Abort.
-  exit 0
+  mv ../addpackages/tarballs/libffmpeg-free-${BOARD} ../addpackages/tarballs/libffmpeg-free-${BOARD}-old
+  if [ $? -ne 0 ]; then
+    echo Failed to move old dir. Abort.
+    exit 1
+  fi
 fi
 
 # libffmpeg.soをtarにまとめる
@@ -26,7 +37,7 @@ mkdir ../addpackages/tarballs/libffmpeg-free-${BOARD}
 cp /build/${BOARD}/usr/lib/libffmpeg.so ../addpackages/tarballs/libffmpeg-free-${BOARD}/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Copy libffmpeg.so failed. Abort."
-	exit
+	exit 1
 fi
 
 pushd . > /dev/null
@@ -35,7 +46,7 @@ cd ../addpackages/tarballs/libffmpeg-free-${BOARD}
 tar zcvf ../${tarfile} .
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Create tar failed. Abort."
-	exit
+	exit 1
 fi
 
 
@@ -44,7 +55,7 @@ fi
 cp ../${tarfile} /var/cache/chromeos-cache/distfiles/target/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy tar to cache dir failed. Abort."
-	exit
+	exit 1
 fi
 
 
@@ -53,7 +64,7 @@ cd ../../ebuilds/chromeos-base
 tar cvf - libffmpeg-free | (cd ~/trunk/src/third_party/chromiumos-overlay/chromeos-base; tar xf -)
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy ebuild to  failed. Abort."
-	exit
+	exit 1
 fi
 
 # portageのパッケージ展開先をクリアしておく
