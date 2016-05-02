@@ -1,10 +1,13 @@
 #!/bin/bash
 
+myname=$0
+cd ${myname%/*}
+
 source ./revisionup_ebuild.sh
 
 if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".
-	exit
+	exit 1
 fi
 
 # Debianのファームウェアパッケージをダウンロードして展開する
@@ -14,7 +17,7 @@ cd ../addpackages/tarballs/ralink-rt2860-firmware
 wget http://ftp.jp.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-ralink_0.43_all.deb
 if [ 0 -ne $? ]; then
         echo "[ERROR]Download firmware pkg failed. Abort."
-        exit
+        exit 1
 fi
 ar x firmware-ralink_0.43_all.deb
 xz -cd data.tar.xz | tar xvf -
@@ -27,7 +30,7 @@ rm ./lib/firmware/rt2870.bin
 tar zcvf ../ralink-rt2860-firmware.tar.gz ./lib/firmware
 if [ 0 -ne $? ]; then
         echo "[ERROR]Create tar failed. Abort."
-        exit
+        exit 1
 fi
 
 
@@ -36,7 +39,7 @@ fi
 cp ../ralink-rt2860-firmware.tar.gz /var/cache/chromeos-cache/distfiles/target/
 if [ 0 -ne $? ]; then
         echo "[ERROR]copy tar to cache dir failed. Abort."
-        exit
+        exit 1
 fi
 
 # ebuildを所定の場所に置く
@@ -44,7 +47,7 @@ cd ~/myenv/addpackages/ebuilds/net-wireless
 tar cvf - ralink-rt2860-firmware | (cd ~/trunk/src/third_party/portage-stable/net-wireless; tar xf -)
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy ebuild to portage-stable failed. Abort."
-	exit
+	exit 1
 fi
 
 # portageのパッケージ展開先をクリアしておく

@@ -1,10 +1,12 @@
 #!/bin/bash
+myname=$0
+cd ${myname%/*}
 
 source ./revisionup_ebuild.sh
 
 if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".
-	exit
+	exit 1
 fi
 
 # スクリプトをtarにまとめる。このとき、ディレクトリmyscript配下にスクリプトが置かれるようにする
@@ -22,7 +24,7 @@ cd ${copydir}/..
 tar zcvf myscript.tar.gz ./myscript
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Create tar failed. Abort."
-	exit
+	exit 1
 fi
 
 
@@ -30,7 +32,7 @@ fi
 cp myscript.tar.gz /var/cache/chromeos-cache/distfiles/target/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy tar to cache dir failed. Abort."
-	exit
+	exit 1
 fi
 
 
@@ -39,7 +41,7 @@ cd ../ebuilds/app-misc
 tar cvf - myscript | (cd ~/trunk/src/third_party/portage-stable/app-misc; tar xf -)
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy ebuild to portage-stable failed. Abort."
-	exit
+	exit 1
 fi
 
 # portageのパッケージ展開先をクリアしておく

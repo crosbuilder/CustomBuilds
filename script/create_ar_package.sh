@@ -1,10 +1,12 @@
 #!/bin/bash
+myname=$0
+cd ${myname%/*}
 
 . ./revisionup_ebuild.sh
 
 if [ -z ${BOARD} ]; then
 	echo "[ERROR] Please set BOARD".
-	exit
+	exit 1
 fi
 
 # BOARDの設定内容を表示して確認を取る
@@ -32,12 +34,12 @@ fi
 cp /build/${BOARD}/usr/${arch}/binutils-bin/${binutil_ver}/ar ../addpackages/tarballs/ar-${BOARD}/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Copy ar failed. Abort."
-	exit
+	exit 1
 fi
 cp /build/${BOARD}/usr/${lib}/binutils/${arch}/${binutil_ver}/libbfd-${libbfd_ver}.so ../addpackages/tarballs/ar-${BOARD}/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Copy libbfd failed. Abort."
-	exit
+	exit 1
 fi
 
 pushd . > /dev/null
@@ -46,7 +48,7 @@ cd ../addpackages/tarballs/ar-${BOARD}
 tar zcvf ../${tarfile} .
 if [ 0 -ne $? ]; then
 	echo "[ERROR]Create tar failed. Abort."
-	exit
+	exit 1
 fi
 
 
@@ -55,7 +57,7 @@ fi
 cp ../${tarfile} /var/cache/chromeos-cache/distfiles/target/
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy tar to cache dir failed. Abort."
-	exit
+	exit 1
 fi
 
 
@@ -65,7 +67,7 @@ sed -e "s/libbfd-.*.so/libbfd-${libbfd_ver}.so/" -i ar/ar-1.ebuild
 tar cvf - ar | (cd ~/trunk/src/third_party/portage-stable/app-misc; tar xf -)
 if [ 0 -ne $? ]; then
 	echo "[ERROR]copy ebuild to portage-stable failed. Abort."
-	exit
+	exit 1
 fi
 
 # portageのパッケージ展開先をクリアしておく
