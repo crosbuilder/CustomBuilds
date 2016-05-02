@@ -35,7 +35,12 @@ if [ 0 -ne $? ]; then
   echo Error occured.  Aborted.
   exit 1
 fi
-
+# wifi_bootstrappingを除去する
+sed -e 's/wifi_bootstrapping//g' -i make.conf
+if [ 0 -ne $? ]; then
+  echo Error occured.  Aborted.
+  exit 1
+fi
 
 # ignore collision of libffmpeg.so and ar
 echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so /usr/bin/ar /etc/nsswitch.conf"' >> make.conf
