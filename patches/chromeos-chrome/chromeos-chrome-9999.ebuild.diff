@@ -2,15 +2,6 @@ diff --git a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild b/chromeo
 index 28d66ed..81eb258 100644
 --- a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 +++ b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
-@@ -36,7 +36,7 @@ IUSE="
- 	+chrome_debug
- 	chrome_debug_tests
- 	chrome_internal
--	chrome_media
-+	+chrome_media
- 	+chrome_remoting
- 	clang
- 	component_build
 @@ -285,6 +285,7 @@ set_build_defines() {
  		"icu_use_data_file_flag=1"
  		"use_cras=1"
