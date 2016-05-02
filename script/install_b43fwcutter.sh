@@ -1,4 +1,7 @@
 #!/bin/bash
+myname=$0
+cd ${myname%/*}
+
 source ./revisionup_ebuild.sh
 
 # ~/trunk/src/third_party/portage_stableにブランチが無ければ作る
