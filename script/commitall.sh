@@ -4,6 +4,9 @@ cd ~/trunk/src/overlays
 ~/myenv/script/repostart.sh my-overlays
 git add overlay-x86-generic/make.conf
 git commit -m "wifi_bootstrap無効化"
+git add overlay-x86-generic/metadata
+git add overlay-x86-generic/profiles/base/parent
+git commit -m "freon->xorg 切り替え"
 git add overlay-x86-pentiumm
 git commit -m "x86-pentiumm追加"
 
