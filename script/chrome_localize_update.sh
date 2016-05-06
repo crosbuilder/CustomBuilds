@@ -10,6 +10,7 @@ if [ ! -e /home/chromium/chrome_root ]; then
   mkdir ${chrome_root}
 else
   mv ${chrome_root} ${chrome_root_old}
+  mkdir ${chrome_root}
 fi
 if [ $? -ne 0 ]; then
   echo Failed to initialize localization. Abort.
