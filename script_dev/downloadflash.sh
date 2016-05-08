@@ -37,12 +37,12 @@ export PATH=${PATH}:/usr/local/bin
 # download chrome stable version(x86)
 echo Download the Chrome package...
 echo 
-if [ ! -d /mnt/stateful_partition/dev_image/myscript ]; then
-  rm /mnt/stateful_partition/dev_image/myscript > /dev/null 2>&1
-  mkdir /mnt/stateful_partition/dev_image/myscript
+if [ ! -d ${script_local} ]; then
+  rm ${script_local} > /dev/null 2>&1
+  mkdir ${script_local}
 fi
 
-cd /mnt/stateful_partition/dev_image/myscript
+cd ${script_local}
 mkdir chrome_work
 cd chrome_work
 

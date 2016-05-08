@@ -9,11 +9,11 @@ source addhistory.sh
 # remount root rw
 mount -o remount,rw /
 
-BACKUPDIR=/mnt/stateful_partition/dev_image/myscript/b43
+BACKUPDIR=${script_local}/b43
 FIRMWARE_ARCHIVE=broadcom-wl-6.30.163.46.tar.bz2
 FIRMWARE_FILE=broadcom-wl-6.30.163.46.wl_apsta.o
 
-# /mnt/stateful_partition/dev_image/myscript/firmware/b43 があるかチェックする
+# ${script_local}/b43 があるかチェックする
 if [ -d ${BACKUPDIR} ]; then
   # 見つかったならインストールして終了
   echo The backup of B43 firmware found. installing...

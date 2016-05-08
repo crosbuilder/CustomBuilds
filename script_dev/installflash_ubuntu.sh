@@ -12,14 +12,14 @@ source addhistory.sh
 (stty -F /dev/tty1 echo echonl icanon iexten isig; sleep 5) > /dev/tty1
 
 # check workdir is exist
-if [ ! -d /mnt/stateful_partition/dev_image/myscript/chrome_work ]; then
-  echo -e "/mnt/stateful_partition/dev_image/myscript/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
+if [ ! -d ${script_local}/chrome_work ]; then
+  echo -e "${script_local}/chrome_work not found.\n" | tee /dev/tty1 | logger -t myscript
   echo -e "Please run downloadflash.sh before.\n" | tee /dev/tty1 | logger -t myscript
   cleanup
   exit 1
 fi
 
-cd /mnt/stateful_partition/dev_image/myscript/chrome_work
+cd ${script_local}/chrome_work
 
 echo -e "install flash plugin\n" | tee /dev/tty1 | logger -t myscript
 
@@ -43,10 +43,10 @@ echo -e "The installation is Completed.\n" | tee /dev/tty1 | logger -t myscript
   echo script_local=${script_local} | tee /dev/tty1 | logger -t myscript
 
   echo cleanup... | tee /dev/tty1 | logger -t myscript
-  cd /mnt/stateful_partition/dev_image/myscript 
+  cd ${script_local} 
   rm -rf chrome_work
 #  unlink ${script_local}/pre-shutdown.sh 2>&1 | tee /dev/tty1 | logger -t myscript
-  unlink /mnt/stateful_partition/dev_image/myscript/pre-shutdown.sh 2>&1 | tee /dev/tty1 | logger -t myscript
+  unlink ${script_local}/pre-shutdown.sh 2>&1 | tee /dev/tty1 | logger -t myscript
 
   # remount / read-only
   mount -r -o remount / 
