@@ -27,7 +27,7 @@ echo -e "install flash plugin\n" | tee /dev/tty1 | logger -t myscript
 mount -o remount,rw /
 
 echo -e "Copy Flash plugins\n" | tee /dev/tty1 | logger -t myscript
-mkdir /opt/google/chrome/PepperFlash
+#mkdir /opt/google/chrome/PepperFlash
 cp -r usr/lib/adobe-flashplugin /usr/lib/
 cd ..
 
