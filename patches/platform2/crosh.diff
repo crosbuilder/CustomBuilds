@@ -2,10 +2,11 @@ diff --git a/crosh/crosh b/crosh/crosh
 index 26b3aa5..a637271 100755
 --- a/crosh/crosh
 +++ b/crosh/crosh
-@@ -99,6 +99,13 @@ load_extra_crosh() {
-     . "${crosh_dir}/crosh-dev"
-     ;;
+
+@@ -101,6 +101,13 @@ load_extra_crosh() {
    esac
+ 
+   [ -e "${crosh_dir}/crosh-cups" ] && . "${crosh_dir}/crosh-cups"
 +
 +  # check guest session
 +  guest=`df -k | grep guestfs`

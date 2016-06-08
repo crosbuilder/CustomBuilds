@@ -1,16 +1,16 @@
 diff --git a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
-index 28d66ed..81eb258 100644
+index 4f9dca4..45c837a 100644
 --- a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 +++ b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
-@@ -285,6 +285,7 @@ set_build_defines() {
- 		"icu_use_data_file_flag=1"
+@@ -287,6 +287,7 @@ set_build_defines() {
  		"use_cras=1"
  		"use_system_minigbm=1"
+ 		"use_system_harfbuzz=1"
 +		"ffmpeg_component=shared_library"
  
  		# Clang features.
  		asan=$(use10 asan)
-@@ -712,7 +713,7 @@ setup_test_lists() {
+@@ -792,7 +793,7 @@ setup_test_lists() {
  setup_compile_flags() {
  	# The chrome makefiles specify -O and -g flags already, so remove the
  	# portage flags.
@@ -19,7 +19,7 @@ index 28d66ed..81eb258 100644
  
  	# -clang-syntax is a flag that enable us to do clang syntax checking on
  	# top of building Chrome with gcc. Since Chrome itself is clang clean,
-@@ -1161,4 +1162,8 @@ src_install() {
+@@ -1271,6 +1272,10 @@ src_install() {
  		dodir "${chromedriver_dir}"
  		cp -pPR "${FROM}"/chromedriver "${D}/${chromedriver_dir}" || die
  	fi
@@ -28,3 +28,5 @@ index 28d66ed..81eb258 100644
 +	insinto /usr/lib
 +	doins "${FROM}"/lib/libffmpeg.so
  }
+ 
+ pkg_postinst() {
