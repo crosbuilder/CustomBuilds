@@ -59,6 +59,10 @@ git add x11-base/xorg-server
 git commit -m "VirtualBoxで起動できない問題を修正"
 git add sys-kernel/linux-firmware/
 git commit -m "デフォルトでインストールされないbrcm/bcm*がインストールされるように修正"
+git add media-libs/mesa/mesa-9999.ebuild
+git commit -m "vmware用mesa修正"
+git add licenses/copyright-attribution/media-libs/mesa
+git commit -m "vmwareのライセンスファイルを追加"
 cd ~/trunk/src/third_party/kernel/v3.14/
 ~/myenv/script/repostart.sh mykernel
 git add drivers/usb/core/usb.c
