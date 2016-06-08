@@ -29,8 +29,8 @@ if [ 0 -ne $? ]; then
   exit 1
 fi
 
-# USEフラグにpenmとmybuildを追加
-sed -e 's/peerd/peerd penm mybuild/g' -i make.conf
+# USEフラグにpenm,mybuild,xaを追加
+sed -e 's/peerd/peerd penm mybuild xa/g' -i make.conf
 if [ 0 -ne $? ]; then
   echo Error occured.  Aborted.
   exit 1
@@ -53,9 +53,9 @@ if [ 0 -ne $? ]; then
 fi
 
 
-# vesaを追加
+# vesa, vmware, vmmouseを追加
 cd profiles/base
-sed -e 's/radeon/radeon vesa/g' -i make.defaults
+sed -e 's/radeon/radeon vesa vmware/g' -e '/^VIDEO_CARDS=/a INPUT_DEVICES="${INPUT_DEVICES} vmmouse"' -i make.defaults
 if [ 0 -ne $? ]; then
   echo Error occured.  Aborted.
   exit 1
