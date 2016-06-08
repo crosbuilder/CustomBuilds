@@ -1,0 +1,40 @@
+diff --git a/media-libs/mesa/mesa-9999.ebuild b/media-libs/mesa/mesa-9999.ebuild
+index 819604a..ee53884 100644
+--- a/media-libs/mesa/mesa-9999.ebuild
++++ b/media-libs/mesa/mesa-9999.ebuild
+@@ -50,7 +50,7 @@ for card in ${VIDEO_CARDS}; do
+ done
+ 
+ IUSE="${IUSE_VIDEO_CARDS}
+-	+classic debug dri egl +gallium -gbm gles1 gles2 +llvm +nptl pic selinux
++	+classic debug dri egl +gallium -gbm gles1 gles2 +llvm +nptl pic selinux xa
+ 	shared-glapi kernel_FreeBSD xlib-glx X"
+ 
+ LIBDRM_DEPSTRING=">=x11-libs/libdrm-2.4.60"
+@@ -186,6 +189,9 @@ src_configure() {
+ 
+ 		# Freedreno code
+ 		gallium_driver_enable video_cards_freedreno freedreno
++
++		# vmware code
++		gallium_driver_enable video_cards_vmware svga
+ 	fi
+ 
+ 	export LLVM_CONFIG=${SYSROOT}/usr/bin/llvm-config-host
+@@ -217,6 +223,7 @@ src_configure() {
+ 		$(use_enable !pic asm) \
+ 		$(use_enable xlib-glx) \
+ 		$(use_enable !xlib-glx dri) \
++		$(use_enable xa) \
+ 		--with-dri-drivers=${DRI_DRIVERS} \
+ 		--with-gallium-drivers=${GALLIUM_DRIVERS} \
+ 		$(use egl && echo "--with-egl-platforms=surfaceless")
+@@ -255,7 +262,7 @@ src_install() {
+ 	insinto "/usr/$(get_libdir)/dri/"
+ 	insopts -m0755
+ 	# install the gallium drivers we use
+-	local gallium_drivers_files=( i915_dri.so nouveau_dri.so r300_dri.so r600_dri.so msm_dri.so swrast_dri.so )
++	local gallium_drivers_files=( i915_dri.so nouveau_dri.so r300_dri.so r600_dri.so msm_dri.so swrast_dri.so vmwgfx_dri.so )
+ 	for x in ${gallium_drivers_files[@]}; do
+ 		if [ -f "${S}/$(get_libdir)/gallium/${x}" ]; then
+ 			doins "${S}/$(get_libdir)/gallium/${x}"
