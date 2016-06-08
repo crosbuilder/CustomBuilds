@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/resources/options/chromeos/keyboard_overlay.html b/chrome/browser/resources/options/chromeos/keyboard_overlay.html
+index b74c00d..cab7b25 100644
+--- a/chrome/browser/resources/options/chromeos/keyboard_overlay.html
++++ b/chrome/browser/resources/options/chromeos/keyboard_overlay.html
+@@ -43,7 +43,7 @@
+        </tr>
+        <!-- The caps lock section is hidden by default. This is only visible
+             when --has-chromeos-keyboard flag is not passed. -->
+-       <tr id="caps-lock-remapping-section" hidden>
++       <tr id="caps-lock-remapping-section" >
+          <td class="option-name" id="remap-caps-lock-key-to-label"
+                i18n-content="remapCapsLockKeyToContent">
+          </td>
