@@ -1,6 +1,7 @@
 8086:4220	enable_ipw2200.sh	Intel PRO/Wireless 2200BG found. enable module ipw2200.
 8086:4223	enable_ipw2200.sh	Intel PRO/Wireless 2915ABG found. enable module ipw2200.
 8086:4224	enable_ipw2200.sh	Intel PRO/Wireless 2915ABG found. enable module ipw2200.
+8086:1043	enable_ipw2100.sh	Intel PRO/Wireless 2100 found. enable module ipw2100.
 8086:2592	disable_gpu_compositing.sh	Intel Mobile 915GM/GMS/910GML Express GPU found. disable GPU Compositing.
 14e4:4315	setup_b43firmware.sh	Broadcom BCM4312 found.
 14e4:4307	setup_b43firmware.sh	Broadcom BCM4306/3 found.
