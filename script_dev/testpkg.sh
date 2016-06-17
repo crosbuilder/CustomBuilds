@@ -37,6 +37,9 @@ done << EOF
 /lib/firmware/rt3090.bin
 /lib/firmware/rt3290.bin
 /lib/firmware/rt73.bin
+/lib/firmware/ipw2100-1.3-i.fw
+/lib/firmware/ipw2100-1.3-p.fw
+/lib/firmware/ipw2100-1.3.fw
 /lib/modules/3.14.0/kernel/drivers/net/wireless/brcm80211/brcmsmac/brcmsmac.ko
 /lib/modules/3.14.0/kernel/drivers/net/wireless/rtl818x/rtl8180/rtl8180.ko
 /lib/modules/3.14.0/kernel/drivers/staging/rtl8187se/r8187se.ko
@@ -46,6 +49,8 @@ done << EOF
 /lib/modules/3.14.0/kernel/drivers/net/ethernet/atheros/atlx/atl1.ko
 /lib/modules/3.14.0/kernel/drivers/net/ethernet/atheros/atlx/atl2.ko
 /lib/modules/3.14.0/kernel/drivers/net/ethernet/marvell/sky2.ko
+/lib/modules/3.14.0/kernel/drivers/gpu/drm/vmwgfx/vmwgfx.ko
+/usr/lib/dri/vmwgfx_dri.so
 EOF
 
 # test if file contains specified phrases
@@ -57,6 +62,7 @@ CHROMEOS_AUSERVER=http://update.crosbuilder.click:44225/update	/etc/lsb-release
 BEGIN PUBLIC KEY	/usr/share/update_engine/update-payload-key.pub.pem
 8086:4223	/opt/myscript/hwdb/pci
 8086:4224	/opt/myscript/hwdb/pci
+8086:1043	/opt/myscript/hwdb/pci
 EOF
 
 # test if the size of pem is 451
