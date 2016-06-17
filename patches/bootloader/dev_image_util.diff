@@ -1,0 +1,23 @@
+diff --git a/build_library/dev_image_util.sh b/build_library/dev_image_util.sh
+index 9bce0df..ac8fd1c 100755
+--- a/build_library/dev_image_util.sh
++++ b/build_library/dev_image_util.sh
+@@ -37,9 +37,17 @@ install_dev_packages() {
+   # Copy over the libc debug info so that gdb
+   # works with threads and also for a better debugging experience.
+   sudo mkdir -p "${root_fs_dir}/usr/local/usr/lib/debug"
++
++  # x86-pentiummのときはアーカイブの構成が違うので修正する
++  local extract_dir=./usr/lib/debug/usr/${CHOST}
++  local strip_components="--strip-components=6"
++  if [ "${BOARD}" = "x86-pentiumm" ]; then
++    extract_dir=./usr/lib/debug
++    strip_components="--strip-components=4"
++  fi
+   pbzip2 -dc --ignore-trailing-garbage=1 "${LIBC_PATH}" | \
+     sudo tar xpf - -C "${root_fs_dir}/usr/local/usr/lib/debug" \
+-      ./usr/lib/debug/usr/${CHOST} --strip-components=6
++      ${extract_dir} ${strip_components}
+   # Since gdb only looks in /usr/lib/debug, symlink the /usr/local
+   # path so that it is found automatically.
+   sudo ln -s /usr/local/usr/lib/debug "${root_fs_dir}/usr/lib/debug"

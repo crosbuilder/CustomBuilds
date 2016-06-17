@@ -1,0 +1,43 @@
+diff --git a/build_library/base_image_util.sh b/build_library/base_image_util.sh
+index 6c7de6a..c27971d 100755
+--- a/build_library/base_image_util.sh
++++ b/build_library/base_image_util.sh
+@@ -154,6 +154,10 @@ create_base_image() {
+   PKGDIR="/var/lib/portage/pkgs"
+   local libc_atom="cross-${CHOST}/glibc-${libc_version}"
+   LIBC_PATH="${PKGDIR}/${libc_atom}.tbz2"
++  # x86-pentiummのときは自分でビルドしたSSE3なしのglibcを使う
++  if [ "${BOARD}" = "x86-pentiumm" ]; then
++    LIBC_PATH="/build/x86-pentiumm/packages/sys-libs/glibc-${libc_version}.tbz2"
++  fi
+ 
+   if [[ ! -e ${LIBC_PATH} ]]; then
+     sudo emerge --nodeps -gf "=${libc_atom}"
+@@ -174,9 +178,25 @@ create_base_image() {
+     # This is only for very old packages which we don't have.
+     'lib*/libBrokenLocale*.so*'
+   )
++  # 自分でビルドしたSSE3除去版ではファイルが余分にあるのでそれらを除去する。除去しないとエラーになる。
++  if [ "${BOARD}" = "x86-pentiumm" ]; then
++    libc_excludes=("${libc_excludes[@]}"
++      'usr/bin/*'
++      'usr/sbin'
++      'usr/share'
++      'usr/lib/debug'
++    )
++  fi
++  # 自分でビルドしたSSE3除去版glibcはクロスコンパイル用ではないのでtbz2のパス構成が違う
++  local extract_path="./usr/${CHOST}"
++  local strip_component="--strip-components=3"
++  if [ "${BOARD}" = "x86-pentiumm" ]; then
++    extract_path=""
++    strip_component=""
++  fi
+   pbzip2 -dc --ignore-trailing-garbage=1 "${LIBC_PATH}" | \
+-    sudo tar xpf - -C "${root_fs_dir}" ./usr/${CHOST} \
+-      --strip-components=3 "${libc_excludes[@]/#/--exclude=}"
++    sudo tar xpf - -C "${root_fs_dir}" ${extract_path} \
++      ${strip_component} "${libc_excludes[@]/#/--exclude=}"
+ 
+   if should_build_image ${CHROMEOS_FACTORY_INSTALL_SHIM_NAME}; then
+     # Install our custom factory install kernel with the appropriate use flags
