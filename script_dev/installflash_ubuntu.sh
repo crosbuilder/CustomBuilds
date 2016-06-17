@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd `dirname $0`
-. ./script_root.sh
+. /opt/myscript/script_root.sh
 source addhistory.sh
 
 # installflashはヒストリに記録しない（必ず手動で起動してインストールする）
