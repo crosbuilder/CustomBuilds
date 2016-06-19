@@ -12,3 +12,5 @@ ${script_root}/disable_modeset.sh
 # enable vesa
 ${script_root}/enable_vesa.sh
 
+# disable gpu composittinig
+${script_root}/disable_gpu_compositing.sh
