@@ -7,8 +7,10 @@ cd `dirname $0`
 addhistory $0 "$@"
 
 # disable modesetting
-${script_root}/disable_modeset.sh
+${script_root}/disable_modeset.sh nohistory
 
 # enable vesa
-${script_root}/enable_vesa.sh
+${script_root}/enable_vesa.sh nohistory
 
+# disable gpu composittinig
+${script_root}/disable_gpu_compositing.sh nohistory
