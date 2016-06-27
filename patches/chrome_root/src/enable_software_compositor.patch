@@ -18,6 +18,20 @@ index 874debf..ef14437 100644
  
  #if defined(OS_WIN)
    if (::GetProp(compositor->widget(), kForceSoftwareCompositor) &&
+@@ -254,10 +254,10 @@ void GpuProcessTransportFactory::EstablishedGpuChannel(
+   DCHECK(data);
+ 
+   if (num_attempts > kNumRetriesBeforeSoftwareFallback) {
+-#if defined(OS_CHROMEOS)
+-    LOG(FATAL) << "Unable to create a UI graphics context, and cannot use "
+-               << "software compositing on ChromeOS.";
+-#endif
++//#if defined(OS_CHROMEOS)
++//    LOG(FATAL) << "Unable to create a UI graphics context, and cannot use "
++//               << "software compositing on ChromeOS.";
++//#endif
+     create_gpu_output_surface = false;
+   }
 diff --git a/content/browser/gpu/gpu_process_host.cc b/content/browser/gpu/gpu_process_host.cc
 index 9c72997..80de8f9 100644
 --- a/content/browser/gpu/gpu_process_host.cc

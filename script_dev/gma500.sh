@@ -42,3 +42,6 @@ echo umount ${syslinux} | tee /dev/tty1 | logger -t myscript
 # disable vesa
 ${script_root}/disable_vesa.sh nohistory
 
+# disable gpu compositing
+${script_root}/disable_gpu_compositing.sh nohistory
+
