@@ -40,8 +40,32 @@ done << EOF
 /lib/firmware/ipw2100-1.3-i.fw
 /lib/firmware/ipw2100-1.3-p.fw
 /lib/firmware/ipw2100-1.3.fw
+/lib/firmware/usb8388_v9.bin
+/lib/firmware/usb8682.bin
+/lib/firmware/usb8388_v5.bin
+/lib/firmware/sd8688_helper.bin
+/lib/firmware/sd8688.bin
+/lib/firmware/sd8686_v9_helper.bin
+/lib/firmware/sd8686_v9.bin
+/lib/firmware/sd8686_v8.bin
+/lib/firmware/sd8686_v8_helper.bin
+/lib/firmware/sd8682_helper.bin
+/lib/firmware/sd8682.bin
+/lib/firmware/sd8385_helper.bin
+/lib/firmware/sd8385.bin
+/lib/firmware/gspi8688_helper.bin
+/lib/firmware/gspi8686_v9_helper.bin
+/lib/firmware/gspi8688.bin
+/lib/firmware/gspi8686_v9.bin
+/lib/firmware/gspi8682_helper.bin
+/lib/firmware/gspi8682.bin
+/lib/firmware/cf8385.bin
+/lib/firmware/cf8385_helper.bin
 /lib/modules/3.14.0/kernel/drivers/net/wireless/brcm80211/brcmsmac/brcmsmac.ko
 /lib/modules/3.14.0/kernel/drivers/net/wireless/rtl818x/rtl8180/rtl8180.ko
+/lib/modules/3.14.0/kernel/drivers/net/wireless/libertas/libertas.ko
+/lib/modules/3.14.0/kernel/drivers/net/wireless/libertas/libertas_sdio.ko
+/lib/modules/3.14.0/kernel/drivers/net/wireless/libertas/usb8xxx.ko
 /lib/modules/3.14.0/kernel/drivers/staging/rtl8187se/r8187se.ko
 /lib/modules/3.14.0/kernel/drivers/net/ethernet/broadcom/b44.ko
 /lib/modules/3.14.0/kernel/drivers/net/ethernet/atheros/atl1c/atl1c.ko
@@ -51,6 +75,7 @@ done << EOF
 /lib/modules/3.14.0/kernel/drivers/net/ethernet/marvell/sky2.ko
 /lib/modules/3.14.0/kernel/drivers/gpu/drm/vmwgfx/vmwgfx.ko
 /usr/lib/dri/vmwgfx_dri.so
+/usr/bin/xinput_calibrator
 EOF
 
 # test if file contains specified phrases
