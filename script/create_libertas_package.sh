@@ -23,6 +23,9 @@ if [ $? -ne 0 ]; then
   exit $?
 fi
 
+# 展開先が間違っているので直す
+sed -e 's@insinto $(get_libdir)/firmware@insinto $(get_libdir)/firmware/libertas@' -i libertas-firmware-20101019.ebuild
+
 # ebuildのテストを実行する
 cd ~/trunk/src/third_party/portage-stable/net-wireles/libertas-firmware
 rm -f Manifest
