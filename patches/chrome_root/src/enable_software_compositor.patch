@@ -32,6 +32,7 @@ index 874debf..ef14437 100644
 +//#endif
      create_gpu_output_surface = false;
    }
+
 diff --git a/content/browser/gpu/gpu_process_host.cc b/content/browser/gpu/gpu_process_host.cc
 index 9c72997..80de8f9 100644
 --- a/content/browser/gpu/gpu_process_host.cc
