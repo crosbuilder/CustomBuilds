@@ -9,6 +9,7 @@ chrome_root_old=/home/chromium/chrome_root_old
 if [ ! -e /home/chromium/chrome_root ]; then
   mkdir ${chrome_root}
 else
+  sudo rm -r ${chrome_root_old}
   mv ${chrome_root} ${chrome_root_old}
   mkdir ${chrome_root}
 fi
@@ -27,3 +28,10 @@ if [ $? -ne 0 ]; then
   echo Failed to apply patch. Abort.
   exit 1
 fi
+# CapsLockキーの設定メニューを表示させる
+patch -p1 < ~/myenv/patches/chrome_root/src/capslock_setting.diff
+if [ $? -ne 0 ]; then
+  echo Failed to apply patch. Abort.
+  exit 1
+fi
+
