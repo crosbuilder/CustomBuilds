@@ -18,8 +18,8 @@ getKernelSourcePath() {
 
 #echo ${kernel_name}
 
-	local kernel_version=`echo ${kernel_name} | grep -o -e "[0-9]*$"`
-#echo ${kernel_version}
+	local kernel_version=`echo ${kernel_name} | grep -o -e "[0-9_]*$" | sed -e 's/_/\./'`
+#echo kernel_version=${kernel_version}
 
 	pushd . > /dev/null
 
@@ -31,7 +31,7 @@ getKernelSourcePath() {
 #		return 1
 #	fi
 
-	local kernel_source_path="src/third_party/kernel/v3.${kernel_version}"
+	local kernel_source_path="src/third_party/kernel/v${kernel_version}"
 
 	KERNEL_SOURCE_FULLPATH=${SDK_ROOT}/${kernel_source_path}
 	echo ${KERNEL_SOURCE_FULLPATH}
