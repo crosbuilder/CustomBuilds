@@ -7,14 +7,14 @@ index 059b6b3..c04e0e7 100755
    menu label chromeos-usb.A
    kernel vmlinuz.A
 -  append ${common_args} root=HDROOTUSB i915.modeset=1 cros_legacy
-+  append ${common_args} root=HDROOTUSB i915.modeset=1 cros_legacy pae
++  append ${common_args} root=HDROOTUSB i915.modeset=1 cros_legacy forcepae
  
  label chromeos-vusb.A
    menu label chromeos-vusb.A
    kernel vmlinuz.A
    append ${common_args} ${verity_common} root=${ROOTDEV} \
 -      i915.modeset=1 cros_legacy dm="DMTABLEA"
-+      i915.modeset=1 cros_legacy dm="DMTABLEA" pae
++      i915.modeset=1 cros_legacy dm="DMTABLEA" forcepae
  EOF
    info "Emitted ${SYSLINUX_DIR}/usb.A.cfg"
  
@@ -23,14 +23,14 @@ index 059b6b3..c04e0e7 100755
    menu label chromeos-hd.A
    kernel vmlinuz.A
 -  append ${common_args} root=HDROOTA i915.modeset=1 cros_legacy
-+  append ${common_args} root=HDROOTA i915.modeset=1 cros_legacy pae
++  append ${common_args} root=HDROOTA i915.modeset=1 cros_legacy forcepae
  
  label chromeos-vhd.A
    menu label chromeos-vhd.A
    kernel vmlinuz.A
    append ${common_args} ${verity_common} root=${ROOTDEV} \
 -      i915.modeset=1 cros_legacy dm="DMTABLEA"
-+      i915.modeset=1 cros_legacy dm="DMTABLEA" pae
++      i915.modeset=1 cros_legacy dm="DMTABLEA" forcepae
  EOF
    info "Emitted ${SYSLINUX_DIR}/root.A.cfg"
  
@@ -39,14 +39,14 @@ index 059b6b3..c04e0e7 100755
    menu label chromeos-hd.B
    kernel vmlinuz.B
 -  append ${common_args} root=HDROOTB i915.modeset=1 cros_legacy
-+  append ${common_args} root=HDROOTB i915.modeset=1 cros_legacy pae
++  append ${common_args} root=HDROOTB i915.modeset=1 cros_legacy forcepae
  
  label chromeos-vhd.B
    menu label chromeos-vhd.B
    kernel vmlinuz.B
    append ${common_args} ${verity_common} root=${ROOTDEV} \
 -      i915.modeset=1 cros_legacy dm="DMTABLEB"
-+      i915.modeset=1 cros_legacy dm="DMTABLEB" pae
++      i915.modeset=1 cros_legacy dm="DMTABLEB" forcepae
  EOF
    info "Emitted ${SYSLINUX_DIR}/root.B.cfg"
  

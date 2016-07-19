@@ -1,7 +1,17 @@
 #!/bin/bash
 
+. ./path.sh
+. ./getKernelPackage.sh
+
+kernel_name=`getKernelPackageName`
+if [ -z "${kernel_name}" ]; then
+  return 1
+fi
+
+echo ${kernel_name}
+
 echo Apply Platform2 Patches
-cd /home/chromium/myenv/patches/kernel-3_14
+cd /home/chromium/myenv/patches/${kernel_name}
 
 make dryrun
 if [ 0 -ne $? ]; then

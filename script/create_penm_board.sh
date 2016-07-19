@@ -43,7 +43,7 @@ if [ 0 -ne $? ]; then
 fi
 
 # ignore collision of libffmpeg.so and ar
-echo 'COLLISION_IGNORE="/usr/lib/libffmpeg.so /usr/bin/ar /etc/nsswitch.conf"' >> make.conf
+echo 'COLLISION_IGNORE="${COLLISION_IGNORE} /usr/lib/libffmpeg.so /usr/bin/ar /etc/nsswitch.conf /usr/lib/debug/.build-id"' >> make.conf
 
 # broadcom wifi用ファームウェアを追加
 sed -e 's/iwlwifi-all/iwlwifi-all brcmfmac-all/g' -i make.conf
