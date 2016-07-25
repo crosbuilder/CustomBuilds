@@ -18,28 +18,32 @@ fi
 cd libertas-firmware
 
 # ebuildファイルをダウンロードする
-wget --content-disposition http://mirror.linux.org.au/gentoo-portage/net-wireless/libertas-firmware/libertas-firmware-20101019.ebuild
-if [ $? -ne 0 ]; then
-  exit $?
-fi
+#wget --content-disposition http://mirror.linux.org.au/gentoo-portage/net-wireless/libertas-firmware/libertas-firmware-20101019.ebuild
+#if [ $? -ne 0 ]; then
+  # 別のサイトを試す
+  wget https://searchcode.com/codesearch/raw/7612897/ -O libertas-firmware-20101019.ebuild
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+#fi
 
 # 展開先が間違っているので直す
 sed -e 's@insinto $(get_libdir)/firmware@insinto $(get_libdir)/firmware/libertas@' -i libertas-firmware-20101019.ebuild
 
 # ebuildのテストを実行する
-cd ~/trunk/src/third_party/portage-stable/net-wireles/libertas-firmware
+cd ~/trunk/src/third_party/portage-stable/net-wireless/libertas-firmware
 rm -f Manifest
 ebuild-${BOARD} libertas-firmware-*.ebuild manifest
 if [ $? -ne 0 ]; then
-  exit $?
+  exit 1
 fi
 ebuild-${BOARD} libertas-firmware-*.ebuild test
 if [ $? -ne 0 ]; then
-  exit $?
+  exit 1
 fi
 emerge-${BOARD} net-wireless/libertas-firmware --pretend
 if [ $? -ne 0 ]; then
-  exit $?
+  exit 1
 fi
 
 # 依存関係を追加
