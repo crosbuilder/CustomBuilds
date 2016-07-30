@@ -66,7 +66,7 @@ git commit -m "vmwareのライセンスファイルを追加"
 git add licenses/LICENSE.libertas-fw
 git commit -m "Libertas Firmwareのライセンスファイルを追加"
 
-cd ~/trunk/src/third_party/kernel/v3.14/
+cd ~/trunk/src/third_party/kernel/v4.4/
 ~/myenv/script/repostart.sh mykernel
 git add drivers/usb/core/usb.c
 git add drivers/usb/host/ehci-hcd.c
@@ -74,18 +74,6 @@ git add drivers/usb/host/ehci-pci.c
 git commit -m "usbcore.noehciパッチ適用"
 git add chromeos/config
 git commit -m "カーネルパラメータ変更"
-git add drivers/gpu/drm/i915/intel_bios.c
-git commit -m "915Gや845GMなどでカーネルパニックになる問題を修正"
-git add drivers/gpu/drm/i915/intel_display.c
-git commit -m "CF-W2でカーネルパニックになる問題を修正"
-git add Documentation/kernel-parameters.txt
-git add arch/x86/boot/cpucheck.c
-git add arch/x86/kernel/cpu/amd.c
-git add arch/x86/kernel/cpu/intel.c
-git add include/linux/kernel.h
-git add kernel/module.c
-git add kernel/panic.c
-git commit -m "PAEパッチ適用"
 
 cd ~/trunk/src/third_party/portage-stable/
 ~/myenv/script/repostart.sh my-portage-stable
