@@ -1,16 +1,18 @@
 #!/bin/bash
+myname=$0
+cd ${myname%/*}
 
 . ./path.sh
 . ./getKernelPackage.sh
 
 kernel_name=`getKernelPackageName`
 if [ -z "${kernel_name}" ]; then
-  return 1
+  exit 1
 fi
 
 echo ${kernel_name}
 
-echo Apply Platform2 Patches
+echo Apply Kernel Patches
 cd /home/chromium/myenv/patches/${kernel_name}
 
 make dryrun
