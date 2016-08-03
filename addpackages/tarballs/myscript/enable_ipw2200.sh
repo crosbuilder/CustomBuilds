@@ -59,6 +59,6 @@ else
     sed -e '1i ipw2200' -i /var/lib/preload-network-drivers
     echo add entry ipw2200 to preload-network-drivers
   else
-    preload-network-drivers found. skip.
+    echo  preload-network-drivers found. skip.
   fi
 fi
