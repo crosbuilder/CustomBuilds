@@ -61,4 +61,7 @@ fi
 # ライセンスファイルをコピーする
 cp ~/myenv/addpackages/ebuilds/net-wireless/libertas-firmware/license ~/trunk/src/third_party/portage-stable/licenses/libertas-fw
 
+# package.unmaskに追記
+echo "=net-wireless/libertas-firmware-20101019 **" >> /build/x86-pentiumm/etc/portage/package.unmask/cros_workon
+
 popd > /dev/null
