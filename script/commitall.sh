@@ -94,6 +94,9 @@ git add app-arch/p7zip
 git commit -m "p7zip追加"
 git add net-wireless/ralink-rt2860-firmware/
 git commit -m "RT2860 Firmwareパッケージ追加"
+git add licenses/libertas-fw
+git add net-wireless/libertas-firmware/
+git commit -m "Libertas Firmwareパッケージ追加"
 
 cd ~/trunk/src/scripts
 ~/myenv/script/repostart.sh my-scripts
@@ -108,3 +111,6 @@ git add build_image
 git commit -m "生成したイメージにブートフラグを付加する"
 git add lib/cros_vm_lib.sh
 git commit -m "仮想マシン起動時のcpuのデフォルトをkvm32に変更"
+git add build_library/base_image_util.sh
+git add build_library/dev_image_util.sh
+git commit -m "glibc SSE3除去対策"
