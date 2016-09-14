@@ -12,16 +12,16 @@ index b74c00d..cab7b25 100644
                 i18n-content="remapCapsLockKeyToContent">
           </td>
 diff --git a/chrome/browser/ui/webui/options/chromeos/keyboard_handler.cc b/chrome/browser/ui/webui/options/chromeos/keyboard_handler.cc
-index 0429a44..425a380 100644
+index 0a4594e..60aad4b 100644
 --- a/chrome/browser/ui/webui/options/chromeos/keyboard_handler.cc
 +++ b/chrome/browser/ui/webui/options/chromeos/keyboard_handler.cc
-@@ -49,15 +49,15 @@ const char* kDataValuesNames[] = {
+@@ -50,15 +50,15 @@ const char* kDataValuesNames[] = {
    "remapDiamondKeyToValue",
  };
  
 -bool HasExternalKeyboard() {
--  for (const ui::InputDevice& keyboard :
--       ui::InputDeviceManager::GetInstance()->GetKeyboardDevices()) {
+-  for (const ui::KeyboardDevice& keyboard :
+-       ui::DeviceDataManager::GetInstance()->keyboard_devices()) {
 -    if (keyboard.type == ui::InputDeviceType::INPUT_DEVICE_EXTERNAL)
 -      return true;
 -  }
@@ -29,18 +29,18 @@ index 0429a44..425a380 100644
 -  return false;
 -}
 +//bool HasExternalKeyboard() {
-+//  for (const ui::InputDevice& keyboard :
-+//       ui::InputDeviceManager::GetInstance()->GetKeyboardDevices()) {
++//  for (const ui::KeyboardDevice& keyboard :
++//       ui::DeviceDataManager::GetInstance()->keyboard_devices()) {
 +//    if (keyboard.type == ui::InputDeviceType::INPUT_DEVICE_EXTERNAL)
 +//      return true;
 +//  }
 +//
-+// return false;
++//  return false;
 +//}
  }  // namespace
  
  namespace chromeos {
-@@ -179,7 +179,9 @@ void KeyboardHandler::HandleShowKeyboardShortcuts(const base::ListValue* args) {
+@@ -180,7 +180,9 @@ void KeyboardHandler::HandleShowKeyboardShortcuts(const base::ListValue* args) {
  }
  
  void KeyboardHandler::UpdateCapsLockOptions() const {
@@ -48,6 +48,6 @@ index 0429a44..425a380 100644
 +  //const base::FundamentalValue show_caps_lock_options(HasExternalKeyboard());
 +  // force show CapsLock Menu.
 +  const base::FundamentalValue show_caps_lock_options(true);
-   web_ui()->CallJavascriptFunctionUnsafe(
-       "options.KeyboardOverlay.showCapsLockOptions", show_caps_lock_options);
- }
+   web_ui()->CallJavascriptFunction(
+       "options.KeyboardOverlay.showCapsLockOptions",
+       show_caps_lock_options);
