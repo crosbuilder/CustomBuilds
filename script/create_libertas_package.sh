@@ -30,6 +30,9 @@ cd libertas-firmware
 # 展開先が間違っているので直す
 sed -e 's@insinto $(get_libdir)/firmware@insinto $(get_libdir)/firmware/libertas@' -i libertas-firmware-20101019.ebuild
 
+# package.unmaskに追記
+echo "=net-wireless/libertas-firmware-20101019 **" >> /build/x86-pentiumm/etc/portage/package.unmask/cros-workon
+
 # ebuildのテストを実行する
 cd ~/trunk/src/third_party/portage-stable/net-wireless/libertas-firmware
 rm -f Manifest
