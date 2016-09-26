@@ -1,11 +1,11 @@
 diff --git a/content/browser/compositor/gpu_process_transport_factory.cc b/content/browser/compositor/gpu_process_transport_factory.cc
-index 9af7049..b40088c 100644
+index 874debf..ef14437 100644
 --- a/content/browser/compositor/gpu_process_transport_factory.cc
 +++ b/content/browser/compositor/gpu_process_transport_factory.cc
-@@ -263,10 +263,11 @@ CreateOverlayCandidateValidator(gfx::AcceleratedWidget widget) {
- }
+@@ -197,10 +197,11 @@ static bool ShouldCreateGpuOutputSurface(ui::Compositor* compositor) {
+   }
+ #endif
  
- static bool ShouldCreateGpuOutputSurface(ui::Compositor* compositor) {
 -#if defined(OS_CHROMEOS)
 -  // Software fallback does not happen on Chrome OS.
 -  return true;
@@ -15,33 +15,29 @@ index 9af7049..b40088c 100644
 +//  // Software fallback does not happen on Chrome OS.
 +//  return true;
 +//#endif
-   if (IsUsingMus())
-     return true;
  
-@@ -330,12 +331,12 @@ void GpuProcessTransportFactory::EstablishedGpuChannel(
+ #if defined(OS_WIN)
+   if (::GetProp(compositor->widget(), kForceSoftwareCompositor) &&
+@@ -254,10 +254,10 @@ void GpuProcessTransportFactory::EstablishedGpuChannel(
    DCHECK(data);
  
    if (num_attempts > kNumRetriesBeforeSoftwareFallback) {
--    bool fatal = IsUsingMus();
 -#if defined(OS_CHROMEOS)
--    fatal = true;
+-    LOG(FATAL) << "Unable to create a UI graphics context, and cannot use "
+-               << "software compositing on ChromeOS.";
 -#endif
--    LOG_IF(FATAL, fatal) << "Unable to create a UI graphics context, and "
--                         << "cannot use software compositing on ChromeOS.";
-+//    bool fatal = IsUsingMus();
 +//#if defined(OS_CHROMEOS)
-+//    fatal = true;
++//    LOG(FATAL) << "Unable to create a UI graphics context, and cannot use "
++//               << "software compositing on ChromeOS.";
 +//#endif
-+//    LOG_IF(FATAL, fatal) << "Unable to create a UI graphics context, and "
-+//                         << "cannot use software compositing on ChromeOS.";
      create_gpu_output_surface = false;
    }
- 
+
 diff --git a/content/browser/gpu/gpu_process_host.cc b/content/browser/gpu/gpu_process_host.cc
-index faa4ebd..a3499d8 100644
+index 9c72997..80de8f9 100644
 --- a/content/browser/gpu/gpu_process_host.cc
 +++ b/content/browser/gpu/gpu_process_host.cc
-@@ -1130,12 +1130,13 @@ void GpuProcessHost::RecordProcessCrash() {
+@@ -1041,12 +1041,13 @@ void GpuProcessHost::RecordProcessCrash() {
        if ((gpu_recent_crash_count_ >= kGpuMaxCrashCount &&
             !disable_crash_limit) ||
            !initialized_) {
