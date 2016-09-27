@@ -64,4 +64,3 @@ fi
 # ライセンスファイルをコピーする
 cp ~/myenv/addpackages/ebuilds/net-wireless/libertas-firmware/license ~/trunk/src/third_party/portage-stable/licenses/libertas-fw
 
-popd > /dev/null
