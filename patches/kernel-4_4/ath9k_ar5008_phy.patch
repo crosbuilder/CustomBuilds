@@ -1,0 +1,67 @@
+commit ee22885fc1fb49f98bb59e0825cc4ef3b1004f00
+Author: Oleksij Rempel <linux@rempel-privat.de>
+Date:   Tue Apr 12 19:37:44 2016 +0200
+
+    ath9k: ar5008_hw_cmn_spur_mitigate: add missing mask_m & mask_p initialisation
+    
+    commit de478a61389cacafe94dc8b035081b681b878f9d upstream.
+    
+    by moving common code to ar5008_hw_cmn_spur_mitigate i forgot to move
+    mask_m & mask_p initialisation. This coused a performance regression
+    on ar9281.
+    
+    Fixes: f911085ffa88 ("ath9k: split ar5008_hw_spur_mitigate and reuse common code in ar9002_hw_spur_mitigate.")
+    Reported-by: Gustav Frederiksen <lkml2017@openmailbox.org>
+    Tested-by: Gustav Frederiksen <lkml2017@openmailbox.org>
+    Signed-off-by: Oleksij Rempel <linux@rempel-privat.de>
+    Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/net/wireless/ath/ath9k/ar5008_phy.c b/drivers/net/wireless/ath/ath9k/ar5008_phy.c
+index 8f87930..1b271b9 100644
+--- a/drivers/net/wireless/ath/ath9k/ar5008_phy.c
++++ b/drivers/net/wireless/ath/ath9k/ar5008_phy.c
+@@ -274,6 +274,9 @@ void ar5008_hw_cmn_spur_mitigate(struct ath_hw *ah,
+ 	};
+ 	static const int inc[4] = { 0, 100, 0, 0 };
+ 
++	memset(&mask_m, 0, sizeof(int8_t) * 123);
++	memset(&mask_p, 0, sizeof(int8_t) * 123);
++
+ 	cur_bin = -6000;
+ 	upper = bin + 100;
+ 	lower = bin - 100;
+@@ -424,14 +427,9 @@ static void ar5008_hw_spur_mitigate(struct ath_hw *ah,
+ 	int tmp, new;
+ 	int i;
+ 
+-	int8_t mask_m[123];
+-	int8_t mask_p[123];
+ 	int cur_bb_spur;
+ 	bool is2GHz = IS_CHAN_2GHZ(chan);
+ 
+-	memset(&mask_m, 0, sizeof(int8_t) * 123);
+-	memset(&mask_p, 0, sizeof(int8_t) * 123);
+-
+ 	for (i = 0; i < AR_EEPROM_MODAL_SPURS; i++) {
+ 		cur_bb_spur = ah->eep_ops->get_spur_channel(ah, i, is2GHz);
+ 		if (AR_NO_SPUR == cur_bb_spur)
+diff --git a/drivers/net/wireless/ath/ath9k/ar9002_phy.c b/drivers/net/wireless/ath/ath9k/ar9002_phy.c
+index db66245..53d7445 100644
+--- a/drivers/net/wireless/ath/ath9k/ar9002_phy.c
++++ b/drivers/net/wireless/ath/ath9k/ar9002_phy.c
+@@ -178,14 +178,9 @@ static void ar9002_hw_spur_mitigate(struct ath_hw *ah,
+ 	int i;
+ 	struct chan_centers centers;
+ 
+-	int8_t mask_m[123];
+-	int8_t mask_p[123];
+ 	int cur_bb_spur;
+ 	bool is2GHz = IS_CHAN_2GHZ(chan);
+ 
+-	memset(&mask_m, 0, sizeof(int8_t) * 123);
+-	memset(&mask_p, 0, sizeof(int8_t) * 123);
+-
+ 	ath9k_hw_get_channel_centers(ah, chan, &centers);
+ 	freq = centers.synth_center;
+ 
