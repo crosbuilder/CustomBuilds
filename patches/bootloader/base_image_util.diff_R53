@@ -1,12 +1,23 @@
 diff --git a/build_library/base_image_util.sh b/build_library/base_image_util.sh
-index 17738cc..0de7d47 100755
+index 6c7de6a..c27971d 100755
 --- a/build_library/base_image_util.sh
 +++ b/build_library/base_image_util.sh
-@@ -137,9 +137,26 @@ install_libc() {
+@@ -154,6 +154,10 @@ create_base_image() {
+   PKGDIR="/var/lib/portage/pkgs"
+   local libc_atom="cross-${CHOST}/glibc-${libc_version}"
+   LIBC_PATH="${PKGDIR}/${libc_atom}.tbz2"
++  # x86-pentiummのときは自分でビルドしたSSE3なしのglibcを使う
++  if [ "${BOARD}" = "x86-pentiumm" ]; then
++    LIBC_PATH="/build/x86-pentiumm/packages/sys-libs/glibc-${libc_version}.tbz2"
++  fi
+ 
+   if [[ ! -e ${LIBC_PATH} ]]; then
+     sudo emerge --nodeps -gf "=${libc_atom}"
+@@ -174,9 +178,25 @@ create_base_image() {
      # This is only for very old packages which we don't have.
      'lib*/libBrokenLocale*.so*'
    )
-+  # 自分でビルドしたSSE3除去版ではファイルが余分にあるのでそれらを除去する。除>去しないとエラーになる。
++  # 自分でビルドしたSSE3除去版ではファイルが余分にあるのでそれらを除去する。除去しないとエラーになる。
 +  if [ "${BOARD}" = "x86-pentiumm" ]; then
 +    libc_excludes=("${libc_excludes[@]}"
 +      'usr/bin/*'
@@ -27,7 +38,6 @@ index 17738cc..0de7d47 100755
 -      --strip-components=3 "${libc_excludes[@]/#/--exclude=}"
 +    sudo tar xpf - -C "${root_fs_dir}" ${extract_path} \
 +      ${strip_component} "${libc_excludes[@]/#/--exclude=}"
-+
- }
  
- create_base_image() {
+   if should_build_image ${CHROMEOS_FACTORY_INSTALL_SHIM_NAME}; then
+     # Install our custom factory install kernel with the appropriate use flags
