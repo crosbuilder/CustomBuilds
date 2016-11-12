@@ -1,0 +1,30 @@
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c b/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+index e152155..edcbe09 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+@@ -838,7 +838,7 @@ void vmw_event_fence_fpriv_gone(struct vmw_fence_manager *fman,
+ 		event = eaction->event;
+ 		eaction->event = NULL;
+ 		spin_unlock_irqrestore(&fman->lock, irq_flags);
+-		event->destroy(event);
++		kfree(event);
+ 	}
+ out_unlock:
+ 	spin_unlock_irqrestore(&fman->lock, irq_flags);
+@@ -1054,7 +1054,6 @@ static int vmw_event_fence_action_create(struct drm_file *file_priv,
+ 
+ 	event->base.event = &event->event.base;
+ 	event->base.file_priv = file_priv;
+-	event->base.destroy = (void (*) (struct drm_pending_event *)) kfree;
+ 
+ 
+ 	if (flags & DRM_VMW_FE_FLAG_REQ_TIME)
+@@ -1075,7 +1074,7 @@ static int vmw_event_fence_action_create(struct drm_file *file_priv,
+ 	return 0;
+ 
+ out_no_queue:
+-	event->base.destroy(&event->base);
++	kfree(&event->base);
+ out_no_event:
+ 	spin_lock_irqsave(&dev->event_lock, irq_flags);
+ 	file_priv->event_space += sizeof(*event);
