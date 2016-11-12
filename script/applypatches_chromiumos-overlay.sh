@@ -30,7 +30,7 @@ fi
 
 repo start my-chromiumos-overlay .
 cd chromeos-base/tty
-mv tty-0.0.1-r7.ebuild tty-0.0.1-r8.ebuild
+mv tty-0.0.1-r8.ebuild tty-0.0.1-r9.ebuild
 
 if [ 0 -ne $? ]; then
   echo Failed to mv tty ebuild. Abort.
