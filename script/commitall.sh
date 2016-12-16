@@ -74,6 +74,8 @@ git add drivers/usb/host/ehci-pci.c
 git commit -m "usbcore.noehciパッチ適用"
 git add chromeos/config
 git commit -m "カーネルパラメータ変更"
+git add drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+git commit -m "vmwgfxのコンパイルが通らない問題を修正"
 
 cd ~/trunk/src/third_party/portage-stable/
 ~/myenv/script/repostart.sh my-portage-stable
@@ -108,3 +110,5 @@ git commit -m "仮想マシン起動時のcpuのデフォルトをkvm32に変更
 git add build_library/base_image_util.sh
 git add build_library/dev_image_util.sh
 git commit -m "自分でビルドしたglibcに置換する処理を追加"
+git add build_library/test_image_content.sh
+git commit -m "ブラックリスト処理を除去"
