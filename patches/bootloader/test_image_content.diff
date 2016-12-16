@@ -1,0 +1,21 @@
+diff --git a/build_library/test_image_content.sh b/build_library/test_image_content.sh
+index 7af0048..f2dabcb 100644
+--- a/build_library/test_image_content.sh
++++ b/build_library/test_image_content.sh
+@@ -70,16 +70,6 @@ test_image_content() {
+     returncode=1
+   fi
+ 
+-  local blacklist_dirs=(
+-    "$root/usr/share/locale"
+-  )
+-  for dir in "${blacklist_dirs[@]}"; do
+-    if [ -d "$dir" ]; then
+-      error "test_image_content: Blacklisted directory found: $dir"
+-      returncode=1
+-    fi
+-  done
+-
+   # Check that /etc/localtime is a symbolic link pointing at
+   # /var/lib/timezone/localtime.
+   local localtime="$root/etc/localtime"
