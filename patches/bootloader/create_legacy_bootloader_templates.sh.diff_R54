@@ -1,16 +1,8 @@
 diff --git a/build_library/create_legacy_bootloader_templates.sh b/build_library/create_legacy_bootloader_templates.sh
-index c64f888..f4f9c5f 100755
+index 059b6b3..c04e0e7 100755
 --- a/build_library/create_legacy_bootloader_templates.sh
 +++ b/build_library/create_legacy_bootloader_templates.sh
-@@ -116,6 +116,7 @@ if [[ "${FLAGS_arch}" = "x86" || "${FLAGS_arch}" = "amd64"  ]]; then
-   cat <<EOF | sudo dd of="${SYSLINUX_DIR}/syslinux.cfg" 2>/dev/null
- PROMPT 0
- TIMEOUT 0
-+TOTALTIMEOUT 1200
- 
- # the actual target
- include /syslinux/default.cfg
-@@ -148,13 +149,13 @@ EOF
+@@ -114,13 +114,13 @@ EOF
  label chromeos-usb.A
    menu label chromeos-usb.A
    kernel vmlinuz.A
@@ -26,7 +18,7 @@ index c64f888..f4f9c5f 100755
  EOF
    info "Emitted ${SYSLINUX_DIR}/usb.A.cfg"
  
-@@ -165,13 +166,13 @@ EOF
+@@ -131,13 +131,13 @@ EOF
  label chromeos-hd.A
    menu label chromeos-hd.A
    kernel vmlinuz.A
@@ -42,7 +34,7 @@ index c64f888..f4f9c5f 100755
  EOF
    info "Emitted ${SYSLINUX_DIR}/root.A.cfg"
  
-@@ -179,13 +180,13 @@ EOF
+@@ -145,13 +145,13 @@ EOF
  label chromeos-hd.B
    menu label chromeos-hd.B
    kernel vmlinuz.B
