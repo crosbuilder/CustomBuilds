@@ -8,7 +8,7 @@ index 819604a..ee53884 100644
  IUSE="${IUSE_VIDEO_CARDS}
 -	+classic debug dri egl +gallium -gbm gles1 gles2 +llvm +nptl pic selinux
 +	+classic debug dri egl +gallium -gbm gles1 gles2 +llvm +nptl pic selinux xa
- 	shared-glapi kernel_FreeBSD vulkan xlib-glx X"
+ 	shared-glapi kernel_FreeBSD xlib-glx X"
  
  LIBDRM_DEPSTRING=">=x11-libs/libdrm-2.4.60"
 @@ -186,6 +189,9 @@ src_configure() {
