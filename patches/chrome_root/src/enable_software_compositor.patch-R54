@@ -5,7 +5,7 @@ index 9af7049..b40088c 100644
 @@ -263,10 +263,11 @@ CreateOverlayCandidateValidator(gfx::AcceleratedWidget widget) {
  }
  
- static bool ShouldCreateGpuCompositorFrameSink(ui::Compositor* compositor) {
+ static bool ShouldCreateGpuOutputSurface(ui::Compositor* compositor) {
 -#if defined(OS_CHROMEOS)
 -  // Software fallback does not happen on Chrome OS.
 -  return true;
