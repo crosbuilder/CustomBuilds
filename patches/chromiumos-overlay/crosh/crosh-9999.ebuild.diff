@@ -1,13 +1,13 @@
 diff --git a/chromeos-base/crosh/crosh-9999.ebuild b/chromeos-base/crosh/crosh-9999.ebuild
-index 895f774..5c5cc80 100644
+index 6d8a43a..cd89f5b 100644
 --- a/chromeos-base/crosh/crosh-9999.ebuild
 +++ b/chromeos-base/crosh/crosh-9999.ebuild
-@@ -44,7 +44,7 @@ src_compile() {
- }
- 
- src_install() {
--	dobin crosh crosh-{dev,usb}
-+	dobin crosh crosh-{dev,usb,custom}
- 	dobin network_diag
- 	insinto /usr/share/misc
- 	doins "${WORKDIR}"/inputrc.crosh
+@@ -56,6 +56,8 @@ src_install() {
+ 	doins dev.d/*.sh
+ 	insinto "${d}/removable.d"
+ 	doins removable.d/*.sh
++	insinto "${d}/custom.d"
++	doins custom.d/*.sh
+ 	insinto "${d}/extra.d"
+ 	use cups && doins extra.d/??-cups.sh
+ 	insinto "${d}"

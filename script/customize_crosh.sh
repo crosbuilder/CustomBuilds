@@ -28,7 +28,8 @@ fi
 
 #cp cp ~/myenv/patches/platform2/crosh-custom ./crosh/
 cd /mnt/host/source/src/platform2/crosh
-ln /mnt/host/source/chroot/home/chromium/myenv/patches/platform2/crosh-custom .
+#ln /mnt/host/source/chroot/home/chromium/myenv/patches/platform2/crosh-custom .
+cp -r /mnt/host/source/chroot/home/chromium/myenv/patches/platform2/custom.d .
 if [ $? -ne 0 ]; then
   echo Failed to create hard link. Abort.
   exit 1

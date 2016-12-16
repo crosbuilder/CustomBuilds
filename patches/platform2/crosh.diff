@@ -1,27 +1,26 @@
 diff --git a/crosh/crosh b/crosh/crosh
-index 26b3aa5..a637271 100755
+index 2d568db..25cddae 100755
 --- a/crosh/crosh
 +++ b/crosh/crosh
-
-@@ -101,6 +101,13 @@ load_extra_crosh() {
-   esac
+@@ -93,6 +93,13 @@ load_extra_crosh() {
+   # First load the common modules (board/project/etc... specific).
+   load_modules "extra.d"
  
-   [ -e "${crosh_dir}/crosh-cups" ] && . "${crosh_dir}/crosh-cups"
-+
 +  # check guest session
 +  guest=`df -k | grep guestfs`
 +  if [ -z "${guest}" ]; then
 +    # load custom commands if not guest session
-+    . "${crosh_dir}/crosh-custom"
++    load_modules "custom.d"
 +  fi
- }
- 
- shell_read() {
-diff --git a/crosh/crosh-usb b/crosh/crosh-usb
-index c243078..4a3cdb7 100755
---- a/crosh/crosh-usb
-+++ b/crosh/crosh-usb
-@@ -76,3 +76,13 @@ HELP_upgrade='
++
+   # Load the removable modules, if the rootfs is on removable
+   # media.  e.g. It's a USB stick.
+   if [ -z "${CROSH_REMOVABLE}" ]; then
+diff --git a/crosh/removable.d/50-crosh.sh b/crosh/removable.d/50-crosh.sh
+index 2c1c0cd..66ad724 100644
+--- a/crosh/removable.d/50-crosh.sh
++++ b/crosh/removable.d/50-crosh.sh
+@@ -71,3 +71,12 @@ HELP_upgrade='
  cmd_upgrade() (
    do_install "$1" --preserve_stateful
  )
@@ -33,5 +32,4 @@ index c243078..4a3cdb7 100755
 +cmd_easyinstall() (
 +  sudo /opt/myscript/install.sh
 +)
-+
 +
