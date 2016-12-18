@@ -1,13 +1,12 @@
-diff --git a/login_manager/init/ui.conf b/login_manager/init/ui.conf
-index b64b5da..5d8e706 100644
---- a/login_manager/init/ui.conf
-+++ b/login_manager/init/ui.conf
-@@ -37,6 +37,8 @@ env UI_LOG_DIR=/var/log/ui
- env UI_LOG_FILE=ui.LATEST
+diff --git a/login_manager/init/scripts/ui-pre-start b/login_manager/init/scripts/ui-pre-start
+index 780b469..06e2feb 100755
+--- a/login_manager/init/scripts/ui-pre-start
++++ b/login_manager/init/scripts/ui-pre-start
+@@ -1,5 +1,7 @@
+ #!/bin/sh
  
- pre-start script
++/opt/myscript/inspect_hw.sh
 +
-+  /opt/myscript/inspect_hw.sh
-   mkdir -p $UI_LOG_DIR
-   ln -sf ui.$(date +%Y%m%d-%H%M%S) $UI_LOG_DIR/$UI_LOG_FILE
- 
+ # Copyright 2016 The Chromium OS Authors. All rights reserved.
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
