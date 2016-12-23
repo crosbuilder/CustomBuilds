@@ -23,17 +23,21 @@ if [ $? -ne 0 ]; then
 fi
 
 cd /tmp/m/usr/lib/xorg/modules/drivers
-sudo mv vesa_drv.so vesa_drv.so-
-if [ $? -ne 0 ]; then
-  echo mv failed. Abort.
-  exit 1
+if [ -f vesa_drv.so ]; then
+  sudo mv vesa_drv.so vesa_drv.so-
+  if [ $? -ne 0 ]; then
+    echo mv failed. Abort.
+    exit 1
+  fi
 fi
 
 cd /tmp/m/etc/init
-sudo ln -s ../../usr/share/chromeos-ssh-config/init/openssh-server.conf .
-if [ $? -ne 0 ]; then
-  echo ln -s failed. Abort.
-  exit 1
+if [ ! -e ./openssh-server.conf ]; then
+  sudo ln -s ../../usr/share/chromeos-ssh-config/init/openssh-server.conf .
+  if [ $? -ne 0 ]; then
+    echo ln -s failed. Abort.
+    exit 1
+  fi
 fi
 
 cd ~/trunk/src/scripts
