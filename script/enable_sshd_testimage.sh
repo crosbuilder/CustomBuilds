@@ -16,7 +16,8 @@ fi
 
 
 # comment out inspect_hw.sh
-sudo sed -e '1,$s@/opt/myscript/inspect_hw.sh@#/opt/myscript/inspect_hw.sh@' -i /tmp/m/etc/init/ui.conf
+#sudo sed -e '1,$s@/opt/myscript/inspect_hw.sh@#/opt/myscript/inspect_hw.sh@' -i /tmp/m/etc/init/ui.conf
+sudo sed -e '1,$s@/opt/myscript/inspect_hw.sh@#/opt/myscript/inspect_hw.sh@' -i /tmp/m/usr/share/cros/init/ui-pre-start
 if [ $? -ne 0 ]; then
   echo mount image failed. Abort.
   exit 1
