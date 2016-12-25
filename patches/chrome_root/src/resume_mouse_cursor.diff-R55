@@ -1,0 +1,556 @@
+commit 938c011911bb26af1647b538c5dfd077d27e84ea
+Author: dbasehore <dbasehore@chromium.org>
+Date:   Fri May 6 14:28:55 2016 -0700
+
+    Reland of chromeos: Turn off displays on suspend (patchset #2 id:250001 of https://codereview.chromium.org/1949753004/ )
+    
+    Reason for revert:
+    The issue is fixed in the kernel. It was a problem with suspend/resume and the display encoder for a platform that is fixed in https://chromium-review.googlesource.com/#/c/342845/
+    
+    Original issue's description:
+    > Revert of chromeos: Turn off displays on suspend (patchset #12 id:220001 of https://codereview.chromium.org/1861593002/ )
+    >
+    > Reason for revert:
+    > With this patch, the internal display (on oak, at least) stays black on resume from suspend.
+    >
+    > Perhaps "the delay for restoring the display state" really is important after all.
+    >
+    > BUG=chrome-os-partner:52916
+    >
+    > Original issue's description:
+    > > chromeos: Turn off displays on suspend
+    > >
+    > > To handle lucid sleep (where we need to silently resume the system), turn
+    > > off the displays on suspend. This also removes the delay for restoring the
+    > > display state added in "On resume perform a delayed call to
+    > > SetDisplayPower()" According to the bug for that change, it didn't seem to
+    > > help with the issue anyways.
+    > >
+    > > BUG=535021
+    > > TEST=suspend/resume of various cros platforms with/without external monitor
+    > > connected
+    > >
+    > > Committed: https://crrev.com/fee6ba82e703d68c296730aa38ea1d4f77854631
+    > > Cr-Commit-Position: refs/heads/master@{#389875}
+    >
+    > TBR=derat@chromium.org,oshima@chromium.org,marcheu@chromium.org,snanda@chromium.org,tbroch@chromium.org,ejcaruso@chromium.org,dnicoara@chromium.org,marcheu@google.com,spang@chromium.org,dbasehore@chromium.org
+    > # Not skipping CQ checks because original CL landed more than 1 days ago.
+    > BUG=535021
+    >
+    > Committed: https://crrev.com/a3145f9cee03fd27c8c04511e95b8217f489889c
+    > Cr-Commit-Position: refs/heads/master@{#392006}
+    
+    TBR=derat@chromium.org,oshima@chromium.org,marcheu@chromium.org,snanda@chromium.org,tbroch@chromium.org,ejcaruso@chromium.org,dnicoara@chromium.org,marcheu@google.com,spang@chromium.org,djkurtz@chromium.org
+    # Skipping CQ checks because original CL landed less than 1 days ago.
+    NOPRESUBMIT=true
+    NOTREECHECKS=true
+    NOTRY=true
+    BUG=chrome-os-partner:52916
+    
+    Review-Url: https://codereview.chromium.org/1955103002
+    Cr-Commit-Position: refs/heads/master@{#392161}
+
+diff --git a/ui/display/chromeos/display_configurator.cc b/ui/display/chromeos/display_configurator.cc
+index f00f9ea..91bb886 100644
+--- a/ui/display/chromeos/display_configurator.cc
++++ b/ui/display/chromeos/display_configurator.cc
+@@ -35,12 +35,6 @@ typedef std::vector<const DisplayMode*> DisplayModeList;
+ // |configure_timer_|.
+ const int kConfigureDelayMs = 500;
+ 
+-// The delay spent before reading the display configuration after coming out of
+-// suspend. While coming out of suspend the display state may be updating. This
+-// is used to wait until the hardware had a chance to update the display state
+-// such that we read an up to date state.
+-const int kResumeDelayMs = 500;
+-
+ // The EDID specification marks the top bit of the manufacturer id as reserved.
+ const int16_t kReservedManufacturerID = static_cast<int16_t>(1 << 15);
+ 
+@@ -476,8 +470,9 @@ DisplayConfigurator::DisplayConfigurator()
+       current_power_state_(chromeos::DISPLAY_POWER_ALL_ON),
+       requested_display_state_(MULTIPLE_DISPLAY_STATE_INVALID),
+       requested_power_state_(chromeos::DISPLAY_POWER_ALL_ON),
+-      requested_power_state_change_(false),
+-      requested_power_flags_(kSetDisplayPowerNoFlags),
++      pending_power_state_(chromeos::DISPLAY_POWER_ALL_ON),
++      has_pending_power_state_(false),
++      pending_power_flags_(kSetDisplayPowerNoFlags),
+       force_configure_(false),
+       next_display_protection_client_id_(1),
+       display_externally_controlled_(false),
+@@ -844,6 +839,30 @@ void DisplayConfigurator::PrepareForExit() {
+   configure_display_ = false;
+ }
+ 
++void DisplayConfigurator::SetDisplayPowerInternal(
++    chromeos::DisplayPowerState power_state,
++    int flags,
++    const ConfigurationCallback& callback) {
++  // Only skip if the current power state is the same and the latest requested
++  // power state is the same. If |pending_power_state_ != current_power_state_|
++  // then there is a current task pending or the last configuration failed. In
++  // either case request a new configuration to make sure the state is
++  // consistent with the expectations.
++  if (power_state == current_power_state_ &&
++      power_state == pending_power_state_ &&
++      !(flags & kSetDisplayPowerForceProbe)) {
++    callback.Run(true);
++    return;
++  }
++
++  pending_power_state_ = power_state;
++  has_pending_power_state_ = true;
++  pending_power_flags_ = flags;
++  queued_configuration_callbacks_.push_back(callback);
++
++  RunPendingConfiguration();
++}
++
+ void DisplayConfigurator::SetDisplayPower(
+     chromeos::DisplayPowerState power_state,
+     int flags,
+@@ -857,18 +870,9 @@ void DisplayConfigurator::SetDisplayPower(
+           << DisplayPowerStateToString(power_state) << " flags=" << flags
+           << ", configure timer="
+           << (configure_timer_.IsRunning() ? "Running" : "Stopped");
+-  if (power_state == requested_power_state_ &&
+-      !(flags & kSetDisplayPowerForceProbe)) {
+-    callback.Run(true);
+-    return;
+-  }
+ 
+   requested_power_state_ = power_state;
+-  requested_power_state_change_ = true;
+-  requested_power_flags_ = flags;
+-  queued_configuration_callbacks_.push_back(callback);
+-
+-  RunPendingConfiguration();
++  SetDisplayPowerInternal(requested_power_state_, flags, callback);
+ }
+ 
+ void DisplayConfigurator::SetDisplayMode(MultipleDisplayState new_state) {
+@@ -931,21 +935,9 @@ void DisplayConfigurator::RemoveObserver(Observer* observer) {
+ 
+ void DisplayConfigurator::SuspendDisplays(
+     const ConfigurationCallback& callback) {
+-  // If the display is off due to user inactivity and there's only a single
+-  // internal display connected, switch to the all-on state before
+-  // suspending.  This shouldn't be very noticeable to the user since the
+-  // backlight is off at this point, and doing this lets us resume directly
+-  // into the "on" state, which greatly reduces resume times.
+-  if (requested_power_state_ == chromeos::DISPLAY_POWER_ALL_OFF) {
+-    SetDisplayPower(chromeos::DISPLAY_POWER_ALL_ON,
+-                    kSetDisplayPowerOnlyIfSingleInternalDisplay, callback);
+-
+-    // We need to make sure that the monitor configuration we just did actually
+-    // completes before we return, because otherwise the X message could be
+-    // racing with the HandleSuspendReadiness message.
+-    native_display_delegate_->SyncWithServer();
+-  } else {
+-    callback.Run(true);
++  if (!configure_display_ || display_externally_controlled_) {
++    callback.Run(false);
++    return;
+   }
+ 
+   displays_suspended_ = true;
+@@ -953,16 +945,29 @@ void DisplayConfigurator::SuspendDisplays(
+   // Stop |configure_timer_| because we will force probe and configure all the
+   // displays at resume time anyway.
+   configure_timer_.Stop();
++
++  // Turn off the displays for suspend. This way, if we wake up for lucid sleep,
++  // the displays will not turn on (all displays should be off for lucid sleep
++  // unless explicitly requested by lucid sleep code). Use
++  // SetDisplayPowerInternal so requested_power_state_ is maintained.
++  SetDisplayPowerInternal(chromeos::DISPLAY_POWER_ALL_OFF,
++                          kSetDisplayPowerNoFlags, callback);
++
++  // We need to make sure that the monitor configuration we just did actually
++  // completes before we return.
++  native_display_delegate_->SyncWithServer();
+ }
+ 
+ void DisplayConfigurator::ResumeDisplays() {
++  if (!configure_display_ || display_externally_controlled_)
++    return;
++
+   displays_suspended_ = false;
+ 
+-  configure_timer_.Start(
+-      FROM_HERE,
+-      base::TimeDelta::FromMilliseconds(kResumeDelayMs),
+-      base::Bind(&DisplayConfigurator::RestoreRequestedPowerStateAfterResume,
+-                 base::Unretained(this)));
++  // If requested_power_state_ is ALL_OFF due to idle suspend, powerd will turn
++  // the display power on when it enables the backlight.
++  SetDisplayPower(requested_power_state_, kSetDisplayPowerNoFlags,
++                  base::Bind(&DoNothing));
+ }
+ 
+ void DisplayConfigurator::ConfigureDisplays() {
+@@ -988,7 +993,7 @@ void DisplayConfigurator::RunPendingConfiguration() {
+ 
+   configuration_task_.reset(new UpdateDisplayConfigurationTask(
+       native_display_delegate_.get(), layout_manager_.get(),
+-      requested_display_state_, requested_power_state_, requested_power_flags_,
++      requested_display_state_, pending_power_state_, pending_power_flags_,
+       0, force_configure_, base::Bind(&DisplayConfigurator::OnConfigured,
+                                       weak_ptr_factory_.GetWeakPtr())));
+   configuration_task_->set_virtual_display_snapshots(
+@@ -997,8 +1002,8 @@ void DisplayConfigurator::RunPendingConfiguration() {
+   // Reset the flags before running the task; otherwise it may end up scheduling
+   // another configuration.
+   force_configure_ = false;
+-  requested_power_flags_ = kSetDisplayPowerNoFlags;
+-  requested_power_state_change_ = false;
++  pending_power_flags_ = kSetDisplayPowerNoFlags;
++  has_pending_power_state_ = false;
+   requested_display_state_ = MULTIPLE_DISPLAY_STATE_INVALID;
+ 
+   DCHECK(in_progress_configuration_callbacks_.empty());
+@@ -1034,12 +1039,12 @@ void DisplayConfigurator::OnConfigured(
+     if (!framebuffer_size.IsEmpty())
+       framebuffer_size_ = framebuffer_size;
+ 
+-    // If the requested power state hasn't changed then make sure that value
++    // If the pending power state hasn't changed then make sure that value
+     // gets updated as well since the last requested value may have been
+     // dependent on certain conditions (ie: if only the internal monitor was
+     // present).
+-    if (!requested_power_state_change_)
+-      requested_power_state_ = new_power_state;
++    if (!has_pending_power_state_)
++      pending_power_state_ = new_power_state;
+ 
+     if (old_power_state != current_power_state_)
+       NotifyPowerStateObservers();
+@@ -1072,7 +1077,7 @@ bool DisplayConfigurator::ShouldRunConfigurationTask() const {
+     return true;
+ 
+   // Schedule if there is a request to change the power state.
+-  if (requested_power_state_change_)
++  if (has_pending_power_state_)
+     return true;
+ 
+   return false;
+@@ -1092,13 +1097,6 @@ void DisplayConfigurator::CallAndClearQueuedCallbacks(bool success) {
+   queued_configuration_callbacks_.clear();
+ }
+ 
+-void DisplayConfigurator::RestoreRequestedPowerStateAfterResume() {
+-  // Force probing to ensure that we pick up any changes that were made while
+-  // the system was suspended.
+-  SetDisplayPower(requested_power_state_, kSetDisplayPowerForceProbe,
+-                  base::Bind(&DoNothing));
+-}
+-
+ void DisplayConfigurator::NotifyDisplayStateObservers(
+     bool success,
+     MultipleDisplayState attempted_state) {
+diff --git a/ui/display/chromeos/display_configurator.h b/ui/display/chromeos/display_configurator.h
+index aba0fa6..f97392f 100644
+--- a/ui/display/chromeos/display_configurator.h
++++ b/ui/display/chromeos/display_configurator.h
+@@ -300,13 +300,15 @@ class DISPLAY_EXPORT DisplayConfigurator : public NativeDisplayObserver {
+   typedef std::map<ContentProtectionClientId, ContentProtections>
+       ProtectionRequests;
+ 
++  // Updates |pending_*| members and applies the passed-in state. |callback| is
++  // invoked (perhaps synchronously) on completion.
++  void SetDisplayPowerInternal(chromeos::DisplayPowerState power_state,
++                               int flags,
++                               const ConfigurationCallback& callback);
++
+   // Configures displays. Invoked by |configure_timer_|.
+   void ConfigureDisplays();
+ 
+-  // Restores |requested_power_state_| after the system has resumed,
+-  // additionally forcing a probe. Invoked by |configure_timer_|.
+-  void RestoreRequestedPowerStateAfterResume();
+-
+   // Notifies observers about an attempted state change.
+   void NotifyDisplayStateObservers(bool success,
+                                    MultipleDisplayState attempted_state);
+@@ -394,11 +396,15 @@ class DISPLAY_EXPORT DisplayConfigurator : public NativeDisplayObserver {
+   // Stores the requested power state.
+   chromeos::DisplayPowerState requested_power_state_;
+ 
+-  // True if |requested_power_state_| has been changed due to a user request.
+-  bool requested_power_state_change_;
++  // The power state used by RunPendingConfiguration(). May be
++  // |requested_power_state_| or DISPLAY_POWER_ALL_OFF for suspend.
++  chromeos::DisplayPowerState pending_power_state_;
++
++  // True if |pending_power_state_| has been changed.
++  bool has_pending_power_state_;
+ 
+   // Bitwise-or value of the |kSetDisplayPower*| flags defined above.
+-  int requested_power_flags_;
++  int pending_power_flags_;
+ 
+   // List of callbacks from callers waiting for the display configuration to
+   // start/finish. Note these callbacks belong to the pending request, not a
+diff --git a/ui/display/chromeos/display_configurator_unittest.cc b/ui/display/chromeos/display_configurator_unittest.cc
+index 9a4f2d9..aaee7b5 100644
+--- a/ui/display/chromeos/display_configurator_unittest.cc
++++ b/ui/display/chromeos/display_configurator_unittest.cc
+@@ -841,9 +841,16 @@ TEST_F(DisplayConfiguratorTest, SuspendAndResume) {
+   EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+   EXPECT_EQ(framebuffer_size.ToString(),
+             configurator_.framebuffer_size().ToString());
+-  EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
++  EXPECT_EQ(
++      JoinActions(
++          kGrab,
++          GetFramebufferAction(small_mode_.size(), &outputs_[0], NULL).c_str(),
++          GetCrtcAction(outputs_[0], NULL, gfx::Point(0, 0)).c_str(),
++          kUngrab,
++          kSync,
++          NULL),
++      log_->GetActionsAndClear());
+   configurator_.ResumeDisplays();
+-  EXPECT_TRUE(test_api_.TriggerConfigureTimeout());
+   EXPECT_EQ(
+       JoinActions(
+           kGrab,
+@@ -874,19 +881,16 @@ TEST_F(DisplayConfiguratorTest, SuspendAndResume) {
+   configurator_.SuspendDisplays(base::Bind(
+       &DisplayConfiguratorTest::OnConfiguredCallback, base::Unretained(this)));
+   EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+-  EXPECT_EQ(
+-      JoinActions(
+-          kGrab,
+-          GetFramebufferAction(small_mode_.size(), &outputs_[0], NULL).c_str(),
+-          GetCrtcAction(outputs_[0], &small_mode_, gfx::Point(0, 0)).c_str(),
+-          kForceDPMS,
+-          kUngrab,
+-          kSync,
+-          NULL),
+-      log_->GetActionsAndClear());
++  EXPECT_EQ(kSync, log_->GetActionsAndClear());
+ 
+   configurator_.ResumeDisplays();
+-  EXPECT_TRUE(test_api_.TriggerConfigureTimeout());
++  EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
++
++  configurator_.SetDisplayPower(
++      chromeos::DISPLAY_POWER_ALL_ON,
++      DisplayConfigurator::kSetDisplayPowerNoFlags,
++      base::Bind(&DisplayConfiguratorTest::OnConfiguredCallback,
++                 base::Unretained(this)));
+   EXPECT_EQ(
+       JoinActions(
+           kGrab,
+@@ -897,8 +901,6 @@ TEST_F(DisplayConfiguratorTest, SuspendAndResume) {
+           NULL),
+       log_->GetActionsAndClear());
+ 
+-  // If a second, external display is connected, the displays shouldn't be
+-  // powered back on before suspending.
+   state_controller_.set_state(MULTIPLE_DISPLAY_STATE_DUAL_MIRROR);
+   UpdateOutputs(2, true);
+   EXPECT_EQ(
+@@ -919,31 +921,38 @@ TEST_F(DisplayConfiguratorTest, SuspendAndResume) {
+                  base::Unretained(this)));
+   EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+   EXPECT_EQ(
+-      JoinActions(kGrab,
+-                  GetFramebufferAction(
+-                      small_mode_.size(), &outputs_[0], &outputs_[1]).c_str(),
+-                  GetCrtcAction(outputs_[0], NULL, gfx::Point(0, 0)).c_str(),
+-                  GetCrtcAction(outputs_[1], NULL, gfx::Point(0, 0)).c_str(),
+-                  kUngrab,
+-                  NULL),
++      JoinActions(
++          kGrab,
++          GetFramebufferAction(small_mode_.size(), &outputs_[0], &outputs_[1])
++              .c_str(),
++          GetCrtcAction(outputs_[0], NULL, gfx::Point(0, 0)).c_str(),
++          GetCrtcAction(outputs_[1], NULL, gfx::Point(0, 0)).c_str(),
++          kUngrab,
++          NULL),
+       log_->GetActionsAndClear());
+ 
+   configurator_.SuspendDisplays(base::Bind(
+       &DisplayConfiguratorTest::OnConfiguredCallback, base::Unretained(this)));
+   EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+-  EXPECT_EQ(JoinActions(kGrab, kUngrab, kSync, NULL),
+-            log_->GetActionsAndClear());
++  EXPECT_EQ(kSync, log_->GetActionsAndClear());
+ 
+   // If a display is disconnected while suspended, the configurator should
+-  // pick up the change.
++  // pick up the change and only turn on the internal display.
+   UpdateOutputs(1, false);
+   configurator_.ResumeDisplays();
+-  EXPECT_TRUE(test_api_.TriggerConfigureTimeout());
++  EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
++
++  configurator_.SetDisplayPower(
++      chromeos::DISPLAY_POWER_ALL_ON,
++      DisplayConfigurator::kSetDisplayPowerNoFlags,
++      base::Bind(&DisplayConfiguratorTest::OnConfiguredCallback,
++                 base::Unretained(this)));
+   EXPECT_EQ(
+       JoinActions(
+           kGrab,
+           GetFramebufferAction(small_mode_.size(), &outputs_[0], NULL).c_str(),
+-          GetCrtcAction(outputs_[0], NULL, gfx::Point(0, 0)).c_str(),
++          GetCrtcAction(outputs_[0], &small_mode_, gfx::Point(0, 0)).c_str(),
++          kForceDPMS,
+           kUngrab,
+           NULL),
+       log_->GetActionsAndClear());
+@@ -1205,7 +1214,15 @@ TEST_F(DisplayConfiguratorTest, DoNotConfigureWithSuspendedDisplays) {
+   configurator_.SuspendDisplays(base::Bind(
+       &DisplayConfiguratorTest::OnConfiguredCallback, base::Unretained(this)));
+   EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+-  EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
++  EXPECT_EQ(
++      JoinActions(
++          kGrab,
++          GetFramebufferAction(small_mode_.size(), &outputs_[0], NULL).c_str(),
++          GetCrtcAction(outputs_[0], NULL, gfx::Point(0, 0)).c_str(),
++          kUngrab,
++          kSync,
++          NULL),
++      log_->GetActionsAndClear());
+ 
+   // The configuration timer should not be started when the displays
+   // are suspended.
+@@ -1213,21 +1230,15 @@ TEST_F(DisplayConfiguratorTest, DoNotConfigureWithSuspendedDisplays) {
+   EXPECT_FALSE(test_api_.TriggerConfigureTimeout());
+   EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
+ 
+-  // Calls to SetDisplayPower and SetDisplayMode should be successful.
++  // Calls to SetDisplayPower should do nothing if the power state doesn't
++  // change.
+   configurator_.SetDisplayPower(
+       chromeos::DISPLAY_POWER_ALL_OFF,
+       DisplayConfigurator::kSetDisplayPowerNoFlags,
+       base::Bind(&DisplayConfiguratorTest::OnConfiguredCallback,
+                  base::Unretained(this)));
+   EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+-  EXPECT_EQ(
+-      JoinActions(
+-          kGrab,
+-          GetFramebufferAction(small_mode_.size(), &outputs_[0], NULL).c_str(),
+-          GetCrtcAction(outputs_[0], NULL, gfx::Point(0, 0)).c_str(),
+-          kUngrab,
+-          NULL),
+-      log_->GetActionsAndClear());
++  EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
+   configurator_.SetDisplayPower(
+       chromeos::DISPLAY_POWER_ALL_ON,
+       DisplayConfigurator::kSetDisplayPowerNoFlags,
+@@ -1257,34 +1268,33 @@ TEST_F(DisplayConfiguratorTest, DoNotConfigureWithSuspendedDisplays) {
+           NULL),
+       log_->GetActionsAndClear());
+ 
+-  // The DisplayConfigurator should force a probe and reconfiguration at resume
+-  // time.
++  // The DisplayConfigurator should do nothing at resume time if there is no
++  // state change.
+   UpdateOutputs(1, false);
+   configurator_.ResumeDisplays();
+-  EXPECT_TRUE(test_api_.TriggerConfigureTimeout());
++  EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
++
++  // If a configuration task is pending when the displays are suspended, that
++  // task should not run either and the timer should be stopped. The displays
++  // should be turned off by suspend.
++  configurator_.OnConfigurationChanged();
++  configurator_.SuspendDisplays(base::Bind(
++      &DisplayConfiguratorTest::OnConfiguredCallback, base::Unretained(this)));
++  EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+   EXPECT_EQ(
+       JoinActions(
+           kGrab,
+           GetFramebufferAction(small_mode_.size(), &outputs_[0], NULL).c_str(),
+-          GetCrtcAction(outputs_[0], &small_mode_, gfx::Point(0, 0)).c_str(),
+-          kForceDPMS,
++          GetCrtcAction(outputs_[0], NULL, gfx::Point(0, 0)).c_str(),
+           kUngrab,
++          kSync,
+           NULL),
+       log_->GetActionsAndClear());
+ 
+-  // If a configuration task is pending when the displays are suspended, that
+-  // task should not run either and the timer should be stopped.
+-  configurator_.OnConfigurationChanged();
+-  configurator_.SuspendDisplays(base::Bind(
+-      &DisplayConfiguratorTest::OnConfiguredCallback, base::Unretained(this)));
+-  EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+-  EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
+-
+   EXPECT_FALSE(test_api_.TriggerConfigureTimeout());
+   EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
+ 
+   configurator_.ResumeDisplays();
+-  EXPECT_TRUE(test_api_.TriggerConfigureTimeout());
+   EXPECT_EQ(
+       JoinActions(
+           kGrab,
+@@ -1564,12 +1574,24 @@ TEST_F(DisplayConfiguratorTest, DontRestoreStalePowerStateAfterResume) {
+           NULL),
+       log_->GetActionsAndClear());
+ 
+-  // Suspend and resume the system. Resuming should post a task to restore the
+-  // previous power state, additionally forcing a probe.
++  // Suspend and resume the system. Resuming should restore the previous power
++  // state and force a probe. Suspend should turn off the displays since an
++  // external monitor is connected.
+   configurator_.SuspendDisplays(base::Bind(
+       &DisplayConfiguratorTest::OnConfiguredCallback, base::Unretained(this)));
+   EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+-  configurator_.ResumeDisplays();
++  EXPECT_EQ(2, observer_.num_changes());
++  EXPECT_EQ(
++      JoinActions(
++          kGrab,
++          GetFramebufferAction(small_mode_.size(), &outputs_[0],
++              &outputs_[1]).c_str(),
++          GetCrtcAction(outputs_[0], NULL, gfx::Point(0, 0)).c_str(),
++          GetCrtcAction(outputs_[1], NULL, gfx::Point(0, 0)).c_str(),
++          kUngrab,
++          kSync,
++          NULL),
++      log_->GetActionsAndClear());
+ 
+   // Before the task runs, exit docked mode.
+   configurator_.SetDisplayPower(
+@@ -1578,7 +1600,7 @@ TEST_F(DisplayConfiguratorTest, DontRestoreStalePowerStateAfterResume) {
+       base::Bind(&DisplayConfiguratorTest::OnConfiguredCallback,
+                  base::Unretained(this)));
+   EXPECT_EQ(CALLBACK_SUCCESS, PopCallbackResult());
+-  EXPECT_EQ(2, observer_.num_changes());
++  EXPECT_EQ(3, observer_.num_changes());
+   EXPECT_EQ(0, observer_.num_failures());
+   EXPECT_EQ(
+       JoinActions(
+@@ -1592,20 +1614,9 @@ TEST_F(DisplayConfiguratorTest, DontRestoreStalePowerStateAfterResume) {
+           NULL),
+       log_->GetActionsAndClear());
+ 
+-  // Check that the task doesn't restore the old internal-off-external-on power
+-  // state.
+-  EXPECT_TRUE(test_api_.TriggerConfigureTimeout());
+-  EXPECT_EQ(
+-      JoinActions(
+-          kGrab,
+-          GetFramebufferAction(small_mode_.size(), &outputs_[0], &outputs_[1])
+-              .c_str(),
+-          GetCrtcAction(outputs_[0], &small_mode_, gfx::Point(0, 0)).c_str(),
+-          GetCrtcAction(outputs_[1], &small_mode_, gfx::Point(0, 0)).c_str(),
+-          kForceDPMS,
+-          kUngrab,
+-          NULL),
+-      log_->GetActionsAndClear());
++  // Check that the display states are not changed after resuming.
++  configurator_.ResumeDisplays();
++  EXPECT_EQ(kNoActions, log_->GetActionsAndClear());
+ }
+ 
+ TEST_F(DisplayConfiguratorTest, ExternalControl) {
