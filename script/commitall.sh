@@ -28,6 +28,7 @@ git commit -m "インストール先ディスクにブートフラグを付加�
 git add login_manager/chrome_setup.cc
 git commit -m "Xをroot起動できるようにする"
 git add login_manager/init/ui.conf
+git add login_manager/init/scripts/ui-pre-start
 git commit -m "ハードウェアインスペクションを初回ブート時に実行する"
 
 cd ~/trunk/src/third_party/chromiumos-overlay/
