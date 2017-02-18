@@ -1,8 +1,33 @@
 diff --git a/ui/display/chromeos/display_configurator.cc b/ui/display/chromeos/display_configurator.cc
-index e6327b4..4c3fb68 100644
+index c1a0d35..92e7a11 100644
 --- a/ui/display/chromeos/display_configurator.cc
 +++ b/ui/display/chromeos/display_configurator.cc
-@@ -970,17 +970,6 @@ void DisplayConfigurator::SuspendDisplays(
+@@ -965,9 +965,21 @@ void DisplayConfigurator::RemoveObserver(Observer* observer) {
+ 
+ void DisplayConfigurator::SuspendDisplays(
+     const ConfigurationCallback& callback) {
+-  if (!configure_display_ || display_externally_controlled_) {
+-    callback.Run(false);
+-    return;
++  // If the display is off due to user inactivity and there's only a single
++  // internal display connected, switch to the all-on state before
++  // suspending.  This shouldn't be very noticeable to the user since the
++  // backlight is off at this point, and doing this lets us resume directly
++  // into the "on" state, which greatly reduces resume times.
++  if (requested_power_state_ == chromeos::DISPLAY_POWER_ALL_OFF) {
++    SetDisplayPower(chromeos::DISPLAY_POWER_ALL_ON,
++                    kSetDisplayPowerOnlyIfSingleInternalDisplay, callback);
++
++    // We need to make sure that the monitor configuration we just did actually
++    // completes before we return, because otherwise the X message could be
++    // racing with the HandleSuspendReadiness message.
++    native_display_delegate_->SyncWithServer();
++  } else {
++    callback.Run(true);
+   }
+ 
+   displays_suspended_ = true;
+@@ -975,17 +987,6 @@ void DisplayConfigurator::SuspendDisplays(
    // Stop |configure_timer_| because we will force probe and configure all the
    // displays at resume time anyway.
    configure_timer_.Stop();

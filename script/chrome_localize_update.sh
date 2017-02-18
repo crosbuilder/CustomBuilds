@@ -35,7 +35,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 # R52でサスペンドからの復帰後にマウスカーソルが表示されなくなる問題を修正
-patch -p1 -R < ~/myenv/patches/chrome_root/src/resume_mouse_cursor.diff
+patch -p1 < ~/myenv/patches/chrome_root/src/resume_mouse_cursor.diff
 if [ $? -ne 0 ]; then
   echo Failed to apply patch. Abort.
   exit 1
