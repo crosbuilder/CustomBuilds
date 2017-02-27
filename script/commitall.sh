@@ -77,6 +77,8 @@ git add chromeos/config
 git commit -m "カーネルパラメータ変更"
 git add drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
 git commit -m "vmwgfxのコンパイルが通らない問題を修正"
+git add drivers/gpu/drm/i915/intel_opregion.c
+git commit -m "VAIO VGN-CR62Bで解像度がおかしくなる問題を修正"
 
 cd ~/trunk/src/third_party/portage-stable/
 ~/myenv/script/repostart.sh my-portage-stable
