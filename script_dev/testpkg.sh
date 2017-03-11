@@ -73,6 +73,7 @@ done << EOF
 /lib/modules/4.4.21/kernel/drivers/net/ethernet/atheros/atlx/atl2.ko
 /lib/modules/4.4.21/kernel/drivers/net/ethernet/marvell/sky2.ko
 /lib/modules/4.4.21/kernel/drivers/gpu/drm/vmwgfx/vmwgfx.ko
+/lib/modules/4.4.21/kernel/drivers/hid/hid-lenovo.ko
 /usr/lib/dri/vmwgfx_dri.so
 /usr/bin/xinput_calibrator
 EOF
