@@ -1,0 +1,139 @@
+commit 742b73279600829b232cf150bfc6ba32bcb1a504
+Author: Daniel Erat <derat@chromium.org>
+Date:   Thu Dec 15 11:38:33 2016 -0700
+
+    chromeos-chrome: Drop X11 build.
+    
+    Make the chromeos-chrome ebuild no longer use the X and
+    ozone USE flags. Instead, always build Chrome for ozone.
+    
+    BUG=chromium:655820
+    TEST=none
+    
+    Change-Id: Iecc8c0cd9002c5225d55ee1dd5939a719f95cf36
+    Reviewed-on: https://chromium-review.googlesource.com/419794
+    Commit-Ready: Dan Erat <derat@chromium.org>
+    Tested-by: Dan Erat <derat@chromium.org>
+    Reviewed-by: Mike Frysinger <vapier@chromium.org>
+
+diff --git a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
+index a135ab2..bea0d5f 100644
+--- a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
++++ b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
+@@ -53,7 +53,6 @@ IUSE="
+ 	neon
+ 	opengl
+ 	opengles
+-	ozone
+ 	+runhooks
+ 	+v4l2_codec
+ 	v4lplugin
+@@ -61,7 +60,6 @@ IUSE="
+ 	verbose
+ 	vtable_verify
+ 	xkbcommon
+-	X
+ 	"
+ REQUIRED_USE="asan? ( clang )"
+ 
+@@ -72,7 +70,7 @@ IUSE+=" ${IUSE_OZONE_PLATFORMS}"
+ OZONE_PLATFORM_DEFAULT_PREFIX=ozone_platform_default_
+ IUSE_OZONE_PLATFORM_DEFAULTS="${OZONE_PLATFORMS[@]/#/${OZONE_PLATFORM_DEFAULT_PREFIX}}"
+ IUSE+=" ${IUSE_OZONE_PLATFORM_DEFAULTS}"
+-REQUIRED_USE+=" ozone? ( ^^ ( ${IUSE_OZONE_PLATFORM_DEFAULTS} ) )"
++REQUIRED_USE+=" ^^ ( ${IUSE_OZONE_PLATFORM_DEFAULTS} )"
+ 
+ # Do not strip the nacl_helper_bootstrap binary because the binutils
+ # objcopy/strip mangles the ELF program headers.
+@@ -177,7 +175,7 @@ RDEPEND="${RDEPEND}
+ 	>=media-libs/alsa-lib-1.0.19
+ 	media-libs/fontconfig
+ 	media-libs/freetype
+-	ozone? ( x11-libs/libdrm )
++	x11-libs/libdrm
+ 	ozone_platform_gbm? ( media-libs/minigbm )
+ 	media-libs/libpng
+ 	v4lplugin? ( media-libs/libv4lplugins )
+@@ -192,19 +190,6 @@ RDEPEND="${RDEPEND}
+ 	chrome_remoting? ( sys-libs/pam )
+ 	sys-libs/zlib
+ 	vaapi? ( x11-libs/libva )
+-	X? (
+-		x11-apps/setxkbmap
+-		x11-libs/libX11
+-		x11-libs/libXcomposite
+-		x11-libs/libXcursor
+-		x11-libs/libXdamage
+-		x11-libs/libXext
+-		x11-libs/libXfixes
+-		x11-libs/libXi
+-		x11-libs/libXrandr
+-		x11-libs/libXrender
+-		chrome_remoting? ( x11-libs/libXtst )
+-	)
+ 	xkbcommon? (
+ 		x11-libs/libxkbcommon
+ 		x11-misc/xkeyboard-config
+@@ -261,7 +246,7 @@ set_build_args() {
+ 		"${EXTRA_GN_ARGS}"
+ 		use_v4l2_codec=$(usetf v4l2_codec)
+ 		use_v4lplugin=$(usetf v4lplugin)
+-		use_ozone=$(usetf ozone)
++		use_ozone=true
+ 		use_evdev_gestures=$(usetf evdev_gestures)
+ 		use_xkbcommon=$(usetf xkbcommon)
+ 		# Use the ChromeOS toolchain and not the one bundled with Chromium.
+@@ -271,7 +256,7 @@ set_build_args() {
+ 		enable_nacl=$(use_nacl; echotf)
+ 		icu_use_data_file=true
+ 		use_cras=true
+-		# use_system_minigbm is set under 'if use ozone' below.
++		# use_system_minigbm is set below.
+ 		use_system_harfbuzz=true
+ 		use_cups=$(usetf cups)
+ 
+@@ -297,26 +282,25 @@ set_build_args() {
+ 		BUILD_STRING_ARGS+=( use_allocator=none )
+ 	fi
+ 
+-	if use ozone; then
+-		local platform
+-		for platform in ${OZONE_PLATFORMS[@]}; do
+-			local flag="${OZONE_PLATFORM_DEFAULT_PREFIX}${platform}"
+-			if use "${flag}"; then
+-				BUILD_STRING_ARGS+=(ozone_platform="${platform}")
+-			fi
+-		done
+-		BUILD_ARGS+=(
+-			ozone_auto_platforms=false
+-		)
+-		for platform in ${IUSE_OZONE_PLATFORMS}; do
+-			if use "${platform}"; then
+-				BUILD_ARGS+=("${platform}"=true)
+-			fi
+-		done
+-		if use "ozone_platform_gbm"; then
+-			BUILD_ARGS+=(use_system_minigbm=true)
+-			BUILD_ARGS+=(use_system_libdrm=true)
++	# Ozone platforms.
++	local platform
++	for platform in ${OZONE_PLATFORMS[@]}; do
++		local flag="${OZONE_PLATFORM_DEFAULT_PREFIX}${platform}"
++		if use "${flag}"; then
++			BUILD_STRING_ARGS+=(ozone_platform="${platform}")
+ 		fi
++	done
++	BUILD_ARGS+=(
++		ozone_auto_platforms=false
++	)
++	for platform in ${IUSE_OZONE_PLATFORMS}; do
++		if use "${platform}"; then
++			BUILD_ARGS+=("${platform}"=true)
++		fi
++	done
++	if use "ozone_platform_gbm"; then
++		BUILD_ARGS+=(use_system_minigbm=true)
++		BUILD_ARGS+=(use_system_libdrm=true)
+ 	fi
+ 
+ 	# Set proper build args for the arch

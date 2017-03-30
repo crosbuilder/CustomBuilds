@@ -1,0 +1,855 @@
+commit fadc2121a77941733efad180df2708d6cf94dae2
+Author: zui22904336 <zui22904336@gmail.com>
+Date:   Sat Jan 28 12:09:06 2017 +0900
+
+    libchromeos-ui X11コード復元
+    
+    Change-Id: I8bdc8d5b2fd7af5d4c38ca572e3e15b8ec08a615
+
+diff --git a/libchromeos-ui/chromeos/ui/chromium_command_builder.cc b/libchromeos-ui/chromeos/ui/chromium_command_builder.cc
+index 6857ac2..81a9d6d 100644
+--- a/libchromeos-ui/chromeos/ui/chromium_command_builder.cc
++++ b/libchromeos-ui/chromeos/ui/chromium_command_builder.cc
+@@ -152,7 +152,7 @@ bool ChromiumCommandBuilder::Init() {
+   return true;
+ }
+ 
+-bool ChromiumCommandBuilder::SetUpChromium() {
++bool ChromiumCommandBuilder::SetUpChromium(const base::FilePath& xauth_path) {
+   AddEnvVar("USER", kUser);
+   AddEnvVar("LOGNAME", kUser);
+   AddEnvVar("SHELL", "/bin/sh");
+@@ -208,6 +208,9 @@ bool ChromiumCommandBuilder::SetUpChromium() {
+   if (setrlimit(RLIMIT_NOFILE, &limit) < 0)
+     PLOG(ERROR) << "Setting max FDs with setrlimit() failed";
+ 
++  if (!xauth_path.empty() && !SetUpX11(xauth_path))
++    return false;
++
+   // Disable sandboxing as it causes crashes in ASAN: crbug.com/127536
+   bool disable_sandbox = false;
+   disable_sandbox |= SetUpASAN();
+@@ -350,6 +353,22 @@ void ChromiumCommandBuilder::AddListFlagEntry(
+   }
+ }
+ 
++bool ChromiumCommandBuilder::SetUpX11(const base::FilePath& xauth_file) {
++  const base::FilePath user_xauth_file(
++      base::FilePath(ReadEnvVar("DATA_DIR")).Append(".Xauthority"));
++  if (!base::CopyFile(xauth_file, user_xauth_file)) {
++    PLOG(ERROR) << "Unable to copy " << xauth_file.value() << " to "
++                << user_xauth_file.value();
++    return false;
++  }
++  if (!util::SetPermissions(user_xauth_file, uid_, gid_, 0600))
++    return false;
++
++  AddEnvVar("XAUTHORITY", user_xauth_file.value());
++  AddEnvVar("DISPLAY", ":0.0");
++  return true;
++}
++
+ bool ChromiumCommandBuilder::SetUpASAN() {
+   if (!UseFlagIsSet("asan"))
+     return false;
+diff --git a/libchromeos-ui/chromeos/ui/chromium_command_builder.h b/libchromeos-ui/chromeos/ui/chromium_command_builder.h
+index 442300a..87e8abf 100644
+--- a/libchromeos-ui/chromeos/ui/chromium_command_builder.h
++++ b/libchromeos-ui/chromeos/ui/chromium_command_builder.h
+@@ -69,8 +69,12 @@ class ChromiumCommandBuilder {
+   // |arguments_| accordingly. Also creates necessary directories, sets resource
+   // limits, etc.
+   //
++  // If |xauth_path| is non-empty, Chromium will be configured to connect to an
++  // X server at :0. The authority file will be copied to a |uid_|-owned file
++  // within the data dir.
++  //
+   // Returns true on success.
+-  bool SetUpChromium();
++  bool SetUpChromium(const base::FilePath& xauth_path);
+ 
+   // Configures the environment so a core dump will be written when the binary
+   // crashes.
+@@ -132,6 +136,10 @@ class ChromiumCommandBuilder {
+                         const std::string& entry_separator,
+                         const std::string& new_entry);
+ 
++  // Performs X11-specific setup and returns true on success. Called by
++  // InitChromium().
++  bool SetUpX11(const base::FilePath& xauth_path);
++
+   // Checks if an ASAN build was requested, doing appropriate initialization and
+   // returning true if so. Called by InitChromium().
+   bool SetUpASAN();
+diff --git a/libchromeos-ui/chromeos/ui/chromium_command_builder_unittest.cc b/libchromeos-ui/chromeos/ui/chromium_command_builder_unittest.cc
+index eff6bd8..4bef120 100644
+--- a/libchromeos-ui/chromeos/ui/chromium_command_builder_unittest.cc
++++ b/libchromeos-ui/chromeos/ui/chromium_command_builder_unittest.cc
+@@ -113,13 +113,13 @@ TEST_F(ChromiumCommandBuilderTest, UseFlags) {
+ TEST_F(ChromiumCommandBuilderTest, MissingLsbReleaseFile) {
+   write_lsb_release_file_ = false;
+   ASSERT_TRUE(Init());
+-  EXPECT_FALSE(builder_.SetUpChromium());
++  EXPECT_FALSE(builder_.SetUpChromium(base::FilePath()));
+ }
+ 
+ TEST_F(ChromiumCommandBuilderTest, LsbRelease) {
+   lsb_release_data_ = "abc\ndef";
+   ASSERT_TRUE(Init());
+-  ASSERT_TRUE(builder_.SetUpChromium());
++  ASSERT_TRUE(builder_.SetUpChromium(base::FilePath()));
+ 
+   EXPECT_EQ(lsb_release_data_, ReadEnvVar("LSB_RELEASE"));
+   EXPECT_FALSE(ReadEnvVar("LSB_RELEASE_TIME").empty());
+@@ -128,7 +128,7 @@ TEST_F(ChromiumCommandBuilderTest, LsbRelease) {
+ TEST_F(ChromiumCommandBuilderTest, TimeZone) {
+   // Test that the builder creates a symlink for the time zone.
+   ASSERT_TRUE(Init());
+-  ASSERT_TRUE(builder_.SetUpChromium());
++  ASSERT_TRUE(builder_.SetUpChromium(base::FilePath()));
+   const base::FilePath kSymlink(util::GetReparentedPath(
+       ChromiumCommandBuilder::kTimeZonePath, base_path_));
+   base::FilePath target;
+@@ -146,14 +146,14 @@ TEST_F(ChromiumCommandBuilderTest, TimeZone) {
+   ChromiumCommandBuilder second_builder;
+   second_builder.set_base_path_for_testing(base_path_);
+   ASSERT_TRUE(second_builder.Init());
+-  ASSERT_TRUE(second_builder.SetUpChromium());
++  ASSERT_TRUE(second_builder.SetUpChromium(base::FilePath()));
+   ASSERT_TRUE(base::ReadSymbolicLink(kSymlink, &target));
+   EXPECT_EQ(kNewTarget.value(), target.value());
+ }
+ 
+ TEST_F(ChromiumCommandBuilderTest, BasicEnvironment) {
+   ASSERT_TRUE(Init());
+-  ASSERT_TRUE(builder_.SetUpChromium());
++  ASSERT_TRUE(builder_.SetUpChromium(base::FilePath()));
+ 
+   EXPECT_EQ("chronos", ReadEnvVar("USER"));
+   EXPECT_EQ("chronos", ReadEnvVar("LOGNAME"));
+@@ -167,7 +167,7 @@ TEST_F(ChromiumCommandBuilderTest, BasicEnvironment) {
+ 
+ TEST_F(ChromiumCommandBuilderTest, VmoduleFlag) {
+   ASSERT_TRUE(Init());
+-  ASSERT_TRUE(builder_.SetUpChromium());
++  ASSERT_TRUE(builder_.SetUpChromium(base::FilePath()));
+ 
+   const char kVmodulePrefix[] = "--vmodule=";
+   ASSERT_EQ("", GetFirstArgWithPrefix(kVmodulePrefix));
+@@ -185,7 +185,7 @@ TEST_F(ChromiumCommandBuilderTest, VmoduleFlag) {
+ 
+ TEST_F(ChromiumCommandBuilderTest, EnableFeatures) {
+   ASSERT_TRUE(Init());
+-  ASSERT_TRUE(builder_.SetUpChromium());
++  ASSERT_TRUE(builder_.SetUpChromium(base::FilePath()));
+ 
+   const char kEnableFeaturesPrefix[] = "--enable-features=";
+   ASSERT_EQ("", GetFirstArgWithPrefix(kEnableFeaturesPrefix));
+@@ -345,7 +345,7 @@ TEST_F(ChromiumCommandBuilderTest, PepperPlugins) {
+                             strlen(kMissingFileName)));
+ 
+   ASSERT_TRUE(Init());
+-  ASSERT_TRUE(builder_.SetUpChromium());
++  ASSERT_TRUE(builder_.SetUpChromium(base::FilePath()));
+ 
+   EXPECT_EQ("--ppapi-flash-path=/opt/google/chrome/pepper/flash.so",
+             GetFirstArgWithPrefix("--ppapi-flash-path"));
+@@ -361,5 +361,35 @@ TEST_F(ChromiumCommandBuilderTest, PepperPlugins) {
+   EXPECT_EQ(kExpected, GetFirstArgWithPrefix("--register-pepper-plugins"));
+ }
+ 
++TEST_F(ChromiumCommandBuilderTest, SetUpX11) {
++  const base::FilePath kXauthPath(base_path_.Append("test_xauth"));
++  const char kXauthData[] = "foo";
++  ASSERT_EQ(strlen(kXauthData),
++            base::WriteFile(kXauthPath, kXauthData, strlen(kXauthData)));
++
++  ASSERT_TRUE(Init());
++  ASSERT_TRUE(builder_.SetUpChromium(kXauthPath));
++
++  // XAUTHORITY should point at a copy of the original authority file.
++  std::string user_xauth_data;
++  base::FilePath user_xauth_path(ReadEnvVar("XAUTHORITY"));
++  ASSERT_FALSE(user_xauth_path.empty());
++  EXPECT_NE(kXauthPath.value(), user_xauth_path.value());
++  ASSERT_TRUE(ReadFileToString(user_xauth_path, &user_xauth_data));
++  EXPECT_EQ(kXauthData, user_xauth_data);
++
++  // Check that the file is only accessible by its owner.
++  int mode = 0;
++  ASSERT_TRUE(base::GetPosixFilePermissions(user_xauth_path, &mode));
++  EXPECT_EQ(base::FILE_PERMISSION_READ_BY_USER |
++            base::FILE_PERMISSION_WRITE_BY_USER, mode);
++}
++
++TEST_F(ChromiumCommandBuilderTest, MissingXauthFile) {
++  // SetUpChromium() should barf when instructed to use a nonexistent file.
++  ASSERT_TRUE(Init());
++  EXPECT_FALSE(builder_.SetUpChromium(base_path_.Append("bogus_xauth")));
++}
++
+ }  // namespace ui
+ }  // namespace chromeos
+diff --git a/libchromeos-ui/chromeos/ui/x_server_runner.cc b/libchromeos-ui/chromeos/ui/x_server_runner.cc
+new file mode 100644
+index 0000000..c58a9b2
+--- /dev/null
++++ b/libchromeos-ui/chromeos/ui/x_server_runner.cc
+@@ -0,0 +1,322 @@
++// Copyright 2014 The Chromium OS Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "chromeos/ui/x_server_runner.h"
++
++#include <arpa/inet.h>
++#include <grp.h>
++#include <signal.h>
++#include <stdint.h>
++#include <sys/prctl.h>
++#include <sys/resource.h>
++#include <sys/signalfd.h>
++#include <sys/wait.h>
++#include <unistd.h>
++#include <vector>
++
++#include <base/bind.h>
++#include <base/command_line.h>
++#include <base/files/file.h>
++#include <base/files/file_util.h>
++#include <base/logging.h>
++#include <base/macros.h>
++#include <base/process/launch.h>
++#include <base/rand_util.h>
++#include <base/strings/string_number_conversions.h>
++#include <base/strings/stringprintf.h>
++#include <brillo/userdb_utils.h>
++#include <metrics/bootstat.h>
++
++#include "chromeos/ui/util.h"
++
++namespace chromeos {
++namespace ui {
++
++namespace {
++
++// Path to the X server binary.
++const char kXServerCommand[] = "/usr/bin/X";
++
++// Writes |data| to |file|, returning true on success.
++bool WriteString(base::File* file, const std::string& data) {
++  return file->WriteAtCurrentPos(data.data(), data.size()) ==
++      static_cast<int>(data.size());
++}
++
++// Writes |value| to |file| in big-endian order, returning true on success.
++bool WriteUint16(base::File* file, uint16_t value) {
++  value = htons(value);
++  return file->WriteAtCurrentPos(
++      reinterpret_cast<const char*>(&value), sizeof(value)) ==
++      static_cast<int>(sizeof(value));
++}
++
++// Creates a new X authority file at |path|, returning true on success.
++bool CreateXauthFile(const base::FilePath& path, uid_t uid, gid_t gid) {
++  base::File file(path,
++      base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
++  if (!file.IsValid()) {
++    PLOG(ERROR) << "Couldn't open " << path.value();
++    return false;
++  }
++  if (!util::SetPermissions(path, uid, gid, 0600))
++    return false;
++
++  const int kCookieSize = 16;
++  // TODO(derat): base/rand_util.h says not to use RandBytesAsString() for
++  // security-related purposes, but crypto::RandBytes() (which we don't package)
++  // just wraps RandBytes(). The base implementation uses /dev/urandom, which is
++  // fine for our purposes (see e.g. http://www.2uo.de/myths-about-urandom/),
++  // but to make this code self-documenting, this call should be changed to
++  // crypto::RandBytes() if/when that gets packaged for Chrome OS.
++  const std::string kCookie(base::RandBytesAsString(kCookieSize));
++  const uint16_t kFamily = 0x100;
++  const std::string kAddress = "localhost";
++  const std::string kNumber = "0";
++  const std::string kName = "MIT-MAGIC-COOKIE-1";
++
++  if (!WriteUint16(&file, kFamily) ||
++      !WriteUint16(&file, kAddress.size()) ||
++      !WriteString(&file, kAddress) ||
++      !WriteUint16(&file, kNumber.size()) ||
++      !WriteString(&file, kNumber) ||
++      !WriteUint16(&file, kName.size()) ||
++      !WriteString(&file, kName) ||
++      !WriteUint16(&file, kCookie.size()) ||
++      !WriteString(&file, kCookie)) {
++    PLOG(ERROR) << "Couldn't write to " << path.value();
++    return false;
++  }
++
++  return true;
++}
++
++// Runs the X server, replacing the current process.
++void ExecServer(int vt,
++                int max_vt,
++                const base::FilePath& xauth_file,
++                const base::FilePath& log_file) {
++  std::vector<std::string> args;
++  args.push_back(kXServerCommand);
++  args.push_back("-nohwaccess");
++  args.push_back("-noreset");
++  args.push_back("-maxvt");
++  args.push_back(base::IntToString(max_vt));
++  args.push_back("-nolisten");
++  args.push_back("tcp");
++  args.push_back(base::StringPrintf("vt%d", vt));
++  args.push_back("-auth");
++  args.push_back(xauth_file.value());
++  args.push_back("-logfile");
++  args.push_back(log_file.value());
++
++  const size_t kMaxArgs = 32;
++  char* argv[kMaxArgs + 1];
++  CHECK_LE(args.size(), kMaxArgs);
++  for (size_t i = 0; i < args.size(); ++i)
++    argv[i] = const_cast<char*>(args[i].c_str());
++  argv[args.size()] = nullptr;
++
++  // This call doesn't return on success.
++  PCHECK(execv(argv[0], argv) == 0) << "execv() failed";
++}
++
++// Helper for ExecAndWaitForServer() that reads signals sent from |server_pid|
++// via signalfd-created |fd|. Returns true if the server started successfully.
++bool WaitForSignalFromServer(pid_t server_pid, int fd) {
++  LOG(INFO) << "X server started with PID " << server_pid;
++  while (true) {
++    struct signalfd_siginfo siginfo;
++    int bytes_read = HANDLE_EINTR(read(fd, &siginfo, sizeof(siginfo)));
++    PCHECK(bytes_read >= 0);
++    if (bytes_read != sizeof(siginfo)) {
++      LOG(ERROR) << "Read " << bytes_read << " byte(s); expected "
++                 << sizeof(siginfo);
++      return false;
++    }
++
++    switch (siginfo.ssi_signo) {
++      case SIGUSR1:
++        LOG(INFO) << "X server is ready for connections";
++        return true;
++      case SIGCHLD: {
++        int status = 0;
++        int result = waitpid(server_pid, &status, WNOHANG);
++        if (result != 0) {
++          PCHECK(result == server_pid) << "waitpid() returned " << result;
++          if (WIFEXITED(status)) {
++            LOG(ERROR) << "X server exited with " << WEXITSTATUS(status)
++                       << " before sending SIGUSR1";
++            return false;
++          } else if (WIFSIGNALED(status)) {
++            LOG(ERROR) << "X server was terminated with signal "
++                       << WTERMSIG(status) << " before sending SIGUSR1";
++            return false;
++          }
++        }
++        // In the event of a non-exit SIGCHLD, ignore it and loop to
++        // read the next signal.
++        LOG(INFO) << "Ignoring non-exit SIGCHLD";
++        continue;
++      }
++      default:
++        CHECK(false) << "Unexpected signal " << siginfo.ssi_signo;
++    }
++  }
++  return false;
++}
++
++// Drops privileges, forks-and-execs the X server, waits for it to emit SIGUSR1
++// to indicate that it's ready for connections, and returns true on success.
++bool ExecAndWaitForServer(const std::string& user,
++                          uid_t uid,
++                          gid_t gid,
++                          const base::Closure& closure) {
++  // Avoid some syscalls when not running as root in tests.
++  if (getuid() == 0) {
++    if (setpriority(PRIO_PROCESS, 0, -20) != 0)
++      PLOG(WARNING) << "setpriority() failed";
++
++    PCHECK(initgroups(user.c_str(), gid) == 0);
++    PCHECK(setgid(gid) == 0);
++    PCHECK(setuid(uid) == 0);
++  }
++
++  sigset_t mask;
++  PCHECK(sigemptyset(&mask) == 0);
++  PCHECK(sigaddset(&mask, SIGUSR1) == 0);
++  PCHECK(sigaddset(&mask, SIGCHLD) == 0);
++  const int fd = signalfd(-1, &mask, 0);
++  PCHECK(fd != -1) << "signalfd() failed";
++  PCHECK(sigprocmask(SIG_BLOCK, &mask, nullptr) == 0);
++
++  bool success = false;
++  switch (pid_t pid = fork()) {
++    case -1:
++      PLOG(ERROR) << "fork() failed";
++      break;
++    case 0:
++      prctl(PR_SET_NAME, "XServer", 0, 0, 0);
++
++      // Forked process: exec the X server.
++      base::CloseSuperfluousFds(base::InjectiveMultimap());
++      PCHECK(sigprocmask(SIG_UNBLOCK, &mask, nullptr) == 0);
++
++      // Set SIGUSR1's disposition to SIG_IGN before exec-ing so that X will
++      // emit SIGUSR1 once it's ready to accept connections.
++      PCHECK(signal(SIGUSR1, SIG_IGN) != SIG_ERR);
++
++      closure.Run();
++
++      // We should never reach this point, but crash just in case to avoid
++      // double-closing the FD.
++      LOG(FATAL) << "Server closure returned unexpectedly";
++      break;
++    default:
++      prctl(PR_SET_NAME, "XServerRunner", 0, 0, 0);
++
++      // Original process: wait for the forked process to become ready or exit.
++      success = WaitForSignalFromServer(pid, fd);
++      break;
++  }
++
++  close(fd);
++  return success;
++}
++
++}  // namespace
++
++const char XServerRunner::kDefaultUser[] = "xorg";
++const int XServerRunner::kDefaultVt = 1;
++const char XServerRunner::kSocketDir[] = "/tmp/.X11-unix";
++const char XServerRunner::kIceDir[] = "/tmp/.ICE-unix";
++const char XServerRunner::kLogFile[] = "/var/log/xorg/Xorg.0.log";
++const char XServerRunner::kXkbDir[] = "/var/lib/xkb";
++
++XServerRunner::XServerRunner() : child_pid_(0) {}
++
++XServerRunner::~XServerRunner() {}
++
++bool XServerRunner::StartServer(const std::string& user,
++                                int vt,
++                                bool allow_vt_switching,
++                                const base::FilePath& xauth_file) {
++  uid_t uid = 0;
++  gid_t gid = 0;
++  if (!brillo::userdb::GetUserInfo(user, &uid, &gid))
++    return false;
++
++  if (!CreateXauthFile(xauth_file, uid, gid))
++    return false;
++
++  if (!util::EnsureDirectoryExists(GetPath(kSocketDir), 0, 0, 01777) ||
++      !util::EnsureDirectoryExists(GetPath(kIceDir), 0, 0, 01777))
++    return false;
++
++  const base::FilePath log_file(GetPath(kLogFile));
++  if (!util::EnsureDirectoryExists(log_file.DirName(), uid, gid, 0755) ||
++      !util::EnsureDirectoryExists(GetPath(kXkbDir), uid, gid, 0755))
++    return false;
++
++  // Create a relative symlink from one directory above |log_file| to the file
++  // itself (e.g. /var/log/Xorg.0.log -> xorg/Xorg.0.log).
++  base::CreateSymbolicLink(
++      log_file.DirName().BaseName().Append(log_file.BaseName()),
++      log_file.DirName().DirName().Append(log_file.BaseName()));
++
++  // Disable all the Ctrl-Alt-Fn shortcuts for switching between virtual
++  // terminals if requested. Otherwise, disable only Fn (n>=3) keys.
++  int max_vt = allow_vt_switching ? 2 : 0;
++
++  switch (child_pid_ = fork()) {
++    case -1:
++      PLOG(ERROR) << "fork() failed";
++      return false;
++    case 0: {
++      base::Closure closure = !callback_for_testing_.is_null() ?
++          callback_for_testing_ :
++          base::Bind(&ExecServer, vt, max_vt, xauth_file, log_file);
++      // The child process waits for the server to start and exits with 0.
++      exit(ExecAndWaitForServer(user, uid, gid, closure) ? 0 : 1);
++    }
++    default:
++      LOG(INFO) << "Child process " << child_pid_
++                << " starting X server in background";
++  }
++  return true;
++}
++
++bool XServerRunner::WaitForServer() {
++  CHECK_GT(child_pid_, 0);
++  int status = 0;
++  if (waitpid(child_pid_, &status, 0) != child_pid_) {
++    PLOG(ERROR) << "waitpid() on " << child_pid_ << " failed";
++    return false;
++  }
++  if (!WIFEXITED(status)) {
++    LOG(ERROR) << "Child process " << child_pid_ << " didn't exit normally";
++    return false;
++  }
++  if (WEXITSTATUS(status) != 0) {
++    LOG(ERROR) << "Child process " << child_pid_ << " exited with "
++               << WEXITSTATUS(status);
++    return false;
++  }
++
++  if (getuid() == 0) {
++    // TODO(derat): Move session_manager's UpstartSignalEmitter into libchromeos
++    // and use it here.
++    util::Run("initctl", "emit", "x-started", nullptr);
++    bootstat_log("x-started");
++  }
++
++  return true;
++}
++
++base::FilePath XServerRunner::GetPath(const std::string& path) const {
++  return util::GetReparentedPath(path, base_path_for_testing_);
++}
++
++}  // namespace ui
++}  // namespace chromeos
+diff --git a/libchromeos-ui/chromeos/ui/x_server_runner.h b/libchromeos-ui/chromeos/ui/x_server_runner.h
+new file mode 100644
+index 0000000..fad5320
+--- /dev/null
++++ b/libchromeos-ui/chromeos/ui/x_server_runner.h
+@@ -0,0 +1,87 @@
++// Copyright 2014 The Chromium OS Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef LIBCHROMEOS_UI_CHROMEOS_UI_X_SERVER_RUNNER_H_
++#define LIBCHROMEOS_UI_CHROMEOS_UI_X_SERVER_RUNNER_H_
++
++#include <sys/types.h>
++
++#include <string>
++
++#include <base/callback.h>
++#include <base/files/file_path.h>
++#include <base/macros.h>
++
++namespace chromeos {
++namespace ui {
++
++// XServerRunner can be used to start the X server asynchronously and later
++// block until the server is ready to accept connections from clients.
++//
++// In more detail:
++//
++// - StartServer() performs necessary setup and forks |child_pid_|.
++// - |child_pid_| setuids to |user| and forks another process |x_pid|.
++// - |x_pid| execs the X server.
++// - The X server sends SIGUSR1 to |child_pid_| after initialization.
++// - |child_pid_| exits, resulting in the original process receiving SIGCHLD.
++// - WaitForServer() blocks until SIGCHLD has been received.
++class XServerRunner {
++ public:
++  // Default constructor values for Chrome OS.
++  static const char kDefaultUser[];
++  static const int kDefaultVt;
++
++  // Various hard-coded paths exposed here for tests.
++  static const char kSocketDir[];
++  static const char kIceDir[];
++  static const char kLogFile[];
++  static const char kXkbDir[];
++
++  XServerRunner();
++  ~XServerRunner();
++
++  void set_base_path_for_testing(const base::FilePath& path) {
++    base_path_for_testing_ = path;
++  }
++  void set_callback_for_testing(const base::Closure& callback) {
++    callback_for_testing_ = callback;
++  }
++
++  // Creates necessary directories and starts the X server in the background
++  // running as |user| on |vt|. |xauth_file| will be created to permit
++  // connections to the server. Returns true if the setup was successful and the
++  // child process that starts the server was forked sucessfully.
++  bool StartServer(const std::string& user,
++                   int vt,
++                   bool allow_vt_switching,
++                   const base::FilePath& xauth_file);
++
++  // Blocks until the previously-started X server is ready to accept
++  // connections. Handles announcing the server's readiness to Upstart and
++  // recording a bootstat event.
++  bool WaitForServer();
++
++ private:
++  // Converts absolute path |path| into a base::FilePath, rooting it under
++  // |base_path_for_testing_| if it's non-empty.
++  base::FilePath GetPath(const std::string& path) const;
++
++  // Path under which files are created when running in a test.
++  base::FilePath base_path_for_testing_;
++
++  // If non-null, run instead of actually starting the X server.
++  base::Closure callback_for_testing_;
++
++  // PID of the child process that will exit once the X server is ready to
++  // accept connections.
++  pid_t child_pid_;
++
++  DISALLOW_COPY_AND_ASSIGN(XServerRunner);
++};
++
++}  // namespace ui
++}  // namespace chromeos
++
++#endif  // LIBCHROMEOS_UI_CHROMEOS_UI_X_SERVER_RUNNER_H_
+diff --git a/libchromeos-ui/chromeos/ui/x_server_runner_unittest.cc b/libchromeos-ui/chromeos/ui/x_server_runner_unittest.cc
+new file mode 100644
+index 0000000..4524894
+--- /dev/null
++++ b/libchromeos-ui/chromeos/ui/x_server_runner_unittest.cc
+@@ -0,0 +1,216 @@
++// Copyright 2014 The Chromium OS Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "chromeos/ui/x_server_runner.h"
++
++#include <fcntl.h>
++#include <pwd.h>
++#include <signal.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <unistd.h>
++
++#include <base/bind.h>
++#include <base/callback.h>
++#include <base/files/file_path.h>
++#include <base/files/file_util.h>
++#include <base/files/scoped_temp_dir.h>
++#include <base/macros.h>
++#include <base/posix/eintr_wrapper.h>
++#include <base/strings/string_number_conversions.h>
++#include <base/threading/platform_thread.h>
++#include <gtest/gtest.h>
++
++#include "chromeos/ui/util.h"
++
++namespace chromeos {
++namespace ui {
++
++namespace {
++
++// Passed to XServerRunner as a callback that should be run instead of actually
++// starting the X server. Writes the current process's PID to |pipe_path|. If
++// |exit_delay| is non-zero, sleeps and exits without sending SIGUSR1.
++// Otherwise, sleeps for |signal_delay|, sends SIGUSR1 to its parent process,
++// and then sleeps for a long time.
++void ExecServer(const base::FilePath& pipe_path,
++                const base::TimeDelta& signal_delay,
++                const base::TimeDelta& exit_delay) {
++  // Write our PID so the test (our grandparent process) can clean us up.
++  pid_t pid = getpid();
++  PCHECK(base::WriteFile(pipe_path, reinterpret_cast<const char*>(&pid),
++                         sizeof(pid)) == sizeof(pid));
++
++  // Check that the child process didn't inherit any blocked signals:
++  // http://crbug.com/380713
++  sigset_t old_signals;
++  PCHECK(sigemptyset(&old_signals) == 0);
++  PCHECK(sigprocmask(SIG_SETMASK, nullptr, &old_signals) == 0);
++  CHECK(sigisemptyset(&old_signals)) << "Child inherited blocked signals";
++
++  if (exit_delay > base::TimeDelta()) {
++    base::PlatformThread::Sleep(exit_delay);
++    exit(1);
++  }
++
++  if (signal_delay > base::TimeDelta())
++    base::PlatformThread::Sleep(signal_delay);
++  PCHECK(kill(getppid(), SIGUSR1) == 0);
++
++  base::PlatformThread::Sleep(base::TimeDelta::FromSeconds(60));
++}
++
++}  // namespace
++
++class XServerRunnerTest : public testing::Test {
++ public:
++  XServerRunnerTest() : server_pid_(0) {
++    CHECK(temp_dir_.CreateUniqueTempDir());
++    base_path_ = temp_dir_.path();
++    runner_.set_base_path_for_testing(base_path_);
++    xauth_path_ = base_path_.Append("xauth");
++  }
++  virtual ~XServerRunnerTest() {}
++
++  // Calls StartServer(). See ExecServer() for descriptions of the arguments.
++  void StartServer(const base::TimeDelta& signal_delay,
++                   const base::TimeDelta& exit_delay) {
++    // Named pipe used by ExecServer() to pass its PID back to the test process.
++    base::FilePath pipe_path = base_path_.Append("pipe");
++    PCHECK(mkfifo(pipe_path.value().c_str(), 0600) == 0);
++
++    runner_.set_callback_for_testing(
++        base::Bind(&ExecServer, pipe_path, signal_delay, exit_delay));
++    passwd* user_info = getpwuid(getuid());
++    ASSERT_TRUE(user_info) << "getpwuid() didn't find UID " << getuid();
++    ASSERT_TRUE(runner_.StartServer(user_info->pw_name, 1, false, xauth_path_));
++
++    // Open the pipe and read ExecServer()'s PID.
++    int pipe_fd = open(pipe_path.value().c_str(), O_RDONLY);
++    PCHECK(pipe_fd >= 0) << "Failed to open " << pipe_path.value();
++    PCHECK(HANDLE_EINTR(read(pipe_fd, &server_pid_, sizeof(server_pid_))) ==
++           sizeof(server_pid_));
++    close(pipe_fd);
++  }
++
++  // Calls WaitForServer() and returns its result. If it returns true (i.e. the
++  // X server process sent SIGUSR1), additionally kills the process before
++  // returning.
++  bool WaitForServer() {
++    // No need to kill the process if it already exited on its own.
++    if (!runner_.WaitForServer())
++      return false;
++
++    // Kill the server process (server_pid_) and wait until it has been reaped
++    // by the init process. waitpid does not work because server_pid_, initially
++    // a grandchild of this process, may become a child of the init process,
++    // since server_pid_'s parent process may exit during the test.
++    LOG(INFO) << "Killing server process " << server_pid_;
++    while (kill(server_pid_, SIGTERM) != -1)
++      base::PlatformThread::Sleep(base::TimeDelta::FromMilliseconds(50));
++    if (errno != ESRCH)
++      PLOG(ERROR) << "kill failed";
++
++    kill(server_pid_, SIGTERM);
++    return true;
++  }
++
++ protected:
++  base::ScopedTempDir temp_dir_;
++  base::FilePath base_path_;
++  base::FilePath xauth_path_;
++
++  XServerRunner runner_;
++
++  // PID of the process running ExecServer().
++  pid_t server_pid_;
++
++ private:
++  DISALLOW_COPY_AND_ASSIGN(XServerRunnerTest);
++};
++
++TEST_F(XServerRunnerTest, FastSuccess) {
++  StartServer(base::TimeDelta(), base::TimeDelta());
++  EXPECT_TRUE(WaitForServer());
++}
++
++TEST_F(XServerRunnerTest, SlowSuccess) {
++  StartServer(base::TimeDelta::FromSeconds(1), base::TimeDelta());
++  EXPECT_TRUE(WaitForServer());
++}
++
++TEST_F(XServerRunnerTest, FastCrash) {
++  StartServer(base::TimeDelta(), base::TimeDelta::FromMicroseconds(1));
++  EXPECT_FALSE(WaitForServer());
++}
++
++TEST_F(XServerRunnerTest, SlowCrash) {
++  StartServer(base::TimeDelta(), base::TimeDelta::FromSeconds(1));
++  EXPECT_FALSE(WaitForServer());
++}
++
++TEST_F(XServerRunnerTest, TermServer) {
++  StartServer(base::TimeDelta::FromSeconds(60), base::TimeDelta());
++  PCHECK(kill(server_pid_, SIGTERM) == 0);
++  EXPECT_FALSE(WaitForServer());
++}
++
++TEST_F(XServerRunnerTest, StopAndContinueServer) {
++  // Test that SIGCHLD signals that are sent in response to the process being
++  // stopped or continued are ignored.
++  StartServer(base::TimeDelta::FromSeconds(1), base::TimeDelta());
++  PCHECK(kill(server_pid_, SIGSTOP) == 0);
++  base::PlatformThread::Sleep(base::TimeDelta::FromMilliseconds(100));
++  PCHECK(kill(server_pid_, SIGCONT) == 0);
++  EXPECT_TRUE(WaitForServer());
++}
++
++TEST_F(XServerRunnerTest, XauthFile) {
++  StartServer(base::TimeDelta(), base::TimeDelta());
++  EXPECT_TRUE(WaitForServer());
++
++  std::string data;
++  ASSERT_TRUE(base::ReadFileToString(xauth_path_, &data));
++
++  const char kExpected[] =
++      "\x01" "\x00"
++      "\x00" "\x09" "localhost"
++      "\x00" "\x01" "0"
++      "\x00" "\x12" "MIT-MAGIC-COOKIE-1"
++      "\x00" "\x10" /* random 16-byte cookie data goes here */;
++  const size_t kExpectedSize = arraysize(kExpected) - 1;
++  const size_t kCookieSize = 16;
++
++  ASSERT_EQ(kExpectedSize + kCookieSize, data.size());
++  EXPECT_EQ(base::HexEncode(kExpected, kExpectedSize),
++            base::HexEncode(data.data(), kExpectedSize));
++}
++
++TEST_F(XServerRunnerTest, CreateDirectories) {
++  StartServer(base::TimeDelta(), base::TimeDelta());
++  EXPECT_TRUE(WaitForServer());
++
++  EXPECT_TRUE(base::DirectoryExists(util::GetReparentedPath(
++      XServerRunner::kSocketDir, base_path_)));
++  EXPECT_TRUE(base::DirectoryExists(util::GetReparentedPath(
++      XServerRunner::kIceDir, base_path_)));
++  EXPECT_TRUE(base::DirectoryExists(util::GetReparentedPath(
++      XServerRunner::kXkbDir, base_path_)));
++
++  base::FilePath log_file(util::GetReparentedPath(
++      XServerRunner::kLogFile, base_path_));
++  base::FilePath log_dir(log_file.DirName());
++  EXPECT_TRUE(base::DirectoryExists(log_dir));
++
++  // Check that a relative symlink is created in the directory above the one
++  // where the log file is written.
++  base::FilePath link;
++  EXPECT_TRUE(base::ReadSymbolicLink(
++      log_dir.DirName().Append(log_file.BaseName()), &link));
++  EXPECT_EQ(log_dir.BaseName().Append(log_file.BaseName()).value(),
++            link.value());
++}
++
++}  // namespace ui
++}  // namespace chromeos
+diff --git a/libchromeos-ui/libchromeos-ui.gyp b/libchromeos-ui/libchromeos-ui.gyp
+index 1ab1e3f..25b6497 100644
+--- a/libchromeos-ui/libchromeos-ui.gyp
++++ b/libchromeos-ui/libchromeos-ui.gyp
+@@ -23,6 +23,7 @@
+       'sources': [
+         'chromeos/ui/chromium_command_builder.cc',
+         'chromeos/ui/util.cc',
++        'chromeos/ui/x_server_runner.cc',
+       ],
+     },
+   ],
+@@ -38,6 +39,7 @@
+           'includes': ['../common-mk/common_test.gypi'],
+           'sources': [
+             'chromeos/ui/chromium_command_builder_unittest.cc',
++            'chromeos/ui/x_server_runner_unittest.cc',
+             'testrunner.cc',
+           ],
+         },

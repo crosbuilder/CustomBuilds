@@ -1,0 +1,101 @@
+commit a732080fa3c5f31844c89643ca6df88fb0a3e7a8
+Author: zui22904336 <zui22904336@gmail.com>
+Date:   Sat Jan 28 12:23:54 2017 +0900
+
+    login_manager X11コード復元
+    
+    Change-Id: I75ad95932879f504ce7f21b2fdf021c55d580954
+
+diff --git a/login_manager/chrome_setup.cc b/login_manager/chrome_setup.cc
+index e73bb17..856419c 100644
+--- a/login_manager/chrome_setup.cc
++++ b/login_manager/chrome_setup.cc
+@@ -6,6 +6,7 @@
+ 
+ #include <sys/stat.h>
+ #include <unistd.h>
++#include <memory>
+ 
+ #include <base/bind.h>
+ #include <base/files/file_path.h>
+@@ -14,10 +15,13 @@
+ #include <base/strings/stringprintf.h>
+ #include <chromeos/ui/chromium_command_builder.h>
+ #include <chromeos/ui/util.h>
++#include <chromeos/ui/x_server_runner.h>
+ #include <chromeos-config/libcros_config/cros_config_interface.h>
+ 
+ using chromeos::ui::ChromiumCommandBuilder;
++using chromeos::ui::XServerRunner;
+ using chromeos::ui::util::EnsureDirectoryExists;
++using chromeos::ui::util::SetPermissions;
+ 
+ namespace login_manager {
+ 
+@@ -25,6 +29,9 @@ const char kWallpaperProperty[] = "wallpaper";
+ 
+ namespace {
+ 
++// Authority file used for running the X server.
++const char kXauthPath[] = "/var/run/chromelogin.auth";
++
+ // Path to file containing developer-supplied modifications to Chrome's
+ // environment and command line. Passed to
+ // ChromiumCommandBuilder::ApplyUserConfig().
+@@ -374,7 +381,19 @@ void PerformChromeSetup(brillo::CrosConfigInterface* cros_config,
+ 
+   ChromiumCommandBuilder builder;
+   CHECK(builder.Init());
+-  builder.SetUpChromium();
++
++  // Start X in the background before doing more-expensive setup.
++  std::unique_ptr<XServerRunner> x_runner;
++  const base::FilePath xauth_path(kXauthPath);
++  const bool using_x11 = builder.UseFlagIsSet("X");
++  if (using_x11) {
++    x_runner.reset(new XServerRunner);
++    CHECK(x_runner->StartServer(
++        XServerRunner::kDefaultUser, XServerRunner::kDefaultVt,
++        builder.is_developer_end_user(), xauth_path));
++  }
++
++  builder.SetUpChromium(using_x11 ? xauth_path : base::FilePath());
+ 
+   // Please add new code to the most-appropriate helper function instead of
+   // putting it here. Things that to all Chromium-derived binaries (e.g.
+@@ -396,6 +415,9 @@ void PerformChromeSetup(brillo::CrosConfigInterface* cros_config,
+   *args_out = builder.arguments();
+   *uid_out = builder.uid();
+ 
++  if (using_x11)
++    CHECK(x_runner->WaitForServer());
++
+   // Do not add code here. Potentially-expensive work should be done between
+   // StartServer() and WaitForServer().
+ }
+diff --git a/login_manager/chrome_setup.h b/login_manager/chrome_setup.h
+index e2dd124..9ab882f 100644
+--- a/login_manager/chrome_setup.h
++++ b/login_manager/chrome_setup.h
+@@ -24,6 +24,7 @@ class CrosConfigInterface;
+ namespace chromeos {
+ namespace ui {
+ class ChromiumCommandBuilder;
++class XServerRunner;
+ }  // namesspace ui
+ }  // namespace chromeos
+ 
+@@ -33,9 +34,10 @@ namespace login_manager {
+ extern const char kWallpaperProperty[];
+ 
+ // Initializes a ChromiumCommandBuilder and performs additional Chrome-specific
+-// setup. Returns environment variables that the caller should export for Chrome
+-// and arguments that it should pass to the Chrome binary, along with the UID
+-// that should be used to run Chrome.
++// setup. If X is being used, it also starts the X server. Returns environment
++// variables that the caller should export for Chrome and arguments that it
++// should pass to the Chrome binary, along with the UID that should be used to
++// run Chrome.
+ //
+ // Initialization that is common across all Chromium-derived binaries (e.g.
+ // content_shell, app_shell, etc.) rather than just applying to the Chrome

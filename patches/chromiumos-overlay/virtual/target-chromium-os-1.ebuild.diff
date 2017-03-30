@@ -1,0 +1,184 @@
+commit 91321d0cfc47ffd99f414eb7a74c2f091377ab2a
+Author: Daniel Erat <derat@chromium.org>
+Date:   Tue Dec 20 12:36:22 2016 -0700
+
+    target-chromium-os*: Remove X11 dependencies.
+    
+    Remove target-chromium-os* virtual packages' reliance on
+    the X USE flag and related dependencies.
+    
+    BUG=chromium:655820
+    TEST=builds
+    
+    Change-Id: I43d92627dd1740fc1950b37940b2c2b9d5b46d60
+    Reviewed-on: https://chromium-review.googlesource.com/422474
+    Commit-Ready: Dan Erat <derat@chromium.org>
+    Tested-by: Dan Erat <derat@chromium.org>
+    Reviewed-by: Mike Frysinger <vapier@chromium.org>
+
+diff --git a/virtual/target-chromium-os-dev/target-chromium-os-dev-1.ebuild b/virtual/target-chromium-os-dev/target-chromium-os-dev-1.ebuild
+index 2dc03de..d0dd6db 100644
+--- a/virtual/target-chromium-os-dev/target-chromium-os-dev-1.ebuild
++++ b/virtual/target-chromium-os-dev/target-chromium-os-dev-1.ebuild
+@@ -11,7 +11,7 @@ SLOT="0"
+ KEYWORDS="*"
+ # Note: Do not utilize USE=internal here.  Update virtual/target-chrome-os-dev.
+ IUSE="cras pam opengl +power_management +profile
+-	+shill tpm usb video_cards_intel X"
++	+shill tpm usb video_cards_intel"
+ 
+ # The dependencies here are meant to capture "all the packages
+ # developers want to use for development, test, or debug".  This
+@@ -30,7 +30,7 @@ IUSE="brillo-debug cras pam opengl +power_management +profile
+ 
+ ################################################################################
+ #
+-# CROS_* : Dependencies for CrOS devices (coreutils, X etc)
++# CROS_* : Dependencies for CrOS devices (coreutils, etc.)
+ #
+ ################################################################################
+ CROS_X86_RDEPEND="
+@@ -42,31 +42,9 @@ CROS_X86_RDEPEND="
+ 	video_cards_intel? ( x11-apps/intel-gpu-tools )
+ "
+ 
+-CROS_X_RDEPEND="
+-	opengl? ( x11-apps/mesa-progs )
+-	x11-apps/mtplot
+-	x11-apps/xdpyinfo
+-	opengl? ( x11-apps/xdriinfo )
+-	x11-apps/xev
+-	x11-apps/xhost
+-	x11-apps/xinput
+-	x11-apps/xinput_calibrator
+-	x11-apps/xlsatoms
+-	x11-apps/xlsclients
+-	x11-apps/xmodmap
+-	x11-apps/xprop
+-	x11-apps/xset
+-	!x11-apps/xtrace
+-	x11-apps/xwd
+-	x11-apps/xwininfo
+-	x11-misc/xdotool
+-	x11-misc/xtrace
+-"
+-
+ RDEPEND="
+ 	x86? ( ${CROS_X86_RDEPEND} )
+ 	amd64? ( ${CROS_X86_RDEPEND} )
+-	X? ( ${CROS_X_RDEPEND} )
+ "
+ 
+ RDEPEND="${RDEPEND}
+diff --git a/virtual/target-chromium-os-test/target-chromium-os-test-1.ebuild b/virtual/target-chromium-os-test/target-chromium-os-test-1.ebuild
+index 08de20c..e81fe36 100644
+--- a/virtual/target-chromium-os-test/target-chromium-os-test-1.ebuild
++++ b/virtual/target-chromium-os-test/target-chromium-os-test-1.ebuild
+@@ -12,7 +12,7 @@ SLOT="0"
+ KEYWORDS="*"
+ # Note: Do not utilize USE=internal here.  Update virtual/target-chrome-os-test.
+ IUSE="-chromeless_tests chromeless_tty cros_ec cros_embedded opengl opengles ozone p2p
+-	peerd +shill +tpm X"
++	peerd +shill +tpm"
+ 
+ # Packages required to support autotest images.  Dependencies here
+ # are for packages that must be present on a local device and that
+@@ -77,7 +77,7 @@ CROS_COMMON_RDEPEND+="
+ 
+ ################################################################################
+ #
+-# CROS_* : Dependencies for "regular" CrOS devices (coreutils, X etc)
++# CROS_* : Dependencies for "regular" CrOS devices (coreutils, etc.)
+ #
+ ################################################################################
+ CROS_X86_RDEPEND="
+@@ -85,19 +85,9 @@ CROS_X86_RDEPEND="
+ 	x11-misc/read-edid
+ "
+ 
+-CROS_X_RDEPEND="
+-	x11-apps/setxkbmap
+-	x11-apps/xinput
+-	x11-apps/xset
+-	x11-misc/x11vnc
+-	x11-misc/xdotool
+-	x11-terms/rxvt-unicode
+-"
+-
+ CROS_RDEPEND="
+ 	x86? ( ${CROS_X86_RDEPEND} )
+ 	amd64? ( ${CROS_X86_RDEPEND} )
+-	X? ( ${CROS_X_RDEPEND} )
+ "
+ 
+ CROS_RDEPEND="${CROS_RDEPEND}
+@@ -175,18 +165,6 @@ CROS_RDEPEND="${CROS_RDEPEND}
+ 	"
+ 
+ ################################################################################
+-# CROS_E_* : Dependencies for embedded CrOS devices (busybox, no X etc)
+-#
+-################################################################################
+-
+-#CROS_E_RDEPEND="${CROS_E_RDEPEND}
+-#"
+-
+-# Build time dependencies
+-#CROS_E_DEPEND="${CROS_E_RDEPEND}
+-#"
+-
+-################################################################################
+ # Assemble the final RDEPEND and DEPEND variables for portage
+ ################################################################################
+ RDEPEND="${CROS_COMMON_RDEPEND}
+diff --git a/virtual/target-chromium-os/target-chromium-os-1.ebuild b/virtual/target-chromium-os/target-chromium-os-1.ebuild
+index 2be014a..4730951 100644
+--- a/virtual/target-chromium-os/target-chromium-os-1.ebuild
++++ b/virtual/target-chromium-os/target-chromium-os-1.ebuild
+@@ -15,7 +15,7 @@ IUSE="bluetooth bootchart bootimage buffet +cellular compupdates coreboot cr50_o
+ 	eclog feedback +fonts gobi mtd +network_time nfc pam peerd postscript
+ 	+power_management +profile cups +readahead scanner +shill
+ 	intel_lpe +syslog +system_locales systemd touchview +tpm -tpm2 +trim_supported
+-	+vpn watchdog wifi_bootstrapping wimax X"
++	+vpn watchdog wifi_bootstrapping wimax"
+ 
+ REQUIRED_USE="cellular? ( shill )"
+ 
+@@ -69,8 +69,8 @@ REQUIRED_USE="cellular? ( shill )"
+ # Variable Naming Convention:
+ # ---------------------------
+ # CROS_COMMON_* : Dependencies common to all CrOS flavors
+-# CROS_E_* : Dependencies for embedded CrOS devices (busybox, no X etc)
+-# CROS_* : Dependencies for "regular" CrOS devices (coreutils, X etc)
++# CROS_E_* : Dependencies for embedded CrOS devices (busybox, etc.)
++# CROS_* : Dependencies for "regular" CrOS devices (coreutils, etc.)
+ ################################################################################
+ 
+ ################################################################################
+@@ -195,17 +195,10 @@ CROS_ARM_RDEPEND="
+ 	chromeos-base/u-boot-scripts
+ "
+ 
+-CROS_X_RDEPEND="
+-	chromeos-base/xorg-conf
+-	x11-apps/xrandr
+-	x11-base/xorg-server
+-"
+-
+ CROS_RDEPEND="
+ 	x86? ( ${CROS_X86_RDEPEND} )
+ 	amd64? ( ${CROS_X86_RDEPEND} )
+ 	arm? ( ${CROS_ARM_RDEPEND} )
+-	X? ( ${CROS_X_RDEPEND} )
+ "
+ 
+ CROS_RDEPEND="${CROS_RDEPEND}
+@@ -261,7 +254,7 @@ CROS_DEPEND="${CROS_RDEPEND}
+ "
+ 
+ ################################################################################
+-# CROS_E_* : Dependencies for embedded CrOS devices (busybox, no X etc)
++# CROS_E_* : Dependencies for embedded CrOS devices (busybox, etc.)
+ #
+ ################################################################################
+ 

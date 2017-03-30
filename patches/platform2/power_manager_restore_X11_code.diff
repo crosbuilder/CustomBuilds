@@ -1,0 +1,536 @@
+commit 3e7b6f8738f445bb7ad4ce20dcf2b55f85966367
+Author: zui22904336 <zui22904336@gmail.com>
+Date:   Sat Jan 28 12:05:57 2017 +0900
+
+    power_manager X11コード復元
+    
+    Change-Id: I03bc024ada0636c224475a5e1e3c52d0448538f9
+
+diff --git a/power_manager/common/power_constants.cc b/power_manager/common/power_constants.cc
+index a5ae262..7fd8d29 100644
+--- a/power_manager/common/power_constants.cc
++++ b/power_manager/common/power_constants.cc
+@@ -72,7 +72,9 @@ const char kHasAmbientLightSensorPref[] = "has_ambient_light_sensor";
+ const char kHasKeyboardBacklightPref[] = "has_keyboard_backlight";
+ const char kExternalDisplayOnlyPref[] = "external_display_only";
+ const char kLegacyPowerButtonPref[] = "legacy_power_button";
++const char kLockVTBeforeSuspendPref[] = "lock_vt_before_suspend";
+ const char kMosysEventlogPref[] = "mosys_eventlog";
++const char kCheckActiveVTPref[] = "check_active_vt";
+ const char kUseCrasPref[] = "use_cras";
+ const char kTpmCounterSuspendThresholdPref[] = "tpm_counter_suspend_threshold";
+ const char kTpmStatusIntervalSecPref[] = "tpm_status_interval_sec";
+diff --git a/power_manager/common/power_constants.h b/power_manager/common/power_constants.h
+index b73ae05..ebc2aea 100644
+--- a/power_manager/common/power_constants.h
++++ b/power_manager/common/power_constants.h
+@@ -178,10 +178,17 @@ extern const char kExternalDisplayOnlyPref[];
+ // releases properly.
+ extern const char kLegacyPowerButtonPref[];
+ 
++// If true, disable VT switching before suspending.
++extern const char kLockVTBeforeSuspendPref[];
++
+ // If true, record suspend and resume timestamps in eventlog using the "mosys"
+ // command.
+ extern const char kMosysEventlogPref[];
+ 
++// If true, use /dev/tty0 to query the active VT periodically and avoid treating
++// the user as idle while VT2 is active.
++extern const char kCheckActiveVTPref[];
++
+ // If true, use CRAS, the Chrome OS audio server, to monitor audio activity and
+ // to mute audio when suspending.
+ extern const char kUseCrasPref[];
+diff --git a/power_manager/optional_prefs/check_active_vt b/power_manager/optional_prefs/check_active_vt
+new file mode 100644
+index 0000000..d00491f
+--- /dev/null
++++ b/power_manager/optional_prefs/check_active_vt
+@@ -0,0 +1 @@
++1
+diff --git a/power_manager/optional_prefs/lock_vt_before_suspend b/power_manager/optional_prefs/lock_vt_before_suspend
+new file mode 100644
+index 0000000..d00491f
+--- /dev/null
++++ b/power_manager/optional_prefs/lock_vt_before_suspend
+@@ -0,0 +1 @@
++1
+diff --git a/power_manager/powerd/daemon.cc b/power_manager/powerd/daemon.cc
+index a745a01..7f8b9f6 100644
+--- a/power_manager/powerd/daemon.cc
++++ b/power_manager/powerd/daemon.cc
+@@ -277,6 +277,7 @@ Daemon::Daemon(DaemonDelegate* delegate, const base::FilePath& run_dir)
+       suspend_announced_path_(run_dir.Append(kSuspendAnnouncedFile)),
+       session_state_(SessionState::STOPPED),
+       created_suspended_state_file_(false),
++      lock_vt_before_suspend_(false),
+       log_suspend_with_mosys_eventlog_(false),
+       suspend_to_idle_(false),
+       set_wifi_transmit_power_for_tablet_mode_(false),
+@@ -364,6 +365,7 @@ void Daemon::Init() {
+     UpdateWifiTransmitPowerForTabletMode(tablet_mode);
+   }
+ 
++  prefs_->GetBool(kLockVTBeforeSuspendPref, &lock_vt_before_suspend_);
+   prefs_->GetBool(kMosysEventlogPref, &log_suspend_with_mosys_eventlog_);
+   prefs_->GetBool(kSuspendToIdlePref, &suspend_to_idle_);
+ 
+@@ -551,6 +553,11 @@ void Daemon::HandleTabletModeChange(TabletMode mode) {
+     UpdateWifiTransmitPowerForTabletMode(mode);
+ }
+ 
++void Daemon::DeferInactivityTimeoutForVT2() {
++  LOG(INFO) << "Reporting synthetic user activity since VT2 is active";
++  state_controller_->HandleUserActivity();
++}
++
+ void Daemon::ShutDownForPowerButtonWithNoDisplay() {
+   LOG(INFO) << "Shutting down due to power button press while no display is "
+             << "connected";
+@@ -629,6 +636,10 @@ void Daemon::PrepareToSuspend() {
+   // the backlight off).
+   SetBacklightsSuspended(true);
+ 
++  // Do not let suspend change the console terminal.
++  if (lock_vt_before_suspend_)
++    RunSetuidHelper("lock_vt", "", true);
++
+   power_supply_->SetSuspended(true);
+   if (audio_client_)
+     audio_client_->SetSuspended(true);
+@@ -732,6 +743,10 @@ void Daemon::UndoPrepareToSuspend(bool success,
+   // off for the displays).
+   SetBacklightsSuspended(false);
+ 
++  // Allow virtual terminal switching again.
++  if (lock_vt_before_suspend_)
++    RunSetuidHelper("unlock_vt", "", true);
++
+   if (audio_client_)
+     audio_client_->SetSuspended(false);
+   power_supply_->SetSuspended(false);
+diff --git a/power_manager/powerd/daemon.h b/power_manager/powerd/daemon.h
+index 7fdf32a..9c5bf83 100644
+--- a/power_manager/powerd/daemon.h
++++ b/power_manager/powerd/daemon.h
+@@ -114,6 +114,7 @@ class Daemon : public policy::BacklightControllerObserver,
+   void HandlePowerButtonEvent(ButtonState state) override;
+   void HandleHoverStateChange(bool hovering) override;
+   void HandleTabletModeChange(TabletMode mode) override;
++  void DeferInactivityTimeoutForVT2() override;
+   void ShutDownForPowerButtonWithNoDisplay() override;
+   void HandleMissingPowerButtonAcknowledgment() override;
+   void ReportPowerButtonAcknowledgmentDelay(base::TimeDelta delay) override;
+@@ -374,6 +375,9 @@ class Daemon : public policy::BacklightControllerObserver,
+   // suspending. If true, the file will be unlinked after resuming.
+   bool created_suspended_state_file_;
+ 
++  // True if VT switching should be disabled before the system is suspended.
++  bool lock_vt_before_suspend_;
++
+   // True if the "mosys" command should be used to record suspend and resume
+   // timestamps in eventlog.
+   bool log_suspend_with_mosys_eventlog_;
+diff --git a/power_manager/powerd/policy/input_controller.cc b/power_manager/powerd/policy/input_controller.cc
+index a8a0d6e..a921e3d 100644
+--- a/power_manager/powerd/policy/input_controller.cc
++++ b/power_manager/powerd/policy/input_controller.cc
+@@ -19,6 +19,14 @@
+ namespace power_manager {
+ namespace policy {
+ 
++namespace {
++
++// Frequency with which CheckActiveVT() should be called, in seconds.
++// This just needs to be lower than the screen-dimming delay.
++const int kCheckActiveVTFrequencySec = 60;
++
++}  // namespace
++
+ InputController::InputController()
+     : input_watcher_(NULL),
+       delegate_(NULL),
+@@ -53,6 +61,13 @@ void InputController::Init(system::InputWatcherInterface* input_watcher,
+     lid_state_ = input_watcher_->QueryLidState();
+ 
+   tablet_mode_ = input_watcher_->GetTabletMode();
++
++  bool check_active_vt = false;
++  if (prefs->GetBool(kCheckActiveVTPref, &check_active_vt) && check_active_vt) {
++    check_active_vt_timer_.Start(FROM_HERE,
++        base::TimeDelta::FromSeconds(kCheckActiveVTFrequencySec),
++        this, &InputController::CheckActiveVT);
++  }
+ }
+ 
+ bool InputController::TriggerPowerButtonAcknowledgmentTimeoutForTesting() {
+@@ -64,6 +79,14 @@ bool InputController::TriggerPowerButtonAcknowledgmentTimeoutForTesting() {
+   return true;
+ }
+ 
++bool InputController::TriggerCheckActiveVTTimeoutForTesting() {
++  if (!check_active_vt_timer_.IsRunning())
++    return false;
++
++  CheckActiveVT();
++  return true;
++}
++
+ void InputController::HandlePowerButtonAcknowledgment(
+     const base::TimeTicks& timestamp) {
+   VLOG(1) << "Received acknowledgment of power button press at "
+@@ -146,6 +169,11 @@ void InputController::OnHoverStateChange(bool hovering) {
+   delegate_->HandleHoverStateChange(hovering);
+ }
+ 
++void InputController::CheckActiveVT() {
++  if (input_watcher_->GetActiveVT() == 2)
++    delegate_->DeferInactivityTimeoutForVT2();
++}
++
+ void InputController::HandlePowerButtonAcknowledgmentTimeout() {
+   delegate_->ReportPowerButtonAcknowledgmentDelay(
+       base::TimeDelta::FromMilliseconds(
+diff --git a/power_manager/powerd/policy/input_controller.h b/power_manager/powerd/policy/input_controller.h
+index 2ca9f17..ef627ba 100644
+--- a/power_manager/powerd/policy/input_controller.h
++++ b/power_manager/powerd/policy/input_controller.h
+@@ -55,6 +55,10 @@ class InputController : public system::InputObserver {
+     // TabletMode::UNSUPPORTED will never be passed.
+     virtual void HandleTabletModeChange(TabletMode mode) = 0;
+ 
++    // Defers the inactivity timeout in response to VT2 being active (since
++    // Chrome can't detect user activity).
++    virtual void DeferInactivityTimeoutForVT2() = 0;
++
+     // Shuts the system down in reponse to the power button being pressed while
+     // no display is connected.
+     virtual void ShutDownForPowerButtonWithNoDisplay() = 0;
+@@ -89,6 +93,10 @@ class InputController : public system::InputObserver {
+   // |power_button_acknowledgment_timer_| isn't running.
+   bool TriggerPowerButtonAcknowledgmentTimeoutForTesting();
+ 
++  // Calls CheckActiveVT(). Returns false if |check_active_vt_timer| isn't
++  // running.
++  bool TriggerCheckActiveVTTimeoutForTesting();
++
+   // Handles acknowledgment from that a power button press was handled.
+   // |timestamp| is the timestamp from the original event.
+   void HandlePowerButtonAcknowledgment(const base::TimeTicks& timestamp);
+@@ -100,6 +108,12 @@ class InputController : public system::InputObserver {
+   void OnHoverStateChange(bool hovering) override;
+ 
+  private:
++  // Asks |delegate_| to defer the inactivity timeout if the second virtual
++  // terminal is currently active (which typically means that the user is doing
++  // something on the console in dev mode, so Chrome won't be reporting user
++  // activity to keep power management from kicking in).
++  void CheckActiveVT();
++
+   // Tells |delegate_| when Chrome hasn't acknowledged a power button press
+   // quickly enough.
+   void HandlePowerButtonAcknowledgmentTimeout();
+@@ -125,6 +139,9 @@ class InputController : public system::InputObserver {
+   // Calls HandlePowerButtonAcknowledgmentTimeout().
+   base::OneShotTimer power_button_acknowledgment_timer_;
+ 
++  // Calls CheckActiveVT() periodically.
++  base::RepeatingTimer check_active_vt_timer_;
++
+   DISALLOW_COPY_AND_ASSIGN(InputController);
+ };
+ 
+diff --git a/power_manager/powerd/policy/input_controller_unittest.cc b/power_manager/powerd/policy/input_controller_unittest.cc
+index e3e5ccb..d140053 100644
+--- a/power_manager/powerd/policy/input_controller_unittest.cc
++++ b/power_manager/powerd/policy/input_controller_unittest.cc
+@@ -34,6 +34,7 @@ const char kLidOpened[] = "lid_opened";
+ const char kPowerButtonDown[] = "power_down";
+ const char kPowerButtonUp[] = "power_up";
+ const char kPowerButtonRepeat[] = "power_repeat";
++const char kDeferInactivity[] = "defer_inactivity";
+ const char kShutDown[] = "shut_down";
+ const char kMissingPowerButtonAcknowledgment[] = "missing_power_button_ack";
+ const char kHoverOn[] = "hover_on";
+@@ -96,6 +97,9 @@ class TestInputControllerDelegate : public InputController::Delegate,
+     EXPECT_NE(TabletMode::UNSUPPORTED, mode);
+     AppendAction(GetTabletModeAction(mode));
+   }
++  void DeferInactivityTimeoutForVT2() override {
++    AppendAction(kDeferInactivity);
++  }
+   void ShutDownForPowerButtonWithNoDisplay() override {
+     AppendAction(kShutDown);
+   }
+@@ -242,6 +246,31 @@ TEST_F(InputControllerTest, PowerButtonEvents) {
+   EXPECT_EQ(0, dbus_wrapper_.num_sent_signals());
+ }
+ 
++TEST_F(InputControllerTest, DeferInactivityTimeoutWhileVT2IsActive) {
++  prefs_.SetInt64(kCheckActiveVTPref, 1);
++  Init();
++
++  input_watcher_.set_active_vt(1);
++  EXPECT_TRUE(controller_.TriggerCheckActiveVTTimeoutForTesting());
++  EXPECT_EQ(kNoActions, delegate_.GetActions());
++
++  input_watcher_.set_active_vt(2);
++  EXPECT_TRUE(controller_.TriggerCheckActiveVTTimeoutForTesting());
++  EXPECT_EQ(kDeferInactivity, delegate_.GetActions());
++
++  input_watcher_.set_active_vt(3);
++  EXPECT_TRUE(controller_.TriggerCheckActiveVTTimeoutForTesting());
++  EXPECT_EQ(kNoActions, delegate_.GetActions());
++}
++
++TEST_F(InputControllerTest, HonorCheckActiveVTPref) {
++  // The timer shouldn't be started if the check-active-VT pref is unset.
++  Init();
++  input_watcher_.set_active_vt(2);
++  EXPECT_FALSE(controller_.TriggerCheckActiveVTTimeoutForTesting());
++  EXPECT_EQ(kNoActions, delegate_.GetActions());
++}
++
+ TEST_F(InputControllerTest, AcknowledgePowerButtonPresses) {
+   Init();
+ 
+diff --git a/power_manager/powerd/powerd_setuid_helper.cc b/power_manager/powerd/powerd_setuid_helper.cc
+index c228af2..0e1c818 100644
+--- a/power_manager/powerd/powerd_setuid_helper.cc
++++ b/power_manager/powerd/powerd_setuid_helper.cc
+@@ -5,6 +5,9 @@
+ // This is a small setuid-root program that runs a few commands on behalf of
+ // the powerd process.
+ 
++#include <fcntl.h>
++#include <linux/vt.h>
++#include <sys/ioctl.h>
+ #include <sys/types.h>
+ #include <unistd.h>
+ 
+@@ -24,6 +27,10 @@ const size_t kMaxArgs = 64;
+ // binaries that are executed by this program and inherited by those binaries.
+ const char kPathEnvironment[] = "/usr/sbin:/usr/bin:/sbin:/bin";
+ 
++// Path to device on which VT_UNLOCKSWITCH and VT_LOCKSWITCH ioctls can be made
++// to enable or disable VT switching.
++const char kConsolePath[] = "/dev/tty0";
++
+ // Runs a command with the supplied arguments.  The argument list must be
+ // NULL-terminated.  This method calls exec() without forking, so it will never
+ // return.
+@@ -51,10 +58,23 @@ void RunCommand(const char* command, const char* arg, ...) {
+   PCHECK(execvp(command, argv) != -1) << "execv() failed";
+ }
+ 
++// Locks or unlocks VT switching.  In a perfect world this would live in powerd,
++// but these ioctls require the CAP_SYS_TTY_CONFIG capability and setting that
++// breaks the setuid() call in RunCommand().  In a slightly less perfect world
++// this would live in the powerd_suspend script, but there doesn't seem to be
++// any way for a script to lock or unlock switching directly.
++void SetVTSwitchingAllowed(bool allowed) {
++  int fd = open(kConsolePath, O_WRONLY);
++  PCHECK(fd >= 0) << "open(" << kConsolePath << ") failed";
++  PCHECK(ioctl(fd, allowed ? VT_UNLOCKSWITCH : VT_LOCKSWITCH) == 0)
++      << "ioctl() failed";
++  close(fd);
++}
++
+ int main(int argc, char* argv[]) {
+-  DEFINE_string(action, "", "Action to perform.  Must be one of "
++  DEFINE_string(action, "", "Action to perform.  Must be one of \"lock_vt\", "
+                 "\"mosys_eventlog\", \"reboot\", \"set_wifi_transmit_power\", "
+-                "\"shut_down\", and \"suspend\".");
++                "\"shut_down\", \"suspend\", " "and \"unlock_vt\".");
+   DEFINE_string(mosys_eventlog_code, "", "Hexadecimal byte, e.g. \"0xa7\", "
+                 "describing the event being logged.");
+   DEFINE_string(shutdown_reason, "", "Optional shutdown reason starting with a "
+@@ -75,7 +95,9 @@ int main(int argc, char* argv[]) {
+                 "Power table for iwlwifi driver");
+   brillo::FlagHelper::Init(argc, argv, "powerd setuid helper");
+ 
+-  if (FLAGS_action == "mosys_eventlog") {
++  if (FLAGS_action == "lock_vt") {
++    SetVTSwitchingAllowed(false);
++  } else if (FLAGS_action == "mosys_eventlog") {
+     CHECK(FLAGS_mosys_eventlog_code.size() == 4 &&
+           FLAGS_mosys_eventlog_code[0] == '0' &&
+           FLAGS_mosys_eventlog_code[1] == 'x' &&
+@@ -119,6 +141,8 @@ int main(int argc, char* argv[]) {
+     }
+     RunCommand("powerd_suspend", duration_flag.c_str(), idle_flag.c_str(),
+                wakeup_flag.empty() ? NULL : wakeup_flag.c_str(), NULL);
++  } else if (FLAGS_action == "unlock_vt") {
++    SetVTSwitchingAllowed(true);
+   } else {
+     LOG(ERROR) << "Unknown action \"" << FLAGS_action << "\"";
+     return 1;
+diff --git a/power_manager/powerd/powerd_suspend b/power_manager/powerd/powerd_suspend
+index 311b1ad..cb956df 100755
+--- a/power_manager/powerd/powerd_suspend
++++ b/power_manager/powerd/powerd_suspend
+@@ -228,7 +228,7 @@ setup_dark_resume() {
+ }
+ 
+ # Encourage people to use powerd_dbus_suspend instead of running this
+-# script directly so that e.g. suspend delays will happen.
++# script directly so that e.g. suspend delays and VT locking will happen.
+ if [ -z "$POWERD_SETUID_HELPER" ]; then
+   echo "This script is called by powerd. Please run powerd_dbus_suspend" 1>&2
+   echo "to manually exercise the full suspend path." 1>&2
+diff --git a/power_manager/powerd/system/input_watcher.cc b/power_manager/powerd/system/input_watcher.cc
+index 41eb81c..8fc5844 100644
+--- a/power_manager/powerd/system/input_watcher.cc
++++ b/power_manager/powerd/system/input_watcher.cc
+@@ -4,7 +4,10 @@
+ 
+ #include "power_manager/powerd/system/input_watcher.h"
+ 
++#include <fcntl.h>
+ #include <linux/input.h>
++#include <linux/vt.h>
++#include <sys/ioctl.h>
+ #include <unistd.h>
+ 
+ #include <base/callback.h>
+@@ -40,6 +43,10 @@ const char kInputMatchPattern[] = "input*";
+ const char kUsbMatchString[] = "usb";
+ const char kBluetoothMatchString[] = "bluetooth";
+ 
++// Path to the console device where VT_GETSTATE ioctls are made to get the
++// currently-active VT.
++const char kConsolePath[] = "/dev/tty0";
++
+ // Given a string |name| consisting of kInputBaseName followed by a base-10
+ // integer, extracts the integer to |num_out|. Returns false if |name| didn't
+ // match the expected format.
+@@ -118,6 +125,7 @@ InputWatcher::InputWatcher()
+       single_touch_hover_valid_(false),
+       single_touch_hover_distance_nonzero_(false),
+       power_button_to_skip_(kPowerButtonToSkip),
++      console_fd_(-1),
+       udev_(nullptr),
+       weak_ptr_factory_(this) {
+ }
+@@ -125,6 +133,8 @@ InputWatcher::InputWatcher()
+ InputWatcher::~InputWatcher() {
+   if (udev_)
+     udev_->RemoveSubsystemObserver(kInputUdevSubsystem, this);
++  if (console_fd_ >= 0)
++    close(console_fd_);
+ }
+ 
+ bool InputWatcher::Init(
+@@ -247,6 +257,24 @@ bool InputWatcher::IsUSBInputDeviceConnected() const {
+   return false;
+ }
+ 
++int InputWatcher::GetActiveVT() {
++  // It's not worthwhile creating an interface around this single ioctl to query
++  // the active VT. Defer opening the console until this method is called so
++  // that unit tests can step around this code.
++  if (console_fd_ < 0) {
++    if ((console_fd_ = open(kConsolePath, O_WRONLY)) == -1) {
++      PLOG(ERROR) << "Unable to open " << kConsolePath;
++      return -1;
++    }
++  }
++  struct vt_stat state;
++  if (ioctl(console_fd_, VT_GETSTATE, &state) == -1) {
++    PLOG(ERROR) << "VT_GETSTATE ioctl on " << kConsolePath << "failed";
++    return -1;
++  }
++  return state.v_active;
++}
++
+ void InputWatcher::OnUdevEvent(const std::string& subsystem,
+                                const std::string& sysname,
+                                UdevAction action) {
+diff --git a/power_manager/powerd/system/input_watcher.h b/power_manager/powerd/system/input_watcher.h
+index d84c571..d98036d 100644
+--- a/power_manager/powerd/system/input_watcher.h
++++ b/power_manager/powerd/system/input_watcher.h
+@@ -81,6 +81,7 @@ class InputWatcher : public InputWatcherInterface,
+   LidState QueryLidState() override;
+   TabletMode GetTabletMode() override;
+   bool IsUSBInputDeviceConnected() const override;
++  int GetActiveVT() override;
+ 
+   // UdevSubsystemObserver implementation:
+   void OnUdevEvent(const std::string& subsystem,
+@@ -191,6 +192,9 @@ class InputWatcher : public InputWatcherInterface,
+   // Name of the power button interface to skip monitoring.
+   const char* power_button_to_skip_;
+ 
++  // Used to make ioctls to /dev/console to check which VT is active.
++  int console_fd_;
++
+   UdevInterface* udev_;  // non-owned
+ 
+   // Keyed by input event number.
+diff --git a/power_manager/powerd/system/input_watcher_interface.h b/power_manager/powerd/system/input_watcher_interface.h
+index bcd2d12..da12047 100644
+--- a/power_manager/powerd/system/input_watcher_interface.h
++++ b/power_manager/powerd/system/input_watcher_interface.h
+@@ -35,6 +35,9 @@ class InputWatcherInterface {
+   // Checks if any USB input devices are connected.
+   virtual bool IsUSBInputDeviceConnected() const = 0;
+ 
++  // Returns the (1-indexed) number of the currently-active virtual terminal.
++  virtual int GetActiveVT() = 0;
++
+  private:
+   DISALLOW_COPY_AND_ASSIGN(InputWatcherInterface);
+ };
+diff --git a/power_manager/powerd/system/input_watcher_stub.cc b/power_manager/powerd/system/input_watcher_stub.cc
+index 6fcc277..4ea14c3 100644
+--- a/power_manager/powerd/system/input_watcher_stub.cc
++++ b/power_manager/powerd/system/input_watcher_stub.cc
+@@ -12,7 +12,8 @@ namespace system {
+ InputWatcherStub::InputWatcherStub()
+     : lid_state_(LidState::OPEN),
+       tablet_mode_(TabletMode::UNSUPPORTED),
+-      usb_input_device_connected_(true) {
++      usb_input_device_connected_(true),
++      active_vt_(1) {
+ }
+ 
+ InputWatcherStub::~InputWatcherStub() {}
+@@ -55,5 +56,9 @@ bool InputWatcherStub::IsUSBInputDeviceConnected() const {
+   return usb_input_device_connected_;
+ }
+ 
++int InputWatcherStub::GetActiveVT() {
++  return active_vt_;
++}
++
+ }  // namespace system
+ }  // namespace power_manager
+diff --git a/power_manager/powerd/system/input_watcher_stub.h b/power_manager/powerd/system/input_watcher_stub.h
+index 94a254b..5ed8e06 100644
+--- a/power_manager/powerd/system/input_watcher_stub.h
++++ b/power_manager/powerd/system/input_watcher_stub.h
+@@ -23,6 +23,7 @@ class InputWatcherStub : public InputWatcherInterface {
+   void set_usb_input_device_connected(bool connected) {
+     usb_input_device_connected_ = connected;
+   }
++  void set_active_vt(int vt) { active_vt_ = vt; }
+ 
+   // Notifies registered observers about various events.
+   void NotifyObserversAboutLidState();
+@@ -36,12 +37,14 @@ class InputWatcherStub : public InputWatcherInterface {
+   LidState QueryLidState() override;
+   TabletMode GetTabletMode() override;
+   bool IsUSBInputDeviceConnected() const override;
++  int GetActiveVT() override;
+ 
+  private:
+   // Current input state.
+   LidState lid_state_;
+   TabletMode tablet_mode_;
+   bool usb_input_device_connected_;
++  int active_vt_;
+ 
+   base::ObserverList<InputObserver> observers_;
+ 

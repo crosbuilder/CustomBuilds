@@ -1,0 +1,42 @@
+commit 996161ca474767d3caf787f1a526f09d9adf37d1
+Author: Daniel Erat <derat@chromium.org>
+Date:   Tue Dec 6 15:46:21 2016 -0700
+
+    power_manager: Don't install X11-related prefs.
+    
+    Make the power_manager ebuild stop depending on the lockvt
+    and ozone USE flags, and don't install the corresponding
+    lock_vt_before_suspend check_active_vt prefs.
+    
+    BUG=chromium:655820
+    TEST=built it
+    
+    Change-Id: I33ece61e537bf79695212690a65139c3e291424c
+    Reviewed-on: https://chromium-review.googlesource.com/417104
+    Commit-Ready: Dan Erat <derat@chromium.org>
+    Tested-by: Dan Erat <derat@chromium.org>
+    Reviewed-by: Stéphane Marchesin <marcheu@chromium.org>
+
+diff --git a/chromeos-base/power_manager/power_manager-9999.ebuild b/chromeos-base/power_manager/power_manager-9999.ebuild
+index 51bb2cc..732dd14 100644
+--- a/chromeos-base/power_manager/power_manager-9999.ebuild
++++ b/chromeos-base/power_manager/power_manager-9999.ebuild
+@@ -18,7 +18,7 @@ HOMEPAGE="http://dev.chromium.org/chromium-os/packages/power_manager"
+ LICENSE="BSD-Google"
+ SLOT="0"
+ KEYWORDS="~*"
+-IUSE="-als buffet cellular +cras +display_backlight -has_keyboard_backlight -legacy_power_button -lockvt -mosys_eventlog -ozone systemd test"
++IUSE="-als buffet cellular +cras +display_backlight -has_keyboard_backlight -legacy_power_button -mosys_eventlog systemd test"
+ 
+ RDEPEND="
+ 	chromeos-base/metrics
+@@ -79,9 +79,7 @@ src_install() {
+ 	use display_backlight || doins optional_prefs/external_display_only
+ 	use has_keyboard_backlight && doins optional_prefs/has_keyboard_backlight
+ 	use legacy_power_button && doins optional_prefs/legacy_power_button
+-	use lockvt && doins optional_prefs/lock_vt_before_suspend
+ 	use mosys_eventlog && doins optional_prefs/mosys_eventlog
+-	use ozone || doins optional_prefs/check_active_vt
+ 
+ 	insinto /etc/dbus-1/system.d
+ 	doins dbus/org.chromium.PowerManager.conf
