@@ -21,4 +21,9 @@ src_install() {
 	ls "${WORKDIR}/myscript"
 	ls "${WORKDIR}/myscript/*"
 	cp -R "${WORKDIR}/myscript" "${D}/opt/" || die "Install failed!"
+	# radeonfbのBlacklist化は高速化には有効だがデベロッパーコンソールが使えなくなるのでデフォルトではやらない
+	#insinto /etc/modprobe.d
+	#echo new D:${D}
+	#newins "${WORKDIR}/myscript/modprobe.d/fbdev-blacklist.conf" fbdev-blacklist.conf
+
 }
