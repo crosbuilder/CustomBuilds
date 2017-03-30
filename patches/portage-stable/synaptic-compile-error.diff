@@ -1,0 +1,28 @@
+diff --git a/x11-drivers/xf86-input-synaptics/files/xf86-input-synaptics-1.6.2-include-xorg-server-h.patch b/x11-drivers/xf86-input-synaptics/files/xf86-input-synaptics-1.6.2-include-xorg-server-h.patch
+new file mode 100644
+index 0000000..7ab9b47
+--- /dev/null
++++ b/x11-drivers/xf86-input-synaptics/files/xf86-input-synaptics-1.6.2-include-xorg-server-h.patch
+@@ -0,0 +1,11 @@
++--- src/synproto.h	2017-01-28 21:15:49.435836390 +0900
+++++ src/synproto.h-new	2017-01-28 21:15:39.979939983 +0900
++@@ -27,6 +27,8 @@
++ #ifndef _SYNPROTO_H_
++ #define _SYNPROTO_H_
++ 
+++#include <xorg-server.h>
+++
++ #include <unistd.h>
++ #include <sys/ioctl.h>
++ #include <xf86Xinput.h>
+diff --git a/x11-drivers/xf86-input-synaptics/xf86-input-synaptics-1.6.2.ebuild b/x11-drivers/xf86-input-synaptics/xf86-input-synaptics-1.6.2.ebuild
+index b0ae6f0..390cc41 100644
+--- a/x11-drivers/xf86-input-synaptics/xf86-input-synaptics-1.6.2.ebuild
++++ b/x11-drivers/xf86-input-synaptics/xf86-input-synaptics-1.6.2.ebuild
+@@ -35,3 +35,6 @@ pkg_pretend() {
+ 		echo
+ 	fi
+ }
++src_prepare() {
++	epatch "${FILESDIR}"/${PN}-1.6.2-include-xorg-server-h.patch
++}
