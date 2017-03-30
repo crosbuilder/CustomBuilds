@@ -34,16 +34,17 @@ msg="start hardware inspection. ${status}"
 echo -e "${msg}\n" | tee /dev/tty1 | logger -t myscript
 logger -t myscript "${msg}"
 
+# R57以降はタッチパッドドライバの自動置き換えは廃止
 # read hwdb/input
-inputfile=${script_root}/hwdb/input
-while IFS="	" read id name script desc; do
-  hit=`grep -B1 "${name}" /proc/bus/input/devices | grep "${id}"`
-  if [ -n "${hit}" ]; then
-    echo -e "\n${id}" | tee /dev/tty1 | logger -t myscript
-    echo -e "${desc}\n" | tee /dev/tty1 | logger -t myscript
-    (cd ${script_root};${script_root}/${script} nohistory 2>&1 | tee /dev/tty1 | logger -t myscript)
-  fi
-done < ${inputfile}
+#inputfile=${script_root}/hwdb/input
+#while IFS="	" read id name script desc; do
+#  hit=`grep -B1 "${name}" /proc/bus/input/devices | grep "${id}"`
+#  if [ -n "${hit}" ]; then
+#    echo -e "\n${id}" | tee /dev/tty1 | logger -t myscript
+#    echo -e "${desc}\n" | tee /dev/tty1 | logger -t myscript
+#    (cd ${script_root};${script_root}/${script} nohistory 2>&1 | tee /dev/tty1 | logger -t myscript)
+#  fi
+#done < ${inputfile}
 
 # read hwdb/vga
 vgafile=${script_root}/hwdb/vga
