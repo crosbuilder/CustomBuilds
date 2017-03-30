@@ -19,6 +19,8 @@ git add init/reboot.conf
 git commit -m "シャットダウン・リブート時に任意のコマンドを実行するためのフックを追加"
 git add init/preload-network.conf
 git commit -m "CF-W2で内蔵ディスクにインストール後にipw2200が使えなくなる問題の対策"
+git rm init/send-boot-mode.conf
+git commit -m "send-boot-mode.confを削除：Atom N280で起動後電源断する問題を修正"
 git add installer/chromeos-setdevpasswd
 git commit -m "chromeos-setdevpasswdでデフォルトパスワードが消えない問題を修正"
 git add installer/chromeos_legacy.cc
@@ -30,6 +32,33 @@ git commit -m "Xをroot起動できるようにする"
 git add login_manager/init/ui.conf
 git add login_manager/init/scripts/ui-pre-start
 git commit -m "ハードウェアインスペクションを初回ブート時に実行する"
+git add login_manager/chrome_setup.h
+git commit -m "login_manager Xorgコードリストア"
+git add libchromeos-ui/chromeos/ui/chromium_command_builder.cc
+git add libchromeos-ui/chromeos/ui/chromium_command_builder.h
+git add libchromeos-ui/chromeos/ui/chromium_command_builder_unittest.cc
+git add libchromeos-ui/chromeos/ui/x_server_runner.cc
+git add libchromeos-ui/chromeos/ui/x_server_runner.h
+git add libchromeos-ui/chromeos/ui/x_server_runner_unittest.cc
+git add libchromeos-ui/libchromeos-ui.gyp
+git commit -m "libchromeos-ui Xorgコードリストア"
+git add power_manager/common/power_constants.cc
+git add power_manager/common/power_constants.h
+git add power_manager/optional_prefs/check_active_vt
+git add power_manager/optional_prefs/lock_vt_before_suspend
+git add power_manager/powerd/daemon.cc
+git add power_manager/powerd/daemon.h
+git add power_manager/powerd/policy/input_controller.cc
+git add power_manager/powerd/policy/input_controller.h
+git add power_manager/powerd/policy/input_controller_unittest.cc
+git add power_manager/powerd/powerd_setuid_helper.cc
+git add power_manager/powerd/powerd_suspend
+git add power_manager/powerd/system/input_watcher.cc
+git add power_manager/powerd/system/input_watcher.h
+git add power_manager/powerd/system/input_watcher_interface.h
+git add power_manager/powerd/system/input_watcher_stub.cc
+git add power_manager/powerd/system/input_watcher_stub.h
+git commit -m "power_manager Xorgコードリストア"
 
 cd ~/trunk/src/third_party/chromiumos-overlay/
 ~/myenv/script/repostart.sh my-chromiumos-overlay
@@ -66,6 +95,12 @@ git add licenses/copyright-attribution/media-libs/mesa
 git commit -m "vmwareのライセンスファイルを追加"
 git add licenses/LICENSE.libertas-fw
 git commit -m "Libertas Firmwareのライセンスファイルを追加"
+git add chromeos-base/power_manager/power_manager-9999.ebuild
+git commit -m "power_manager Xorgコードリストア"
+git add virtual/target-chromium-os-dev/target-chromium-os-dev-1.ebuild
+git add virtual/target-chromium-os-test/target-chromium-os-test-1.ebuild
+git commit -m "virtual Xorgコードリストア"
+
 
 cd ~/trunk/src/third_party/kernel/v4.4/
 ~/myenv/script/repostart.sh mykernel
