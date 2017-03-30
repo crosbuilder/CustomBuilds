@@ -1,7 +1,7 @@
 diff --git a/ui/display/chromeos/display_configurator.cc b/ui/display/chromeos/display_configurator.cc
 index c1a0d35..92e7a11 100644
---- a/ui/display/manager/chromeos/display_configurator.cc
-+++ b/ui/display/manager/chromeos/display_configurator.cc
+--- a/ui/display/chromeos/display_configurator.cc
++++ b/ui/display/chromeos/display_configurator.cc
 @@ -965,9 +965,21 @@ void DisplayConfigurator::RemoveObserver(Observer* observer) {
  
  void DisplayConfigurator::SuspendDisplays(
