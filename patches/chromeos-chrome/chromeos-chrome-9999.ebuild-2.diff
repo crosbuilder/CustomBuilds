@@ -45,10 +45,11 @@ index a135ab2..bea0d5f 100644
  
  # Do not strip the nacl_helper_bootstrap binary because the binutils
  # objcopy/strip mangles the ELF program headers.
-@@ -177,7 +175,7 @@ RDEPEND="${RDEPEND}
+@@ -177,8 +175,8 @@ RDEPEND="${RDEPEND}
  	>=media-libs/alsa-lib-1.0.19
  	media-libs/fontconfig
  	media-libs/freetype
+	media-libs/harfbuzz
 -	ozone? ( x11-libs/libdrm )
 +	x11-libs/libdrm
  	ozone_platform_gbm? ( media-libs/minigbm )

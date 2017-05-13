@@ -2,13 +2,7 @@ diff --git a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild b/chromeo
 index c9589a0..44dcc53 100644
 --- a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 +++ b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
-@@ -275,12 +275,13 @@ set_build_args() {
- 		# use_system_minigbm is set below.
- 		use_system_harfbuzz=true
- 		use_cups=$(usetf cups)
- 
- 		# Clang features.
- 		is_asan=$(usetf asan)
+@@ -277,6 +292,7 @@ set_build_args() {
  		is_clang=$(usetf clang)
  		cros_host_is_clang=$(usetf clang)
  		clang_use_chrome_plugins=false
