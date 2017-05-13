@@ -25,8 +25,8 @@ index 51bb2cc..732dd14 100644
  LICENSE="BSD-Google"
  SLOT="0"
  KEYWORDS="~*"
--IUSE="-als buffet cellular +cras +display_backlight -has_keyboard_backlight -legacy_power_button -lockvt -mosys_eventlog -ozone systemd test"
-+IUSE="-als buffet cellular +cras +display_backlight -has_keyboard_backlight -legacy_power_button -mosys_eventlog systemd test"
+-IUSE="-als buffet cellular +cras cros_embedded +display_backlight -has_keyboard_backlight -keyboard_includes_side_buttons -legacy_power_button -lockvt -mosys_eventlog -ozone systemd test"
++IUSE="-als buffet cellular +cras cros_embedded +display_backlight -has_keyboard_backlight -keyboard_includes_side_buttons -legacy_power_button -mosys_eventlog systemd test"
  
  RDEPEND="
  	chromeos-base/metrics

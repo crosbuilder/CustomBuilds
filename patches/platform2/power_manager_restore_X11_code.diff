@@ -132,10 +132,10 @@ index 7fdf32a..9c5bf83 100644
    // True if the "mosys" command should be used to record suspend and resume
    // timestamps in eventlog.
    bool log_suspend_with_mosys_eventlog_;
-diff --git a/power_manager/powerd/policy/input_controller.cc b/power_manager/powerd/policy/input_controller.cc
+diff --git a/power_manager/powerd/policy/input_event_handler.cc b/power_manager/powerd/policy/input_event_handler.cc
 index a8a0d6e..a921e3d 100644
---- a/power_manager/powerd/policy/input_controller.cc
-+++ b/power_manager/powerd/policy/input_controller.cc
+--- a/power_manager/powerd/policy/input_event_handler.cc
++++ b/power_manager/powerd/policy/input_event_handler.cc
 @@ -19,6 +19,14 @@
  namespace power_manager {
  namespace policy {
@@ -148,10 +148,10 @@ index a8a0d6e..a921e3d 100644
 +
 +}  // namespace
 +
- InputController::InputController()
+ InputEventHandler::InputEventHandler()
      : input_watcher_(NULL),
        delegate_(NULL),
-@@ -53,6 +61,13 @@ void InputController::Init(system::InputWatcherInterface* input_watcher,
+@@ -53,6 +61,13 @@ void InputEventHandler::Init(system::InputWatcherInterface* input_watcher,
      lid_state_ = input_watcher_->QueryLidState();
  
    tablet_mode_ = input_watcher_->GetTabletMode();
@@ -160,16 +160,16 @@ index a8a0d6e..a921e3d 100644
 +  if (prefs->GetBool(kCheckActiveVTPref, &check_active_vt) && check_active_vt) {
 +    check_active_vt_timer_.Start(FROM_HERE,
 +        base::TimeDelta::FromSeconds(kCheckActiveVTFrequencySec),
-+        this, &InputController::CheckActiveVT);
++        this, &InputEventHandler::CheckActiveVT);
 +  }
  }
  
- bool InputController::TriggerPowerButtonAcknowledgmentTimeoutForTesting() {
-@@ -64,6 +79,14 @@ bool InputController::TriggerPowerButtonAcknowledgmentTimeoutForTesting() {
+ bool InputEventHandler::TriggerPowerButtonAcknowledgmentTimeoutForTesting() {
+@@ -64,6 +79,14 @@ bool InputEventHandler::TriggerPowerButtonAcknowledgmentTimeoutForTesting() {
    return true;
  }
  
-+bool InputController::TriggerCheckActiveVTTimeoutForTesting() {
++bool InputEventHandler::TriggerCheckActiveVTTimeoutForTesting() {
 +  if (!check_active_vt_timer_.IsRunning())
 +    return false;
 +
@@ -177,26 +177,26 @@ index a8a0d6e..a921e3d 100644
 +  return true;
 +}
 +
- void InputController::HandlePowerButtonAcknowledgment(
+ void InputEventHandler::HandlePowerButtonAcknowledgment(
      const base::TimeTicks& timestamp) {
    VLOG(1) << "Received acknowledgment of power button press at "
-@@ -146,6 +169,11 @@ void InputController::OnHoverStateChange(bool hovering) {
+@@ -146,6 +169,11 @@ void InputEventHandler::OnHoverStateChange(bool hovering) {
    delegate_->HandleHoverStateChange(hovering);
  }
  
-+void InputController::CheckActiveVT() {
++void InputEventHandler::CheckActiveVT() {
 +  if (input_watcher_->GetActiveVT() == 2)
 +    delegate_->DeferInactivityTimeoutForVT2();
 +}
 +
- void InputController::HandlePowerButtonAcknowledgmentTimeout() {
+ void InputEventHandler::HandlePowerButtonAcknowledgmentTimeout() {
    delegate_->ReportPowerButtonAcknowledgmentDelay(
        base::TimeDelta::FromMilliseconds(
-diff --git a/power_manager/powerd/policy/input_controller.h b/power_manager/powerd/policy/input_controller.h
+diff --git a/power_manager/powerd/policy/input_event_handler.h b/power_manager/powerd/policy/input_event_handler.h
 index 2ca9f17..ef627ba 100644
---- a/power_manager/powerd/policy/input_controller.h
-+++ b/power_manager/powerd/policy/input_controller.h
-@@ -55,6 +55,10 @@ class InputController : public system::InputObserver {
+--- a/power_manager/powerd/policy/input_event_handler.h
++++ b/power_manager/powerd/policy/input_event_handler.h
+@@ -55,6 +55,10 @@ class InputEventHandler : public system::InputObserver {
      // TabletMode::UNSUPPORTED will never be passed.
      virtual void HandleTabletModeChange(TabletMode mode) = 0;
  
@@ -207,7 +207,7 @@ index 2ca9f17..ef627ba 100644
      // Shuts the system down in reponse to the power button being pressed while
      // no display is connected.
      virtual void ShutDownForPowerButtonWithNoDisplay() = 0;
-@@ -89,6 +93,10 @@ class InputController : public system::InputObserver {
+@@ -89,6 +93,10 @@ class InputEventHandler : public system::InputObserver {
    // |power_button_acknowledgment_timer_| isn't running.
    bool TriggerPowerButtonAcknowledgmentTimeoutForTesting();
  
@@ -218,7 +218,7 @@ index 2ca9f17..ef627ba 100644
    // Handles acknowledgment from that a power button press was handled.
    // |timestamp| is the timestamp from the original event.
    void HandlePowerButtonAcknowledgment(const base::TimeTicks& timestamp);
-@@ -100,6 +108,12 @@ class InputController : public system::InputObserver {
+@@ -100,6 +108,12 @@ class InputEventHandler : public system::InputObserver {
    void OnHoverStateChange(bool hovering) override;
  
   private:
@@ -231,20 +231,20 @@ index 2ca9f17..ef627ba 100644
    // Tells |delegate_| when Chrome hasn't acknowledged a power button press
    // quickly enough.
    void HandlePowerButtonAcknowledgmentTimeout();
-@@ -125,6 +139,9 @@ class InputController : public system::InputObserver {
+@@ -125,6 +139,9 @@ class InputEventHandler : public system::InputObserver {
    // Calls HandlePowerButtonAcknowledgmentTimeout().
    base::OneShotTimer power_button_acknowledgment_timer_;
  
 +  // Calls CheckActiveVT() periodically.
 +  base::RepeatingTimer check_active_vt_timer_;
 +
-   DISALLOW_COPY_AND_ASSIGN(InputController);
+   DISALLOW_COPY_AND_ASSIGN(InputEventHandler);
  };
  
-diff --git a/power_manager/powerd/policy/input_controller_unittest.cc b/power_manager/powerd/policy/input_controller_unittest.cc
+diff --git a/power_manager/powerd/policy/input_event_handler_unittest.cc b/power_manager/powerd/policy/input_event_handler_unittest.cc
 index e3e5ccb..d140053 100644
---- a/power_manager/powerd/policy/input_controller_unittest.cc
-+++ b/power_manager/powerd/policy/input_controller_unittest.cc
+--- a/power_manager/powerd/policy/input_event_handler_unittest.cc
++++ b/power_manager/powerd/policy/input_event_handler_unittest.cc
 @@ -34,6 +34,7 @@ const char kLidOpened[] = "lid_opened";
  const char kPowerButtonDown[] = "power_down";
  const char kPowerButtonUp[] = "power_up";
@@ -253,7 +253,7 @@ index e3e5ccb..d140053 100644
  const char kShutDown[] = "shut_down";
  const char kMissingPowerButtonAcknowledgment[] = "missing_power_button_ack";
  const char kHoverOn[] = "hover_on";
-@@ -96,6 +97,9 @@ class TestInputControllerDelegate : public InputController::Delegate,
+@@ -96,6 +97,9 @@ class TestInputEventHandlerDelegate : public InputEventHandler::Delegate,
      EXPECT_NE(TabletMode::UNSUPPORTED, mode);
      AppendAction(GetTabletModeAction(mode));
    }
@@ -263,11 +263,11 @@ index e3e5ccb..d140053 100644
    void ShutDownForPowerButtonWithNoDisplay() override {
      AppendAction(kShutDown);
    }
-@@ -242,6 +246,31 @@ TEST_F(InputControllerTest, PowerButtonEvents) {
+@@ -242,6 +246,31 @@ TEST_F(InputEventHandlerTest, PowerButtonEvents) {
    EXPECT_EQ(0, dbus_wrapper_.num_sent_signals());
  }
  
-+TEST_F(InputControllerTest, DeferInactivityTimeoutWhileVT2IsActive) {
++TEST_F(InputEventHandlerTest, DeferInactivityTimeoutWhileVT2IsActive) {
 +  prefs_.SetInt64(kCheckActiveVTPref, 1);
 +  Init();
 +
@@ -284,7 +284,7 @@ index e3e5ccb..d140053 100644
 +  EXPECT_EQ(kNoActions, delegate_.GetActions());
 +}
 +
-+TEST_F(InputControllerTest, HonorCheckActiveVTPref) {
++TEST_F(InputEventHandlerTest, HonorCheckActiveVTPref) {
 +  // The timer shouldn't be started if the check-active-VT pref is unset.
 +  Init();
 +  input_watcher_.set_active_vt(2);
@@ -292,7 +292,7 @@ index e3e5ccb..d140053 100644
 +  EXPECT_EQ(kNoActions, delegate_.GetActions());
 +}
 +
- TEST_F(InputControllerTest, AcknowledgePowerButtonPresses) {
+ TEST_F(InputEventHandlerTest, AcknowledgePowerButtonPresses) {
    Init();
  
 diff --git a/power_manager/powerd/powerd_setuid_helper.cc b/power_manager/powerd/powerd_setuid_helper.cc
@@ -320,7 +320,7 @@ index c228af2..0e1c818 100644
  // Runs a command with the supplied arguments.  The argument list must be
  // NULL-terminated.  This method calls exec() without forking, so it will never
  // return.
-@@ -51,10 +58,23 @@ void RunCommand(const char* command, const char* arg, ...) {
+@@ -51,12 +58,25 @@ void RunCommand(const char* command, const char* arg, ...) {
    PCHECK(execvp(command, argv) != -1) << "execv() failed";
  }
  
@@ -338,14 +338,16 @@ index c228af2..0e1c818 100644
 +}
 +
  int main(int argc, char* argv[]) {
--  DEFINE_string(action, "", "Action to perform.  Must be one of "
-+  DEFINE_string(action, "", "Action to perform.  Must be one of \"lock_vt\", "
+   DEFINE_string(action,
+                 "",
+-                "Action to perform.  Must be one of "
++                "Action to perform.  Must be one of \"lock_vt\", "
                  "\"mosys_eventlog\", \"reboot\", \"set_wifi_transmit_power\", "
 -                "\"shut_down\", and \"suspend\".");
 +                "\"shut_down\", \"suspend\", " "and \"unlock_vt\".");
-   DEFINE_string(mosys_eventlog_code, "", "Hexadecimal byte, e.g. \"0xa7\", "
-                 "describing the event being logged.");
-   DEFINE_string(shutdown_reason, "", "Optional shutdown reason starting with a "
+   DEFINE_string(mosys_eventlog_code,
+                 "",
+                 "Hexadecimal byte, e.g. \"0xa7\", "
 @@ -75,7 +95,9 @@ int main(int argc, char* argv[]) {
                  "Power table for iwlwifi driver");
    brillo::FlagHelper::Init(argc, argv, "powerd setuid helper");
@@ -357,10 +359,10 @@ index c228af2..0e1c818 100644
      CHECK(FLAGS_mosys_eventlog_code.size() == 4 &&
            FLAGS_mosys_eventlog_code[0] == '0' &&
            FLAGS_mosys_eventlog_code[1] == 'x' &&
-@@ -119,6 +141,8 @@ int main(int argc, char* argv[]) {
-     }
-     RunCommand("powerd_suspend", duration_flag.c_str(), idle_flag.c_str(),
-                wakeup_flag.empty() ? NULL : wakeup_flag.c_str(), NULL);
+@@ -144,6 +144,8 @@ int main(int argc, char* argv[]) {
+                idle_flag.c_str(),
+                wakeup_flag.empty() ? NULL : wakeup_flag.c_str(),
+                NULL);
 +  } else if (FLAGS_action == "unlock_vt") {
 +    SetVTSwitchingAllowed(true);
    } else {
@@ -370,13 +372,13 @@ diff --git a/power_manager/powerd/powerd_suspend b/power_manager/powerd/powerd_s
 index 311b1ad..cb956df 100755
 --- a/power_manager/powerd/powerd_suspend
 +++ b/power_manager/powerd/powerd_suspend
-@@ -228,7 +228,7 @@ setup_dark_resume() {
+@@ -245,7 +245,7 @@ setup_dark_resume() {
  }
  
  # Encourage people to use powerd_dbus_suspend instead of running this
 -# script directly so that e.g. suspend delays will happen.
 +# script directly so that e.g. suspend delays and VT locking will happen.
- if [ -z "$POWERD_SETUID_HELPER" ]; then
+ if [ -z "${POWERD_SETUID_HELPER}" ]; then
    echo "This script is called by powerd. Please run powerd_dbus_suspend" 1>&2
    echo "to manually exercise the full suspend path." 1>&2
 diff --git a/power_manager/powerd/system/input_watcher.cc b/power_manager/powerd/system/input_watcher.cc
@@ -487,14 +489,13 @@ diff --git a/power_manager/powerd/system/input_watcher_stub.cc b/power_manager/p
 index 6fcc277..4ea14c3 100644
 --- a/power_manager/powerd/system/input_watcher_stub.cc
 +++ b/power_manager/powerd/system/input_watcher_stub.cc
-@@ -12,7 +12,8 @@ namespace system {
+@@ -12,6 +12,7 @@ namespace system {
  InputWatcherStub::InputWatcherStub()
      : lid_state_(LidState::OPEN),
        tablet_mode_(TabletMode::UNSUPPORTED),
--      usb_input_device_connected_(true) {
+-      usb_input_device_connected_(true) {}
 +      usb_input_device_connected_(true),
-+      active_vt_(1) {
- }
++      active_vt_(1) {}
  
  InputWatcherStub::~InputWatcherStub() {}
 @@ -55,5 +56,9 @@ bool InputWatcherStub::IsUSBInputDeviceConnected() const {
