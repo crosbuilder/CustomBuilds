@@ -38,13 +38,13 @@ index 9af7049..b40088c 100644
    }
  
 diff --git a/content/browser/gpu/gpu_process_host.cc b/content/browser/gpu/gpu_process_host.cc
-index faa4ebd..a3499d8 100644
+index a3860fe..f733a78 100644
 --- a/content/browser/gpu/gpu_process_host.cc
 +++ b/content/browser/gpu/gpu_process_host.cc
-@@ -1130,12 +1130,13 @@ void GpuProcessHost::RecordProcessCrash() {
-       if ((gpu_recent_crash_count_ >= kGpuMaxCrashCount &&
-            !disable_crash_limit) ||
-           !initialized_) {
+@@ -1159,12 +1159,13 @@ void GpuProcessHost::RecordProcessCrash() {
+ 
+       if ((gpu_recent_crash_count_ >= kGpuMaxCrashCount || !initialized_) &&
+           !disable_crash_limit) {
 -#if !defined(OS_CHROMEOS)
 +	// enable falldown to software rendering with CHROMEOS
 +//#if !defined(OS_CHROMEOS)
