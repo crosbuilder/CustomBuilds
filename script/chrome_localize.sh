@@ -15,13 +15,20 @@ cd /var/cache/chromeos-cache/distfiles/target/chrome-src
 tar cvf - . | (cd ${chrome_root}; tar xf -)
 
 # ebuildにパッチ当てをする(audio/mp3対策、--mno-sse*のフィルタリング )
-cd ~/trunk/src/third_party/chromiumos-overlay
-patch -p1 < ~/myenv/patches/chromeos-chrome/chromeos-chrome-9999.ebuild.diff
-if [ $? -ne 0 ]; then
-  echo Failed to apply patch. Abort.
-  exit 1
+# x86-genericビルド時のみ。x86-pentiummのビルド時は既にパッチがあたっているのでスキップする
+if [ "${BOARD}" = "x86-generic"]; then
+  cd ~/trunk/src/third_party/chromiumos-overlay
+  patch -p1 --dry-run < ~/myenv/patches/chromeos-chrome/chromeos-chrome-9999.ebuild.diff
+  if [ $? -ne 0 ]; then
+    echo Failed to dry-run patch. Abort.
+    exit 1
+  fi
+  patch -p1 < ~/myenv/patches/chromeos-chrome/chromeos-chrome-9999.ebuild.diff
+  if [ $? -ne 0 ]; then
+    echo Failed to apply patch. Abort.
+    exit 1
+  fi
 fi
-
 # R43以降でSoftware Compositingがガードされたのを解除する
 cd ${chrome_root}/src
 patch -p1 < ~/myenv/patches/chrome_root/src/enable_software_compositor.patch
@@ -42,10 +49,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-cd third_party/webrtc
-patch -p1 < ~/myenv/patches/chrome_root/third_party/webrtc/screen_capturer_x11.diff
-if [ $? -ne 0 ]; then
-  echo Failed to apply patch. Abort.
-  exit 1
-fi
+#R58で修正されたので削除
+#cd third_party/webrtc
+#patch -p1 < ~/myenv/patches/chrome_root/third_party/webrtc/screen_capturer_x11.diff
+#if [ $? -ne 0 ]; then
+#  echo Failed to apply patch. Abort.
+#  exit 1
+#fi
 
