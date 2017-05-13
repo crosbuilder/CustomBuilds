@@ -44,10 +44,10 @@ index 0429a44..425a380 100644
  }
  
  void KeyboardHandler::UpdateCapsLockOptions() const {
--  const base::FundamentalValue show_caps_lock_options(HasExternalKeyboard());
-+  //const base::FundamentalValue show_caps_lock_options(HasExternalKeyboard());
+-  const base::Value show_caps_lock_options(HasExternalKeyboard());
++  //const base::Value show_caps_lock_options(HasExternalKeyboard());
 +  // force show CapsLock Menu.
-+  const base::FundamentalValue show_caps_lock_options(true);
++  const base::Value show_caps_lock_options(true);
    web_ui()->CallJavascriptFunctionUnsafe(
        "options.KeyboardOverlay.showCapsLockOptions", show_caps_lock_options);
  }
