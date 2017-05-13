@@ -46,7 +46,7 @@ index e73bb17..856419c 100644
  
    ChromiumCommandBuilder builder;
    CHECK(builder.Init());
--  builder.SetUpChromium();
+-  CHECK(builder.SetUpChromium());
 +
 +  // Start X in the background before doing more-expensive setup.
 +  std::unique_ptr<XServerRunner> x_runner;
