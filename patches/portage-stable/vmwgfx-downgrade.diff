@@ -1,0 +1,85 @@
+commit b6a50db6173942cc86b81671e15a442a5c25e1f4
+Author: zui22904336 <zui22904336@gmail.com>
+Date:   Fri Apr 7 17:34:53 2017 +0900
+
+    xf86-video-vmware 13.1.0にダウングレード
+    
+    Change-Id: Ide3bac8cf62c46a22f84fd1fe8cfaaeb1162c77a
+
+diff --git a/x11-drivers/xf86-video-vmware/Manifest b/x11-drivers/xf86-video-vmware/Manifest
+index 4b0c105..b2214e4 100644
+--- a/x11-drivers/xf86-video-vmware/Manifest
++++ b/x11-drivers/xf86-video-vmware/Manifest
+@@ -1 +1 @@
+-DIST xf86-video-vmware-13.2.1.tar.bz2 470601 SHA256 e2f7f7101fba7f53b268e7a25908babbf155b3984fb5268b3d244eb6c11bf62b SHA512 9c48eaf5be6ece5685e07a53842083d091edba482ac0ea8318ac5b0adb9fc468f932685e4bdaf7e565f7a1cf723dcea2731616613798ebde2bbc18418a369a9d WHIRLPOOL d2eed203567e68e7b9ac949b1c1f6a96f8c0b4c7a21c43cc151dbf758d589b889e4a807993050eaa3dd5ffe2b800a1e59d1c606dc9f806d4bcc9883af06697ea
++DIST xf86-video-vmware-13.1.0.tar.bz2 459255 SHA256 3c1d244e4b1b77e92126957965cdc9fb82de4c215c0706a3a8aaff6939e4a0cc SHA512 43d6a15e40896c793e49a1670b937e417271baff15b737b6b8cd3845bb7d2fc6354bf53cb40350caf0e7aac1e005a0fb2c9c80ce25690678b79e8e48f05f1de0 WHIRLPOOL c637dafa0d93ef49c475b68f81aa2422b896450dee0f187c58ed2cc475c9406d69241b11a6d19d239a42c330acd41d7c7228c0b0484b30b96b33750bba0d870d
+diff --git a/x11-drivers/xf86-video-vmware/files/xf86-video-vmware-13.2.1-layout.patch b/x11-drivers/xf86-video-vmware/files/xf86-video-vmware-13.2.1-layout.patch
+new file mode 100644
+index 0000000..d675189
+--- /dev/null
++++ b/x11-drivers/xf86-video-vmware/files/xf86-video-vmware-13.2.1-layout.patch
+@@ -0,0 +1,18 @@
++--- a/vmwgfx/vmwgfx_layout.c	2017-04-07 15:29:36.224886509 +0900
+++++ b/vmwgfx/vmwgfx_layout.c	2017-04-07 15:29:59.536660564 +0900
++@@ -72,12 +72,12 @@
++ {
++     int i;
++ 
++-    xf86DrvMsg(pScrn->scrnIndex, X_DEBUG, "New layout.\n");
+++    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "New layout.\n");
++     for (i = 0; i < l1->connected; ++i)
++-	xf86DrvMsg(pScrn->scrnIndex, X_DEBUG,
+++	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
++ 		   "%d: %d %d %d %d\n", i, l1->boxes[i].x,
++ 		   l1->boxes[i].y, l1->boxes[i].width, l1->boxes[i].height);
++-    xf86DrvMsg(pScrn->scrnIndex, X_DEBUG, "\n");
+++    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "\n");
++ }
++ 
++ /**
+diff --git a/x11-drivers/xf86-video-vmware/xf86-video-vmware-13.1.0.ebuild b/x11-drivers/xf86-video-vmware/xf86-video-vmware-13.1.0.ebuild
+new file mode 100644
+index 0000000..df20f6c
+--- /dev/null
++++ b/x11-drivers/xf86-video-vmware/xf86-video-vmware-13.1.0.ebuild
+@@ -0,0 +1,17 @@
++# Copyright 1999-2015 Gentoo Foundation
++# Distributed under the terms of the GNU General Public License v2
++
++EAPI=5
++
++XORG_DRI=always
++inherit xorg-2
++
++DESCRIPTION="VMware SVGA video driver"
++KEYWORDS="amd64 x86 ~amd64-fbsd ~x86-fbsd"
++IUSE="kernel_linux"
++
++RDEPEND="kernel_linux? (
++		x11-libs/libdrm[libkms,video_cards_vmware]
++		media-libs/mesa[xa]
++	)"
++DEPEND="${RDEPEND}"
+diff --git a/x11-drivers/xf86-video-vmware/xf86-video-vmware-13.2.1.ebuild b/x11-drivers/xf86-video-vmware/xf86-video-vmware-13.2.1.ebuild
+deleted file mode 100644
+index f6bfb4d..0000000
+--- a/x11-drivers/xf86-video-vmware/xf86-video-vmware-13.2.1.ebuild
++++ /dev/null
+@@ -1,17 +0,0 @@
+-# Copyright 1999-2017 Gentoo Foundation
+-# Distributed under the terms of the GNU General Public License v2
+-
+-EAPI=5
+-
+-XORG_DRI=always
+-inherit xorg-2
+-
+-DESCRIPTION="VMware SVGA video driver"
+-KEYWORDS="*"
+-IUSE="kernel_linux"
+-
+-RDEPEND="kernel_linux? (
+-		x11-libs/libdrm[libkms,video_cards_vmware]
+-		media-libs/mesa[xa]
+-	)"
+-DEPEND="${RDEPEND}"
