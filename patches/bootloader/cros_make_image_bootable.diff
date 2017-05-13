@@ -4,8 +4,8 @@ index 98f8b69..f7b53de 100755
 +++ b/bin/cros_make_image_bootable
 @@ -232,7 +232,7 @@ make_image_bootable() {
    # This is required because postinst will copy new legacy boot configurations
-   # from rootfs partition instead of modifying existing entries in partition 12
-   # (EFI partition).
+   # from rootfs partition instead of modifying existing entries in EFI
+   # partition.
 -  if [ ${FLAGS_force_developer_mode} -eq ${FLAGS_TRUE} ]; then
 +  #if [ ${FLAGS_force_developer_mode} -eq ${FLAGS_TRUE} ]; then
      trap "unmount_image ; die 'cros_make_image_bootable failed.'" EXIT
