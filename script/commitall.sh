@@ -48,9 +48,6 @@ git add power_manager/optional_prefs/check_active_vt
 git add power_manager/optional_prefs/lock_vt_before_suspend
 git add power_manager/powerd/daemon.cc
 git add power_manager/powerd/daemon.h
-git add power_manager/powerd/policy/input_controller.cc
-git add power_manager/powerd/policy/input_controller.h
-git add power_manager/powerd/policy/input_controller_unittest.cc
 git add power_manager/powerd/powerd_setuid_helper.cc
 git add power_manager/powerd/powerd_suspend
 git add power_manager/powerd/system/input_watcher.cc
@@ -58,6 +55,9 @@ git add power_manager/powerd/system/input_watcher.h
 git add power_manager/powerd/system/input_watcher_interface.h
 git add power_manager/powerd/system/input_watcher_stub.cc
 git add power_manager/powerd/system/input_watcher_stub.h
+git add power_manager/powerd/policy/input_event_handler.cc
+git add power_manager/powerd/policy/input_event_handler.h
+git add power_manager/powerd/policy/input_event_handler_unittest.cc
 git commit -m "power_manager Xorgコードリストア"
 
 cd ~/trunk/src/third_party/chromiumos-overlay/
@@ -129,8 +129,8 @@ git add licenses/libertas-fw
 git add net-wireless/libertas-firmware/Manifest
 git add net-wireless/libertas-firmware/libertas-firmware-20101019.ebuild
 git commit -m "LIBERTAS Firmware パッケージ追加"
-
-
+git add x11-drivers/xf86-video-vmware
+git commit -m "xf86-video-vmware 13.1.0にダウングレード"
 
 cd ~/trunk/src/scripts
 ~/myenv/script/repostart.sh my-scripts
