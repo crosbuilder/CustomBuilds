@@ -41,6 +41,13 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# R59でcrasのコンパイルエラーが起きる問題を修正
+patch -p1 < ~/myenv/patches/chrome_root/src/audio_manager_cras.diff
+if [ $? -ne 0 ]; then
+  echo Failed to apply patch. Abort.
+  exit 1
+fi
+
 # R58で修正されたので削除
 #cd third_party/webrtc
 #patch -p1 < ~/myenv/patches/chrome_root/third_party/webrtc/screen_capturer_x11.diff
