@@ -23,4 +23,17 @@ fi
 
 cros_portage_upgrade --board=${BOARD} --upgrade x11-drivers/xf86-input-vmmouse || exit 1
 
-cros_portage_upgrade --board=${BOARD} --upgrade x11-drivers/xf86-video-vmware || exit 1
+#cros_portage_upgrade --board=${BOARD} --upgrade x11-drivers/xf86-video-vmware || exit 1
+~/myenv/script/downgrade_xf86-video-vmware.sh || exit 1
+
+patch -p1 --dry-run < ~/myenv/patches/portage-stable/xf86-input-vmmouse-downgrade.patch
+if [ $? -ne 0 ]; then
+  echo Failed to dry-run patch. Abort.
+  exit 1
+fi
+
+patch -p1 < ~/myenv/patches/portage-stable/xf86-input-vmmouse-downgrade.patch
+if [ $? -ne 0 ]; then
+  echo Failed to apply patch. Abort.
+  exit 1
+fi
