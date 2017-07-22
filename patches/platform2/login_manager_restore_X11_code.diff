@@ -18,12 +18,14 @@ index e73bb17..856419c 100644
  
  #include <base/bind.h>
  #include <base/files/file_path.h>
-@@ -14,10 +15,13 @@
+@@ -14,12 +15,15 @@
  #include <base/strings/stringprintf.h>
  #include <chromeos/ui/chromium_command_builder.h>
  #include <chromeos/ui/util.h>
 +#include <chromeos/ui/x_server_runner.h>
  #include <chromeos-config/libcros_config/cros_config_interface.h>
+ #include <policy/device_policy.h>
+ #include <policy/libpolicy.h>
  
  using chromeos::ui::ChromiumCommandBuilder;
 +using chromeos::ui::XServerRunner;
@@ -42,9 +44,10 @@ index e73bb17..856419c 100644
  // Path to file containing developer-supplied modifications to Chrome's
  // environment and command line. Passed to
  // ChromiumCommandBuilder::ApplyUserConfig().
-@@ -374,7 +381,19 @@ void PerformChromeSetup(brillo::CrosConfigInterface* cros_config,
+@@ -374,8 +381,20 @@ void PerformChromeSetup(brillo::CrosConfigInterface* cros_config,
  
    ChromiumCommandBuilder builder;
+   std::set<std::string> disallowed_prefixes;
    CHECK(builder.Init());
 -  CHECK(builder.SetUpChromium());
 +

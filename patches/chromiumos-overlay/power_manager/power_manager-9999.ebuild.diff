@@ -25,11 +25,11 @@ index 51bb2cc..732dd14 100644
  LICENSE="BSD-Google"
  SLOT="0"
  KEYWORDS="~*"
--IUSE="-als buffet cellular +cras cros_embedded +display_backlight -has_keyboard_backlight -keyboard_includes_side_buttons -legacy_power_button -lockvt -mosys_eventlog -ozone systemd test"
-+IUSE="-als buffet cellular +cras cros_embedded +display_backlight -has_keyboard_backlight -keyboard_includes_side_buttons -legacy_power_button -mosys_eventlog systemd test"
+-IUSE="-als buffet cellular +cras cros_embedded +display_backlight -has_keyboard_backlight -keyboard_includes_side_buttons -legacy_power_button -lockvt -mosys_eventlog -ozone systemd +touchpad_wakeup -touchscreen_wakeup"
++IUSE="-als buffet cellular +cras cros_embedded +display_backlight -has_keyboard_backlight -keyboard_includes_side_buttons -legacy_power_button -mosys_eventlog systemd +touchpad_wakeup -touchscreen_wakeup"
  
  RDEPEND="
- 	chromeos-base/metrics
+     cellular? (
 @@ -79,9 +79,7 @@ src_install() {
  	use display_backlight || doins optional_prefs/external_display_only
  	use has_keyboard_backlight && doins optional_prefs/has_keyboard_backlight
