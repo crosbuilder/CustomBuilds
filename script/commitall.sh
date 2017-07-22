@@ -14,13 +14,16 @@ cd ~/trunk/src/platform2
 ~/myenv/script/repostart.sh my-platform2
 git add crosh
 git commit -m "croshカスタムコマンド追加"
-git add init/halt/halt.conf
-git add init/reboot.conf
+git add init/upstart/halt/halt.conf
+git add init/upstart/reboot.conf
 git commit -m "シャットダウン・リブート時に任意のコマンドを実行するためのフックを追加"
-git add init/preload-network.conf
+git add init/upstart/preload-network.conf
 git commit -m "CF-W2で内蔵ディスクにインストール後にipw2200が使えなくなる問題の対策"
 git rm init/send-boot-mode.conf
 git commit -m "send-boot-mode.confを削除：Atom N280で起動後電源断する問題を修正"
+git add init/display_low_battery_alert
+git add init/upstart/boot-splash.conf
+git commit -m "R59でブートスプラッシュ画面が表示されなくなった件の対策"
 git add installer/chromeos-setdevpasswd
 git commit -m "chromeos-setdevpasswdでデフォルトパスワードが消えない問題を修正"
 git add installer/chromeos_legacy.cc
@@ -131,6 +134,8 @@ git add net-wireless/libertas-firmware/libertas-firmware-20101019.ebuild
 git commit -m "LIBERTAS Firmware パッケージ追加"
 git add x11-drivers/xf86-video-vmware
 git commit -m "xf86-video-vmware 13.1.0にダウングレード"
+git add x11-drivers/xf86-input-vmmouse/xf86-input-vmmouse-13.1.0-r1.ebuild
+git commit -m "xf86-input-vmmounse 13.1.0にダウングレード"
 
 cd ~/trunk/src/scripts
 ~/myenv/script/repostart.sh my-scripts
