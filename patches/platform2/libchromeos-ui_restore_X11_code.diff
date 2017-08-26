@@ -85,14 +85,7 @@ diff --git a/libchromeos-ui/chromeos/ui/chromium_command_builder_unittest.cc b/l
 index eff6bd8..4bef120 100644
 --- a/libchromeos-ui/chromeos/ui/chromium_command_builder_unittest.cc
 +++ b/libchromeos-ui/chromeos/ui/chromium_command_builder_unittest.cc
-@@ -113,13 +113,13 @@ TEST_F(ChromiumCommandBuilderTest, UseFlags) {
- TEST_F(ChromiumCommandBuilderTest, MissingLsbReleaseFile) {
-   write_lsb_release_file_ = false;
-   ASSERT_TRUE(Init());
--  EXPECT_FALSE(builder_.SetUpChromium());
-+  EXPECT_FALSE(builder_.SetUpChromium(base::FilePath()));
- }
- 
+@@ -118,7 +118,7 @@ TEST_F(ChromiumCommandBuilderTest, MissingLsbReleaseFile) {
  TEST_F(ChromiumCommandBuilderTest, LsbRelease) {
    lsb_release_data_ = "abc\ndef";
    ASSERT_TRUE(Init());
@@ -850,6 +843,5 @@ index 1ab1e3f..25b6497 100644
            'sources': [
              'chromeos/ui/chromium_command_builder_unittest.cc',
 +            'chromeos/ui/x_server_runner_unittest.cc',
-             'testrunner.cc',
            ],
          },
