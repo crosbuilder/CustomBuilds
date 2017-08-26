@@ -1,5 +1,6 @@
 
-PATCH_FILES = gcc-libs/gcc-libs-9999.ebuild.diff tty/tty.diff linux-firmware/linux-firmware-9999.ebuild.diff
+#PATCH_FILES = gcc-libs/gcc-libs-9999.ebuild.diff tty/tty.diff linux-firmware/linux-firmware-9999.ebuild.diff
+PATCH_FILES = gcc-libs/gcc-libs-9999.ebuild.diff linux-firmware/linux-firmware-9999.ebuild.diff
 DRYRUN_TARGET = $(PATCH_FILES:.diff=.dryrun)
 APPLY_TARGET = $(PATCH_FILES:.diff=.apply)
 TARGET_DIR = ~/trunk/src/third_party/chromiumos-overlay
