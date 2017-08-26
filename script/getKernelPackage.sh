@@ -12,7 +12,7 @@ getKernelPackageName() {
 #	echo ${target_path}
 
 	# search 
-	local make_conf=${target_path}/make.conf
+	local make_conf=${target_path}/profiles/base/make.defaults
 	
 	# get package name list
 	local use=`grep -e "^USE=" ${make_conf}`
@@ -27,6 +27,4 @@ getKernelPackageName() {
 
 	return 0
 }
-
-#getKernelPackageName
 

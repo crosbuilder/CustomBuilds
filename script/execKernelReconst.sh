@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 myname=$0
 cd ${myname%/*}
 
@@ -39,10 +39,17 @@ createBranch mykernel ${kernel_path}
 #if [ 0 -ne $? ]; then
 #	exit 1
 #fi
-# カーネルパラメータの書き換え
+# BOARD用のflavour.configをコピーする
 popd > /dev/null
-pwd
-cat ../kernel_params/${BOARD} | xargs -L 1 ./modifyKernelParam.sh
+tokens=( `echo ${BOARD}|tr -s '-' ' '` )
+if [ "${tokens[0]}" = "x86" ]; then
+  ARCH="i386"
+elif [ "${tokens[0]}" = "amd64" ]; then
+  ARCH="x86_64"
+fi
+
+cp ${kernel_path}/chromeos/config/${ARCH}/chromiumos-${ARCH}.flavour.config ${kernel_path}/chromeos/config/${ARCH}/chromiumos-${BOARD}.flavour.config
+cat ~/myenv/kernel_params/${BOARD} | xargs -L 1 ./modifyFlavourConfig.sh
 
 # kernelconfigの実行
 pushd . > /dev/null
