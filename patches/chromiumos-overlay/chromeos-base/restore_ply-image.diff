@@ -1,0 +1,67 @@
+commit 3892d61680e6909fe990956ad1ab6f2f3bae24ab
+Author: Drew Davenport <ddavenport@chromium.org>
+Date:   Fri May 19 15:33:22 2017 -0600
+
+    Remove dependencies on ply-image
+    
+    ply-image has been replaced by frecon, so it can be
+    removed as a dependency.
+    
+    BUG=chromium:691762
+    TEST=trybuild
+    
+    Change-Id: I7603542a9ed39a6fec5266a68c9db2dd2e41b446
+    Reviewed-on: https://chromium-review.googlesource.com/510747
+    Commit-Ready: Drew Davenport <ddavenport@chromium.org>
+    Tested-by: Drew Davenport <ddavenport@chromium.org>
+    Reviewed-by: Dan Erat <derat@chromium.org>
+    Reviewed-by: Mike Frysinger <vapier@chromium.org>
+
+diff --git a/chromeos-base/chromeos-init/chromeos-init-9999.ebuild b/chromeos-base/chromeos-init/chromeos-init-9999.ebuild
+index ad88946d92e..606ca5d474d 100644
+--- a/chromeos-base/chromeos-init/chromeos-init-9999.ebuild
++++ b/chromeos-base/chromeos-init/chromeos-init-9999.ebuild
+@@ -42,7 +42,6 @@ RDEPEND="${DEPEND}
+ 	!cros_embedded? (
+ 		chromeos-base/common-assets
+ 		chromeos-base/swap-init
+-		media-gfx/ply-image
+ 		sys-apps/chvt
+ 		sys-apps/smartmontools
+ 	)
+diff --git a/chromeos-base/chromeos-initramfs/chromeos-initramfs-9999.ebuild b/chromeos-base/chromeos-initramfs/chromeos-initramfs-9999.ebuild
+index 089fdd02ced..b82a61916aa 100644
+--- a/chromeos-base/chromeos-initramfs/chromeos-initramfs-9999.ebuild
++++ b/chromeos-base/chromeos-initramfs/chromeos-initramfs-9999.ebuild
+@@ -32,7 +32,6 @@ RECOVERY_DEPENDS="
+ 	chromeos-base/common-assets
+ 	chromeos-base/vboot_reference
+ 	chromeos-base/vpd
+-	media-gfx/ply-image
+ 	sys-apps/flashrom
+ 	sys-apps/pv
+ 	virtual/assets
+diff --git a/chromeos-base/chromeos-installshim/chromeos-installshim-0.0.1.ebuild b/chromeos-base/chromeos-installshim/chromeos-installshim-0.0.1.ebuild
+index b2acfc6b687..e90d0bc8651 100644
+--- a/chromeos-base/chromeos-installshim/chromeos-installshim-0.0.1.ebuild
++++ b/chromeos-base/chromeos-installshim/chromeos-installshim-0.0.1.ebuild
+@@ -35,7 +35,6 @@ RDEPEND="
+ 	shill? ( chromeos-base/shill )
+ 	!shill? ( net-misc/dhcpcd )
+ 	chromeos-base/vboot_reference
+-	media-gfx/ply-image
+ 	net-firewall/iptables
+ 	net-misc/tlsdate
+ 	>=sys-apps/baselayout-2.0.0
+diff --git a/chromeos-base/common-assets/common-assets-9999.ebuild b/chromeos-base/common-assets/common-assets-9999.ebuild
+index ad104e95e49..0e798bccce5 100644
+--- a/chromeos-base/common-assets/common-assets-9999.ebuild
++++ b/chromeos-base/common-assets/common-assets-9999.ebuild
+@@ -21,7 +21,6 @@ RDEPEND="!<chromeos-base/chromeos-assets-0.0.2"
+ # display_boot_message calls the pango-view program.
+ RDEPEND+="
+ 	fonts? ( chromeos-base/chromeos-fonts )
+-	media-gfx/ply-image
+ 	x11-libs/pango"
+ 
+ REAL_CURSOR_NAMES="
