@@ -1,0 +1,105 @@
+From 88ae7820a5731cefb8c81f76e247e2dca5e566aa Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Wed, 9 May 2012 09:21:28 +1000
+Subject: [PATCH 5/5] dix: disable all devices before shutdown
+
+f3410b97cf9b48a47bee3d15d232f8a88e75f4ef introduced a regression on server
+shutdown. If any button or key was held on shutdown (ctrl, alt, backspace
+are usually still down) sending a raw event will segfault the server. The
+the root windows are set to NULL before calling CloseDownDevices().
+
+Avoid this by disabling all devices first when shutting down. Disabled
+devices won't send events anymore.
+
+Master keyboards must be disabled first, otherwise disabling the pointer
+will trigger DisableDevice(keyboard) and the keyboard is removed from the
+inputInfo.devices list and moved to inputInfo.off_devices. A regular loop
+through inputInfo.devices would thus jump to off_devices and not recover.
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Acked-by: Chase Douglas <chase.douglas@canonical.com>
+Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+(cherry picked from commit 4c68f5d395c66f28b56e488cb3cd12f36820357b)
+---
+ dix/devices.c   | 20 ++++++++++++++++++++
+ dix/main.c      |  4 ++++
+ include/input.h |  2 +-
+ 3 files changed, 25 insertions(+), 1 deletion(-)
+
+diff --git a/dix/devices.c b/dix/devices.c
+index 5f72e1d..dd79a37 100644
+--- a/dix/devices.c
++++ b/dix/devices.c
+@@ -496,6 +496,26 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
+     return TRUE;
+ }
+ 
++void
++DisableAllDevices(void)
++{
++    DeviceIntPtr dev, tmp;
++
++    nt_list_for_each_entry_safe(dev, tmp, inputInfo.devices, next) {
++        if (!IsMaster(dev))
++            DisableDevice(dev, FALSE);
++    }
++    /* master keyboards need to be disabled first */
++    nt_list_for_each_entry_safe(dev, tmp, inputInfo.devices, next) {
++        if (dev->enabled && IsMaster(dev) && IsKeyboardDevice(dev))
++            DisableDevice(dev, FALSE);
++    }
++    nt_list_for_each_entry_safe(dev, tmp, inputInfo.devices, next) {
++        if (dev->enabled)
++            DisableDevice(dev, FALSE);
++    }
++}
++
+ /**
+  * Initialise a new device through the driver and tell all clients about the
+  * new device.
+diff --git a/dix/main.c b/dix/main.c
+index 70dcc94..df9023e 100644
+--- a/dix/main.c
++++ b/dix/main.c
+@@ -104,6 +104,7 @@ Equipment Corporation.
+ #include "privates.h"
+ #include "registry.h"
+ #include "client.h"
++#include "exevents.h"
+ #ifdef PANORAMIX
+ #include "panoramiXsrv.h"
+ #else
+@@ -295,6 +296,7 @@ main(int argc, char *argv[], char *envp[])
+ #endif
+ 
+         UndisplayDevices();
++        DisableAllDevices();
+ 
+         /* Now free up whatever must be freed */
+         if (screenIsSaved == SCREEN_SAVER_ON)
+@@ -318,7 +320,9 @@ main(int argc, char *argv[], char *envp[])
+ 
+         for (i = 0; i < screenInfo.numScreens; i++)
+             screenInfo.screens[i]->root = NullWindow;
++
+         CloseDownDevices();
++
+         CloseDownEvents();
+ 
+         for (i = screenInfo.numScreens - 1; i >= 0; i--) {
+diff --git a/include/input.h b/include/input.h
+index 991d648..247f5f6 100644
+--- a/include/input.h
++++ b/include/input.h
+@@ -264,7 +264,7 @@ extern _X_EXPORT Bool ActivateDevice(DeviceIntPtr /*device */ ,
+ 
+ extern _X_EXPORT Bool DisableDevice(DeviceIntPtr /*device */ ,
+                                     BOOL /* sendevent */ );
+-
++extern void DisableAllDevices(void);
+ extern int InitAndStartDevices(void);
+ 
+ extern void CloseDownDevices(void);
+-- 
+1.8.3
+

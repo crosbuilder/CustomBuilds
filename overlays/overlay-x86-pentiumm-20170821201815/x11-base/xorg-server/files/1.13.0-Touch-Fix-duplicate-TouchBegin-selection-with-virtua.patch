@@ -1,0 +1,47 @@
+From 3d2b768efae9936c6929c2bc13c7a1acc074ecd3 Mon Sep 17 00:00:00 2001
+From: Daniel Stone <daniel@fooishbar.org>
+Date: Fri, 7 Sep 2012 18:17:46 +0100
+Subject: [PATCH] Touch: Fix duplicate TouchBegin selection with virtual
+ devices
+
+Given the following scenario:
+  1) client A selects for TouchBegin on window W for device D
+  2) client B selects for TouchBegin on window W for XIAllDevices
+  3) client C selects for TouchBegin on window W with device E
+
+Step 3 will fail with BadImplementation, because attempting to look up
+XIAllDevices or XIAllMasterDevices with dixLookupDevices doesn't work.
+This should succeed (or, if it was selecting for device D, fail with
+BadAccess as it would be a duplicate selection).
+
+Fix this by performing the appropriate lookup for virtual devices.
+
+Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+Reviewed-by: Chase Douglas <chase.douglas@ubuntu.com>
+---
+ Xi/xiselectev.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/Xi/xiselectev.c b/Xi/xiselectev.c
+index 0e45cb8..ab1b624 100644
+--- a/Xi/xiselectev.c
++++ b/Xi/xiselectev.c
+@@ -180,8 +180,13 @@ ProcXISelectEvents(ClientPtr client)
+                     if (CLIENT_ID(iclient->resource) == client->index)
+                         continue;
+ 
+-                    dixLookupDevice(&tmp, evmask->deviceid, serverClient,
+-                                    DixReadAccess);
++                    if (evmask->deviceid == XIAllDevices)
++                        tmp = inputInfo.all_devices;
++                    else if (evmask->deviceid == XIAllMasterDevices)
++                        tmp = inputInfo.all_master_devices;
++                    else
++                        dixLookupDevice(&tmp, evmask->deviceid, serverClient,
++                                        DixReadAccess);
+                     if (!tmp)
+                         return BadImplementation;       /* this shouldn't happen */
+ 
+-- 
+1.8.1
+

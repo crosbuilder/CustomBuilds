@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+<herd>kernel</herd>
+<use>
+	<flag name='linux_firmware_adsp_apl'>
+		Install APL static firmware binary for audio
+	</flag>
+	<flag name='linux_firmware_adsp_kbl'>
+		Install KBL static firmware binary for audio
+	</flag>
+        <flag name='linux_firmware_adsp_skl'>
+		Install SKL static firmware binary for audio
+	</flag>
+	<flag name='linux_firmware_ath3k-all'>
+		Install all revisions of firmware for the ath3k driver;
+		otherwise see the individual ath3k-xxx flags
+	</flag>
+	<flag name='linux_firmware_ath3k-ar3011'>
+		Install firmware files for the Atheros AR3011 Bluetooth chipsets
+	</flag>
+	<flag name='linux_firmware_ath3k-ar3012'>
+		Install all patch/sysconfig files for the Atheros AR3012 Bluetooth chipsets
+	</flag>
+	<flag name='linux_firmware_cros-pd'>
+		Install firmware files for Chrome OS EC power delivery devices
+	</flag>
+	<flag name='linux_firmware_iwlwifi-all'>
+		Install ALL the iwlwifi driver firmware files;
+		otherwise see the individual iwlwifi-xxx flags
+	</flag>
+	<flag name='linux_firmware_i915_bxt'>
+		Install BXT firmware files for i915 driver
+	</flag>
+	<flag name='linux_firmware_i915_skl'>
+		Install SKL firmware files for i915 driver
+	</flag>
+	<flag name='linux_firmware_ath10k'>
+                Install all firmware files for ath10k driver
+	</flag>
+</use>
+</pkgmetadata>

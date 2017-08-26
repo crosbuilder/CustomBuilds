@@ -1,0 +1,69 @@
+From 8083000400e33a854ec0fd596f3047a3a961d891 Mon Sep 17 00:00:00 2001
+From: Zach Reizner <zachr@chromium.org>
+Date: Wed, 21 Jan 2015 13:23:58 -0800
+Subject: [PATCH 16/20] CHROMIUM: egl/dri2: add support for image, config
+ query, and robustness extensions
+
+This patch enables exposing image, config query and robustness
+extensions if swrast driver is used, to improve feature completeness of
+software rendering and make it usable by Freon running in a virtual
+machine. In addition, swrast is now used as a fallback for
+platform_surfaceless if no other driver can be used.
+
+BUG=chromium:394868
+TEST=None
+
+Signed-off-by: Prince Agyeman <prince.agyeman@intel.com>
+Signed-off-by: Dhinakaran Pandiyan <dhinakaran.pandiyan@intel.com>
+Signed-off-by: James Ausmus <james.ausmus@intel.com>
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+---
+ src/egl/drivers/dri2/egl_dri2.c             |  1 +
+ src/egl/drivers/dri2/platform_surfaceless.c | 12 +++++++++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/src/egl/drivers/dri2/egl_dri2.c b/src/egl/drivers/dri2/egl_dri2.c
+index 4df6a59..7448bea 100644
+--- a/src/egl/drivers/dri2/egl_dri2.c
++++ b/src/egl/drivers/dri2/egl_dri2.c
+@@ -411,6 +411,7 @@ static const struct dri2_extension_match optional_core_extensions[] = {
+    { __DRI2_FENCE, 1, offsetof(struct dri2_egl_display, fence) },
+    { __DRI2_RENDERER_QUERY, 1, offsetof(struct dri2_egl_display, rendererQuery) },
+    { __DRI2_INTEROP, 1, offsetof(struct dri2_egl_display, interop) },
++   { __DRI_IMAGE, 1, offsetof(struct dri2_egl_display, image) },
+    { NULL, 0, 0 }
+ };
+ 
+diff --git a/src/egl/drivers/dri2/platform_surfaceless.c b/src/egl/drivers/dri2/platform_surfaceless.c
+index 8811c84..d2daa93 100644
+--- a/src/egl/drivers/dri2/platform_surfaceless.c
++++ b/src/egl/drivers/dri2/platform_surfaceless.c
+@@ -306,8 +306,13 @@ dri2_initialize_surfaceless(_EGLDriver *drv, _EGLDisplay *disp)
+    }
+ 
+    if (!driver_loaded) {
+-      err = "DRI2: failed to load driver";
+-      goto cleanup_display;
++      dri2_dpy->driver_name = strdup("swrast");
++      if (!dri2_load_driver_swrast(disp))
++      {
++         err = "DRI2: failed to load driver";
++         free(dri2_dpy->driver_name);
++         goto cleanup_display;
++      }
+    }
+ 
+    dri2_dpy->loader_extensions = image_loader_extensions;
+@@ -335,7 +340,8 @@ cleanup_screen:
+ cleanup_driver:
+    dlclose(dri2_dpy->driver);
+    free(dri2_dpy->driver_name);
+-   close(dri2_dpy->fd);
++   if (dri2_dpy->fd >= 0)
++      close(dri2_dpy->fd);
+ cleanup_display:
+    free(dri2_dpy);
+    disp->DriverData = NULL;
+-- 
+2.8.0.rc3.226.g39d4020
+

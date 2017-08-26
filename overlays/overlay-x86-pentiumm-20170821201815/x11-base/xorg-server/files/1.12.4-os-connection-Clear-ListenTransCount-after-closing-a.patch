@@ -1,0 +1,46 @@
+From 4fa1b07981276711daa4fff09015a3e9ec11c6b9 Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Thu, 30 May 2013 19:39:56 -0700
+Subject: [PATCH] os/connection: Clear ListenTransCount after closing all the
+ connections
+
+In some error scenarios, we may CloseWellKnownConnections in main(), and
+then have an AbortServer(), which tries to close them a second time,
+resulting in a SEGV:
+
+0x7f4dcd4c3d99	 [Xorg]	 - Xtrans.c:928]	_XSERVTransClose
+0x7f4dcd4bbd46	 [Xorg]	 - connection.c:486]	CloseWellKnownConnections
+0x7f4dcd4c53e8	 [Xorg]	 - log.c:473]	AbortServer
+0x7f4dcd4c562f	 [Xorg]	 - log.c:611]	FatalError
+0x7f4dcd3f49f8	 [Xorg]	 - lnx_init.c:65]	switch_to
+0x7f4dcd3f527a	 [Xorg]	 - lnx_init.c:299]	xf86CloseConsole
+0x7f4dcd3d58e4	 [Xorg]	 - xf86Init.c:1014]	ddxGiveUp
+0x7f4dcd38af67	 [Xorg]	 - main.c:349]	main
+0x7f4dcc3c5464	 [libc-2.15.so]	 - libc-start.c:234]	__libc_start_main
+
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+
+BUG=chromium:243812
+TEST=while true do; restart ui ; sleep 10 ; done
+  => No Xorg crashes:
+  => monitor w/ tail -F /var/log/messages | grep Xorg
+---
+ os/connection.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/os/connection.c b/os/connection.c
+index d7e21f3..5a9a124 100644
+--- a/os/connection.c
++++ b/os/connection.c
+@@ -484,6 +484,8 @@ CloseWellKnownConnections(void)
+ 
+     for (i = 0; i < ListenTransCount; i++)
+         _XSERVTransClose(ListenTransConns[i]);
++
++    ListenTransCount = 0;
+ }
+ 
+ static void
+-- 
+1.8.2.1
+

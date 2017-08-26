@@ -1,0 +1,85 @@
+diff --git a/init/display_low_battery_alert b/init/display_low_battery_alert
+index 182479c05..911b82fdf 100755
+--- a/init/display_low_battery_alert
++++ b/init/display_low_battery_alert
+@@ -11,6 +11,24 @@ ASSETS=/usr/share/chromeos-assets
+ ASSETS_200=$ASSETS/images_200_percent
+ ASSETS_100=$ASSETS/images_100_percent
+ 
++if [ ! -x /sbin/frecon ]; then
++  # Fall back to old way with ply-image
++  # Use differently-sized images depending on the framebuffer width.
++  WIDTH=$(ply-image --print-resolution | cut -d ' ' -f 1)
++  if [ $WIDTH -gt 1920 -a -e "$ASSETS_200/battery_alert_01.png" ]; then
++    IMAGES="$ASSETS_200"/battery_alert*.png
++  else
++    IMAGES="$ASSETS_100"/battery_alert*.png
++  fi
++
++  # Run through the images from first to last and then from last to first; then
++  # repeat the sequence three times at 10 FPS.
++  SEQUENCE="$(ls $IMAGES ; ls -r $IMAGES)"
++  FRAMES="$SEQUENCE $SEQUENCE $SEQUENCE"
++  ply-image --clear 0x000000 --frame-interval=100 $FRAMES
++  exit
++fi
++
+ IMAGES_100="$ASSETS_100"/battery_alert*.png
+ SEQ_100="$(ls $IMAGES_100 ; ls -r $IMAGES_100)"
+ IMAGES_200="$ASSETS_200"/battery_alert*.png
+diff --git a/init/upstart/boot-splash.conf b/init/upstart/boot-splash.conf
+index e816049ea..5d9e0c6de 100644
+--- a/init/upstart/boot-splash.conf
++++ b/init/upstart/boot-splash.conf
+@@ -25,16 +25,25 @@ script
+   ASSETS_100=$ASSETS/images_100_percent
+ 
+   # Use differently-sized images depending on the framebuffer width.
+-  if [ -e "$ASSETS_200/boot_splash_frame01.png" ]; then
+-    BOOT_IMAGES=""
+-    for image in "$ASSETS_200"/boot_splash_frame*.png; do
+-      BOOT_IMAGES="${BOOT_IMAGES} --image-hires ${image}"
+-    done
+-    for image in "$ASSETS_100"/boot_splash_frame*.png; do
+-      BOOT_IMAGES="${BOOT_IMAGES} --image ${image}"
+-    done
++  if [ -x /sbin/frecon ]; then
++    if [ -e "$ASSETS_200/boot_splash_frame01.png" ]; then
++      BOOT_IMAGES=""
++      for image in "$ASSETS_200"/boot_splash_frame*.png; do
++        BOOT_IMAGES="${BOOT_IMAGES} --image-hires ${image}"
++      done
++      for image in "$ASSETS_100"/boot_splash_frame*.png; do
++        BOOT_IMAGES="${BOOT_IMAGES} --image ${image}"
++      done
++    else
++      BOOT_IMAGES="$ASSETS_100"/boot_splash_frame*.png
++    fi
+   else
+-    BOOT_IMAGES="$ASSETS_100"/boot_splash_frame*.png
++    WIDTH=$(ply-image --print-resolution | cut -d ' ' -f 1)
++    if [ $WIDTH -gt 1920 -a -e "$ASSETS_200/boot_splash_frame01.png" ]; then
++      BOOT_IMAGES="$ASSETS_200"/boot_splash_frame*.png
++    else
++      BOOT_IMAGES="$ASSETS_100"/boot_splash_frame*.png
++    fi
+   fi
+ 
+   DEV_END_USER=
+@@ -42,6 +51,14 @@ script
+     DEV_END_USER="--dev-mode --enable-osc --enable-vts --pre-create-vts"
+   fi
+ 
+-  frecon --daemon --clear 0xfffefefe $DEV_END_USER --frame-interval 25 \
+-    $BOOT_IMAGES
++  if [ -x /sbin/frecon ]; then
++    frecon --daemon --clear 0xfffefefe $DEV_END_USER --frame-interval 25 \
++      $BOOT_IMAGES
++  else
++    # Disable blinking cursor. Without this, a splash screen will show a
++    # distinct cursor shape even when the cursor is set to none.
++    echo 0 > /sys/devices/virtual/graphics/fbcon/cursor_blink
++
++    ply-image --set-monitors --clear 0xfefefe --frame-interval 25 $BOOT_IMAGES
++  fi
+ end script

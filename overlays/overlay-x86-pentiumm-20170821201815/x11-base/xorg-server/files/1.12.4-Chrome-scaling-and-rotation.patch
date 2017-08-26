@@ -1,0 +1,208 @@
+From 08b2f14bf234bad2443a6e3a8e237e31b97960e9 Mon Sep 17 00:00:00 2001
+From: Andrew de los Reyes <adlr@chromium.org>
+Date: Thu, 14 Mar 2013 17:36:23 -0700
+Subject: [PATCH] x11-base/xorg-conf: Support screen rotation.
+
+This patch uses properties set on the window from Chrome to see if a
+display is internal/external, hi-resolution, and now rotated; it
+scales the X cursor movement as appropriate.
+---
+ dix/getevents.c | 157 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 157 insertions(+)
+
+diff --git a/dix/getevents.c b/dix/getevents.c
+index f1e7491..2a3acfa 100644
+--- a/dix/getevents.c
++++ b/dix/getevents.c
+@@ -33,6 +33,7 @@
+ 
+ #include <X11/X.h>
+ #include <X11/keysym.h>
++#include <X11/Xatom.h>
+ #include <X11/Xproto.h>
+ #include <math.h>
+ #include <limits.h>
+@@ -50,6 +51,7 @@
+ #include "eventconvert.h"
+ #include "inpututils.h"
+ #include "mi.h"
++#include "propertyst.h"
+ #include "windowstr.h"
+ 
+ #include <X11/extensions/XKBproto.h>
+@@ -60,6 +62,7 @@
+ #include "panoramiXsrv.h"
+ #endif
+ 
++#include <X11/extensions/randr.h>
+ #include <X11/extensions/XI.h>
+ #include <X11/extensions/XI2.h>
+ #include <X11/extensions/XIproto.h>
+@@ -1262,6 +1265,158 @@ QueuePointerEvents(DeviceIntPtr device, int type,
+     queueEventList(device, InputEventList, nevents);
+ }
+ 
++/*
++ * Looks for magic properties for the window where the mouse cursor is, and
++ * uses them to return the scaleFactor of the display (e.g., 100 being normal,
++ * 200 being pixel doubled), whether or not it's internal, and the rotation.
++ * If a magic property is not found, the corresponding ouput value is not
++ * changed.
++ *
++ * Rotation values are:
++ *   RR_Rotate_0: normal
++ *   RR_Rotate_90: 90 deg clockwise
++ *   RR_Rotate_180: 180 deg clockwise
++ *   RR_Rotate_270: 270 deg clockwise
++ *
++ * Returns FALSE on error.
++ */
++static int
++getSpriteChromeProps(ScreenPtr pScreen, DeviceIntPtr dev,
++                     int *scaleFactor, int *isInternal, int *rotation)
++{
++    PropertyPtr pProp;
++    SpriteInfoPtr spriteInfo;
++    SpritePtr sprite;
++    WindowPtr spriteWin;
++    int i;
++    const char kDisplayRotationPropName[] = "_CHROME_DISPLAY_ROTATION";
++    const char kDisplayScaleFactorPropName[] = "_CHROME_DISPLAY_SCALE_FACTOR";
++    const char kDisplayInternalPropName[] = "_CHROME_DISPLAY_INTERNAL";
++    Atom atomRotation = MakeAtom(kDisplayRotationPropName,
++                                 sizeof(kDisplayRotationPropName) - 1,
++                                 FALSE  /* FALSE == do not malloc */);
++    Atom atomScaleFactor = MakeAtom(kDisplayScaleFactorPropName,
++                                    sizeof(kDisplayScaleFactorPropName) - 1,
++                                    FALSE  /* FALSE == do not malloc */);
++    Atom atomDisplayInternal = MakeAtom(kDisplayInternalPropName,
++                                        sizeof(kDisplayInternalPropName) - 1,
++                                        FALSE  /* FALSE == do not malloc */);
++
++    spriteInfo = dev->spriteInfo;
++    if (!spriteInfo)
++        return FALSE;
++    sprite = spriteInfo->sprite;
++    if (!sprite)
++        return FALSE;
++
++    if (sprite->spriteTraceGood <= 0)
++        return FALSE;
++
++    for (i = 0; i < sprite->spriteTraceGood; ++i) {
++        spriteWin = sprite->spriteTrace[i];
++        for (pProp = wUserProps(spriteWin); pProp; pProp = pProp->next) {
++            if ((pProp->format / 8) * pProp->size != 4)
++                continue;
++            if (pProp->propertyName == atomRotation && atomRotation != None) {
++                *rotation = *(int*)pProp->data;
++            } else if (pProp->propertyName == atomScaleFactor &&
++                       atomScaleFactor != None) {
++                *scaleFactor = *(int*)pProp->data;
++            } else if (pProp->propertyName == atomDisplayInternal &&
++                       atomDisplayInternal != None) {
++                *isInternal = *(int*)pProp->data;
++            }
++        }
++    }
++    return TRUE;
++}
++
++/*
++ * Looks for a magic property set on a device that indicates if it's an
++ * integrated touchpad. Returns TRUE if it's an integrated touchpad, FALSE if
++ * it's not or if there's an error.
++ */
++static int
++isIntegratedTouchpad(DeviceIntPtr dev)
++{
++    const char kIntegratedTouchpadPropName[] = "Integrated Touchpad";
++    XIPropertyPtr prop = NULL;
++    Atom property = MakeAtom(kIntegratedTouchpadPropName,
++                             strlen(kIntegratedTouchpadPropName),
++                             FALSE  /* FALSE == do not malloc */);
++    if (property == None)
++        return FALSE;
++
++    for (prop = dev->properties.properties; prop; prop = prop->next)
++        if (prop->propertyName == property)
++            break;
++    if (prop == NULL)
++        return FALSE;
++
++    if ((prop->value.format / 8) * prop->value.size != 1)
++        return FALSE;
++
++    return (*(char*)prop->value.data == 1) ? TRUE : FALSE;
++}
++
++/*
++ * Scale the motion vector in mask valuators 0 & 1
++ *
++ * Specifically: scales all motion on High-DPI displays, add 20% more
++ * motion on non-integrated displays, and honors rotation settings.
++ */
++static void
++scaleAndRotateMotionPerRRCrtc(DeviceIntPtr dev, ValuatorMask *mask)
++{
++    ScreenPtr pScreen = miPointerGetScreen(dev);
++    double temp, dx, dy, scale;
++    int scaleFactor = 100;
++    int rotation = RR_Rotate_0;
++    int isInternal = FALSE;
++
++    if (!getSpriteChromeProps(pScreen, dev, &scaleFactor, &isInternal, &rotation))
++        return;
++
++    scale = (double)scaleFactor / 100.0;
++    if (!isInternal)
++        scale *= 1.2;
++
++    /* For the case of rotated integrated display and integrated touchpad,
++     * we do not honor the rotation. */
++    if (rotation != RR_Rotate_0 && isInternal && isIntegratedTouchpad(dev))
++        rotation = RR_Rotate_0;
++
++    if (scale != 1.0 || rotation != 0) {
++        dx = 0.0;
++        dy = 0.0;
++        valuator_mask_fetch_double(mask, 0, &dx);
++        valuator_mask_fetch_double(mask, 1, &dy);
++
++        switch (rotation) {
++            case RR_Rotate_90:
++            temp = dx;
++            dx = -dy;
++            dy = temp;
++            break;
++
++            case RR_Rotate_180:
++            dx = -dx;
++            dy = -dy;
++            break;
++
++            case RR_Rotate_270:
++            temp = dx;
++            dx = dy;
++            dy = -temp;
++            break;
++        }
++
++        valuator_mask_set_double(mask, 0, dx * scale);
++        valuator_mask_set_double(mask, 1, dy * scale);
++    }
++}
++
++
+ /**
+  * Helper function for GetPointerEvents, which only generates motion and
+  * raw motion events for the slave device: does not update the master device.
+@@ -1368,6 +1523,8 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
+         if ((flags & POINTER_NORAW) == 0)
+             set_raw_valuators(raw, &mask, raw->valuators.data);
+ 
++        scaleAndRotateMotionPerRRCrtc(pDev, &mask);
++
+         moveRelative(pDev, &mask);
+     }
+ 

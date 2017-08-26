@@ -1,0 +1,58 @@
+From 0b5dc9e127534995ce5bd11f1823a4d449b1463a Mon Sep 17 00:00:00 2001
+From: David Sodman <dsodman@chromium.org>
+Date: Fri, 31 Jan 2014 18:09:45 -0800
+Subject: [PATCH] Add check for link from output to crtc before optimizing out
+ a CrtcSet call
+
+The function RRCrtcSet call checks to see if the config being set is
+already configured, but, doesn't check that the selected outputs are
+connected to the crtc before skipping.  This means that the following
+sequence will omit the final CrtcSet call to the driver:
+
+    CRTC c1 connect to output o
+    CRTC c2 connect to output o
+    CRTC c1 connect to output o
+
+This change adds the check to ensure that each of the calls are made to
+the driver.
+---
+ randr/rrcrtc.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/randr/rrcrtc.c b/randr/rrcrtc.c
+index 6e181ba..2ecb43c 100644
+--- a/randr/rrcrtc.c
++++ b/randr/rrcrtc.c
+@@ -522,9 +522,19 @@ RRCrtcSet(RRCrtcPtr crtc,
+     ScreenPtr pScreen = crtc->pScreen;
+     Bool ret = FALSE;
+     Bool recompute = TRUE;
++    Bool crtcChanged;
++    int  o;
+
+     rrScrPriv(pScreen);
+
++    crtcChanged = FALSE;
++    for (o = 0; o < numOutputs; o++) {
++        if (outputs[o] && outputs[o]->crtc != crtc) {
++            crtcChanged = TRUE;
++            break;
++        }
++    }
++
+     /* See if nothing changed */
+     if (crtc->mode == mode &&
+         crtc->x == x &&
+@@ -532,7 +542,8 @@ RRCrtcSet(RRCrtcPtr crtc,
+         crtc->rotation == rotation &&
+         crtc->numOutputs == numOutputs &&
+         !memcmp(crtc->outputs, outputs, numOutputs * sizeof(RROutputPtr)) &&
+-        !RRCrtcPendingProperties(crtc) && !RRCrtcPendingTransform(crtc)) {
++        !RRCrtcPendingProperties(crtc) && !RRCrtcPendingTransform(crtc) &&
++        !crtcChanged) {
+         recompute = FALSE;
+         ret = TRUE;
+     }
+--
+1.9.0.rc1.175.g0b1dcb5
+

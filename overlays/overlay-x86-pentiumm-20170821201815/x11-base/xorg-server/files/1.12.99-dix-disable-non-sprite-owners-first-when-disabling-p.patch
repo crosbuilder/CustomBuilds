@@ -1,0 +1,49 @@
+From 4247f98180a2c5b6cde53c5eb03d29b07a86769a Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Tue, 30 Jul 2013 11:15:29 +0800
+Subject: [PATCH 4/5] dix: disable non-sprite-owners first when disabling
+ paired devices
+
+If a sprite-owner is to be disabled but still paired, disable the paired
+device first. i.e. disabling a master pointer will disable the master
+keyboard first.
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+(cherry picked from commit e433d1046c222f9d969c2c28a4651ff9097614f4)
+
+Conflicts:
+	dix/devices.c
+---
+ dix/devices.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/dix/devices.c b/dix/devices.c
+index 9b27817..5f72e1d 100644
+--- a/dix/devices.c
++++ b/dix/devices.c
+@@ -452,15 +452,14 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
+     }
+ 
+     if (IsMaster(dev) && dev->spriteInfo->sprite) {
+-        for (other = inputInfo.devices; other; other = other->next) {
+-            if (other->spriteInfo->paired == dev) {
+-                ErrorF("[dix] cannot disable device, still paired. "
+-                       "This is a bug. \n");
+-                return FALSE;
+-            }
+-        }
++        for (other = inputInfo.devices; other; other = other->next)
++            if (other->spriteInfo->paired == dev && !other->spriteInfo->spriteOwner)
++                DisableDevice(other, sendevent);
+     }
+ 
++    if (dev->spriteInfo->paired)
++        dev->spriteInfo->paired = NULL;
++
+     (void) (*dev->deviceProc) (dev, DEVICE_OFF);
+     dev->enabled = FALSE;
+ 
+-- 
+1.8.3
+

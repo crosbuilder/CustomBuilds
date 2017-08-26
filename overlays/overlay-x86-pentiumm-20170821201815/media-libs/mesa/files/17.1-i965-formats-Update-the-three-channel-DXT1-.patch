@@ -1,0 +1,129 @@
+From 051e3e86f88497d79f6eb3cb32391c33bce68a9a Mon Sep 17 00:00:00 2001
+From: Nanley Chery <nanley.g.chery@intel.com>
+Date: Thu, 11 May 2017 15:57:59 -0700
+Subject: [PATCH 2/2] BACKPORT: i965/formats: Update the three-channel DXT1
+ mappings
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The procedure for decompressing an opaque DXT1 OpenGL format is
+dependant on the comparison of two colors stored in the first 32 bits of
+the compressed block. Here's the specified OpenGL behavior for
+reference:
+
+   The RGB color for a texel at location (x,y) in the block is given by:
+
+      RGB0,              if color0 > color1 and code(x,y) == 0
+      RGB1,              if color0 > color1 and code(x,y) == 1
+      (2*RGB0+RGB1)/3,   if color0 > color1 and code(x,y) == 2
+      (RGB0+2*RGB1)/3,   if color0 > color1 and code(x,y) == 3
+
+      RGB0,              if color0 <= color1 and code(x,y) == 0
+      RGB1,              if color0 <= color1 and code(x,y) == 1
+      (RGB0+RGB1)/2,     if color0 <= color1 and code(x,y) == 2
+      BLACK,             if color0 <= color1 and code(x,y) == 3
+
+The sampling operation performed on an opaque DXT1 Intel format essentially
+hard-codes the comparison result of the two colors as color0 > color1.
+This means that the behavior is incompatible with OpenGL. This is stated
+in the SKL PRM, Vol 5: Memory Views:
+
+   Opaque Textures (DXT1_RGB)
+      Texture format DXT1_RGB is identical to DXT1, with the exception that the
+      One-bit Alpha encoding is removed. Color 0 and Color 1 are not compared, and
+      the resulting texel color is derived strictly from the Opaque Color Encoding.
+      The alpha channel defaults to 1.0.
+
+      Programming Note
+      Context: Opaque Textures (DXT1_RGB)
+      The behavior of this format is not compliant with the OGL spec.
+
+The opaque and non-opaque DXT1 OpenGL formats are specified to be
+decoded in exactly the same way except the BLACK value must have a
+transparent alpha channel in the latter. Use the four-channel BC1 Intel
+formats with the alpha set to 1 to provide the behavior required by the
+spec. Note that the alpha is already set to 1 for RGB formats in
+brw_get_texture_swizzle().
+
+v2: Provide a more detailed commit message (Kenneth Graunke).
+v3: Ensure the alpha channel is set to 1 for DXT1 formats.
+
+BUG=b:36155732
+TEST=launch GoogleEarth website in chrome browser to see the detail of resolving
+in Map without blocky or low res areas
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=100925
+Cc: <mesa-stable@lists.freedesktop.org>
+Acked-by: Tapani Pälli <tapani.palli@intel.com> (v1)
+Reviewed-by: Kenneth Graunke <kenneth@whitecape.org>
+Signed-off-by: Nanley Chery <nanley.g.chery@intel.com>
+(cherry picked from commit 688ddb85c8c3357d8e1e9d360c74cd728b128d98)
+
+Conflicts:
+	src/mesa/drivers/dri/i965/brw_surface_formats.c
+
+Change-Id: I1bfb10e87985d3124805e18bcec629b8031b5cf0
+Signed-off-by: Gary Wang <gary.c.wang@intel.com>
+---
+ src/mesa/drivers/dri/i965/brw_surface_formats.c  | 15 ++-------------
+ src/mesa/drivers/dri/i965/brw_wm_surface_state.c |  4 +++-
+ 2 files changed, 5 insertions(+), 14 deletions(-)
+
+diff --git a/src/mesa/drivers/dri/i965/brw_surface_formats.c b/src/mesa/drivers/dri/i965/brw_surface_formats.c
+index 103d3a0529c5..46f3b0e4d252 100644
+--- a/src/mesa/drivers/dri/i965/brw_surface_formats.c
++++ b/src/mesa/drivers/dri/i965/brw_surface_formats.c
+@@ -94,14 +94,14 @@ brw_format_for_mesa_format(mesa_format mesa_format)
+       [MESA_FORMAT_L_SRGB8] = BRW_SURFACEFORMAT_L8_UNORM_SRGB,
+       [MESA_FORMAT_L8A8_SRGB] = BRW_SURFACEFORMAT_L8A8_UNORM_SRGB,
+       [MESA_FORMAT_A8L8_SRGB] = 0,
+-      [MESA_FORMAT_SRGB_DXT1] = BRW_SURFACEFORMAT_DXT1_RGB_SRGB,
++      [MESA_FORMAT_SRGB_DXT1] = BRW_SURFACEFORMAT_BC1_UNORM_SRGB,
+       [MESA_FORMAT_SRGBA_DXT1] = BRW_SURFACEFORMAT_BC1_UNORM_SRGB,
+       [MESA_FORMAT_SRGBA_DXT3] = BRW_SURFACEFORMAT_BC2_UNORM_SRGB,
+       [MESA_FORMAT_SRGBA_DXT5] = BRW_SURFACEFORMAT_BC3_UNORM_SRGB,
+ 
+       [MESA_FORMAT_RGB_FXT1] = BRW_SURFACEFORMAT_FXT1,
+       [MESA_FORMAT_RGBA_FXT1] = BRW_SURFACEFORMAT_FXT1,
+-      [MESA_FORMAT_RGB_DXT1] = BRW_SURFACEFORMAT_DXT1_RGB,
++      [MESA_FORMAT_RGB_DXT1] = BRW_SURFACEFORMAT_BC1_UNORM,
+       [MESA_FORMAT_RGBA_DXT1] = BRW_SURFACEFORMAT_BC1_UNORM,
+       [MESA_FORMAT_RGBA_DXT3] = BRW_SURFACEFORMAT_BC2_UNORM,
+       [MESA_FORMAT_RGBA_DXT5] = BRW_SURFACEFORMAT_BC3_UNORM,
+@@ -541,17 +541,6 @@ translate_tex_format(struct brw_context *brw,
+        */
+       return BRW_SURFACEFORMAT_R32G32B32A32_FLOAT;
+ 
+-   case MESA_FORMAT_SRGB_DXT1:
+-      if (brw->gen == 4 && !brw->is_g4x) {
+-         /* Work around missing SRGB DXT1 support on original gen4 by just
+-          * skipping SRGB decode.  It's not worth not supporting sRGB in
+-          * general to prevent this.
+-          */
+-         WARN_ONCE(true, "Demoting sRGB DXT1 texture to non-sRGB\n");
+-         mesa_format = MESA_FORMAT_RGB_DXT1;
+-      }
+-      return brw_format_for_mesa_format(mesa_format);
+-
+    case MESA_FORMAT_RGBA_ASTC_4x4:
+    case MESA_FORMAT_RGBA_ASTC_5x4:
+    case MESA_FORMAT_RGBA_ASTC_5x5:
+diff --git a/src/mesa/drivers/dri/i965/brw_wm_surface_state.c b/src/mesa/drivers/dri/i965/brw_wm_surface_state.c
+index a6fadf9b7604..f5ccef905945 100644
+--- a/src/mesa/drivers/dri/i965/brw_wm_surface_state.c
++++ b/src/mesa/drivers/dri/i965/brw_wm_surface_state.c
+@@ -391,7 +391,9 @@ brw_get_texture_swizzle(const struct gl_context *ctx,
+    case GL_RED:
+    case GL_RG:
+    case GL_RGB:
+-      if (_mesa_get_format_bits(img->TexFormat, GL_ALPHA_BITS) > 0)
++      if (_mesa_get_format_bits(img->TexFormat, GL_ALPHA_BITS) > 0 ||
++          img->TexFormat == MESA_FORMAT_RGB_DXT1 ||
++          img->TexFormat == MESA_FORMAT_SRGB_DXT1)
+          swizzles[3] = SWIZZLE_ONE;
+       break;
+    }
+-- 
+1.9.1
+

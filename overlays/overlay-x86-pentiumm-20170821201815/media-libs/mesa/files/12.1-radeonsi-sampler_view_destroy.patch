@@ -1,0 +1,60 @@
+From e7947aa012e07fc2003f1329d9bebf11840e108c Mon Sep 17 00:00:00 2001
+From: Deepak Sharma <Deepak.Sharma@amd.com>
+Date: Thu, 11 Aug 2016 15:40:36 +0530
+Subject: [PATCH 19/19] Fix crash on sampler_view_destroy in radeonsi
+
+set sampler_view_destroy method for radeonsi,
+when upper layer tries to destroy an object.
+
+Change-Id: Ia069a648617019f4df2eb3e9d8fa41b9d9b71ff7
+---
+ src/gallium/drivers/radeonsi/si_state.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/src/gallium/drivers/radeonsi/si_state.c b/src/gallium/drivers/radeonsi/si_state.c
+index 04c1a9f..ef550b9 100644
+--- a/src/gallium/drivers/radeonsi/si_state.c
++++ b/src/gallium/drivers/radeonsi/si_state.c
+@@ -2990,6 +2990,15 @@ si_make_texture_descriptor(struct si_screen *screen,
+ 	}
+ }
+ 
++static void si_sampler_view_destroy(struct pipe_context *ctx,
++                                    struct pipe_sampler_view *state)
++{
++        struct si_sampler_view *view = (struct si_sampler_view *)state;
++
++        pipe_resource_reference(&state->texture, NULL);
++        FREE(view);
++}
++
+ /**
+  * Create a sampler view.
+  *
+@@ -3025,6 +3034,7 @@ si_create_sampler_view_custom(struct pipe_context *ctx,
+ 	view->base.texture = NULL;
+ 	view->base.reference.count = 1;
+ 	view->base.context = ctx;
++	view->base.sampler_view_destroy = si_sampler_view_destroy;
+ 
+ 	assert(texture);
+ 	pipe_resource_reference(&view->base.texture, texture);
+@@ -3153,15 +3163,6 @@ si_create_sampler_view(struct pipe_context *ctx,
+ 					     texture ? texture->height0 : 0, 0);
+ }
+ 
+-static void si_sampler_view_destroy(struct pipe_context *ctx,
+-				    struct pipe_sampler_view *state)
+-{
+-	struct si_sampler_view *view = (struct si_sampler_view *)state;
+-
+-	pipe_resource_reference(&state->texture, NULL);
+-	FREE(view);
+-}
+-
+ static bool wrap_mode_uses_border_color(unsigned wrap, bool linear_filter)
+ {
+ 	return wrap == PIPE_TEX_WRAP_CLAMP_TO_BORDER ||
+-- 
+2.8.0.rc3.226.g39d4020
+

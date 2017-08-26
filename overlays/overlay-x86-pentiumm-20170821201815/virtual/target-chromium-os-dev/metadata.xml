@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+<herd>chromium</herd>
+<maintainer>
+  <email>chromium-os-dev@chromium.org</email>
+  <description>Maintained by The Chromium OS Authors.</description>
+</maintainer>
+<longdescription>The Chromium OS dev package pulls in dependencies to build a Chromium OS developer system.</longdescription>
+</pkgmetadata>

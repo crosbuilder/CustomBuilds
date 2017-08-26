@@ -1,0 +1,32 @@
+From eeae06dac45e1de1ae52ca8804149cb08baf34b5 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Thu, 10 May 2012 15:33:15 +1000
+Subject: [PATCH 3/5] dix: free the sprite when disabling the device
+
+Disabled devices don't need sprites (they can't send events anyway) and the
+device init process is currently geared to check for whether sprite is
+present to check if the device should be paired/attached.
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+(cherry picked from commit df1704365e700d3cf1d36a241bdfc479159a8df7)
+---
+ dix/devices.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/dix/devices.c b/dix/devices.c
+index 23e1008..9b27817 100644
+--- a/dix/devices.c
++++ b/dix/devices.c
+@@ -464,6 +464,8 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
+     (void) (*dev->deviceProc) (dev, DEVICE_OFF);
+     dev->enabled = FALSE;
+ 
++    FreeSprite(dev);
++
+     /* now that the device is disabled, we can reset the signal handler's
+      * last.slave */
+     OsBlockSignals();
+-- 
+1.8.3
+

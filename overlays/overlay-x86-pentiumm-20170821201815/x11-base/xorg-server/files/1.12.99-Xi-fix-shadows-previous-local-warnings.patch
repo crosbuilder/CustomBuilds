@@ -1,0 +1,202 @@
+From e42bf98283ddc4eac2213c96e8ebcd711583e6b1 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Wed, 16 May 2012 10:47:45 +1000
+Subject: [PATCH] Xi: fix "shadows previous local" warnings
+
+exevents.c: In function 'DeepCopyFeedbackClasses':
+exevents.c:272:20: warning: declaration of 'classes' shadows a previous
+local [-Wshadow]
+exevents.c:245:16: warning: shadowed declaration is here [-Wshadow]
+(and a few more like this)
+
+exevents.c: In function 'DeliverTouchEmulatedEvent':
+exevents.c:1442:27: warning: declaration of 'win' shadows a parameter
+[-Wshadow]
+exevents.c:1404:55: warning: shadowed declaration is here [-Wshadow]
+exevents.c:1475:28: warning: declaration of 'listener' shadows a parameter
+[-Wshadow]
+exevents.c:1403:62: warning: shadowed declaration is here [-Wshadow]
+
+xiselectev.c: In function 'ProcXISelectEvents':
+xiselectev.c:178:34: warning: declaration of 'dummy' shadows a previous
+local [-Wshadow]
+xiselectev.c:91:18: warning: shadowed declaration is here [-Wshadow]
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+---
+ Xi/exevents.c   | 36 +++++++-----------------------------
+ Xi/xiselectev.c |  8 ++++----
+ 2 files changed, 11 insertions(+), 33 deletions(-)
+
+diff --git a/Xi/exevents.c b/Xi/exevents.c
+index d578758..4aad527 100644
+--- a/Xi/exevents.c
++++ b/Xi/exevents.c
+@@ -269,8 +269,6 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+         }
+     }
+     else if (to->intfeed && !from->intfeed) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->intfeed = to->intfeed;
+         to->intfeed = NULL;
+@@ -301,8 +299,6 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+         }
+     }
+     else if (to->stringfeed && !from->stringfeed) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->stringfeed = to->stringfeed;
+         to->stringfeed = NULL;
+@@ -334,8 +330,6 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+         }
+     }
+     else if (to->bell && !from->bell) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->bell = to->bell;
+         to->bell = NULL;
+@@ -369,8 +363,6 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+         }
+     }
+     else if (to->leds && !from->leds) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->leds = to->leds;
+         to->leds = NULL;
+@@ -417,8 +409,6 @@ DeepCopyKeyboardClasses(DeviceIntPtr from, DeviceIntPtr to)
+         }
+     }
+     else if (to->kbdfeed && !from->kbdfeed) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->kbdfeed = to->kbdfeed;
+         to->kbdfeed = NULL;
+@@ -437,8 +427,6 @@ DeepCopyKeyboardClasses(DeviceIntPtr from, DeviceIntPtr to)
+         CopyKeyClass(from, to);
+     }
+     else if (to->key && !from->key) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->key = to->key;
+         to->key = NULL;
+@@ -494,8 +482,6 @@ DeepCopyKeyboardClasses(DeviceIntPtr from, DeviceIntPtr to)
+         }
+     }
+     else if (to->focus) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->focus = to->focus;
+         to->focus = NULL;
+@@ -536,8 +522,6 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
+         }
+     }
+     else if (to->ptrfeed && !from->ptrfeed) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->ptrfeed = to->ptrfeed;
+         to->ptrfeed = NULL;
+@@ -564,8 +548,6 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
+         v->sourceid = from->id;
+     }
+     else if (to->valuator && !from->valuator) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->valuator = to->valuator;
+         to->valuator = NULL;
+@@ -601,8 +583,6 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
+         to->button->sourceid = from->id;
+     }
+     else if (to->button && !from->button) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->button = to->button;
+         to->button = NULL;
+@@ -624,8 +604,6 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
+         to->proximity->sourceid = from->id;
+     }
+     else if (to->proximity) {
+-        ClassesPtr classes;
+-
+         classes = to->unused_classes;
+         classes->proximity = to->proximity;
+         to->proximity = NULL;
+@@ -1461,9 +1439,9 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
+ 
+             if (grab->ownerEvents) {
+                 WindowPtr focus = NullWindow;
+-                WindowPtr win = dev->spriteInfo->sprite->win;
++                WindowPtr sprite_win = dev->spriteInfo->sprite->win;
+ 
+-                deliveries = DeliverDeviceEvents(win, ptrev, grab, focus, dev);
++                deliveries = DeliverDeviceEvents(sprite_win, ptrev, grab, focus, dev);
+             }
+ 
+             if (!deliveries)
+@@ -1494,7 +1472,7 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
+          * the event.
+          */
+         if (!devgrab && dev->deviceGrab.grab && dev->deviceGrab.implicitGrab) {
+-            TouchListener *listener;
++            TouchListener *l;
+ 
+             devgrab = dev->deviceGrab.grab;
+ 
+@@ -1504,13 +1482,13 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
+              * selection. Implicit grab activation occurs through delivering an
+              * event selection. Thus, we update the last listener in the array.
+              */
+-            listener = &ti->listeners[ti->num_listeners - 1];
+-            listener->listener = devgrab->resource;
++            l = &ti->listeners[ti->num_listeners - 1];
++            l->listener = devgrab->resource;
+ 
+             if (devgrab->grabtype != XI2 || devgrab->type != XI_TouchBegin)
+-                listener->type = LISTENER_POINTER_GRAB;
++                l->type = LISTENER_POINTER_GRAB;
+             else
+-                listener->type = LISTENER_GRAB;
++                l->type = LISTENER_GRAB;
+         }
+ 
+     }
+diff --git a/Xi/xiselectev.c b/Xi/xiselectev.c
+index 43a67c8..e7e719d 100644
+--- a/Xi/xiselectev.c
++++ b/Xi/xiselectev.c
+@@ -175,17 +175,17 @@ ProcXISelectEvents(ClientPtr client)
+                 if (inputMasks)
+                     iclient = inputMasks->inputClients;
+                 for (; iclient; iclient = iclient->next) {
+-                    DeviceIntPtr dummy;
++                    DeviceIntPtr tmp;
+ 
+                     if (CLIENT_ID(iclient->resource) == client->index)
+                         continue;
+ 
+-                    dixLookupDevice(&dummy, evmask->deviceid, serverClient,
++                    dixLookupDevice(&tmp, evmask->deviceid, serverClient,
+                                     DixReadAccess);
+-                    if (!dummy)
++                    if (!tmp)
+                         return BadImplementation;       /* this shouldn't happen */
+ 
+-                    if (xi2mask_isset(iclient->xi2mask, dummy, XI_TouchBegin))
++                    if (xi2mask_isset(iclient->xi2mask, tmp, XI_TouchBegin))
+                         return BadAccess;
+                 }
+             }
+-- 
+1.8.1
+

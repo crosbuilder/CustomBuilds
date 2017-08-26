@@ -1,0 +1,246 @@
+From c1696263ac372f2d0a02247e30787b710abb6a16 Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Sat, 27 Jul 2013 19:44:31 +0800
+Subject: [PATCH] DRI2: Block clients on VT switch
+
+Typically a DRM X11 video driver will drop DRM master on a VT switch to
+enable multiple X servers.  Therefore any DRM IOCTLs issued by the driver
+to process DRI2 commands will fail.
+
+This patch copies the Block-client-on-VT-switch logic from GLXDRI2, where
+it solves the exact same problem from clients using DRI2 via GLX.
+
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+
+v2: Unwrap EnterVT and LeaveVT on CloseScreen to avoid infinite recursion
+on VT switch for server generation > 1.
+
+BUG=chromium:220687,chromium:265051
+TEST=Install developer image
+  Login as guest
+  Browse to www.youtube.com
+  VT switch
+  Wait 15 seconds
+  VT switch back
+  => User should NOT be logged out!
+TEST=ssh to device
+  stop ui
+  X :1 &  # start a test X server
+  DISPLAY=:1 xev &    # start a test X client
+  kill %2             # kill test X client
+  chvt 2              # VT-2 switch
+  => No X server crash
+---
+ hw/xfree86/dri2/dri2.c    | 56 +++++++++++++++++++++++++++++++++++++
+ hw/xfree86/dri2/dri2.h    |  3 ++
+ hw/xfree86/dri2/dri2ext.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 129 insertions(+)
+
+diff --git a/hw/xfree86/dri2/dri2.c b/hw/xfree86/dri2/dri2.c
+index bca82d3..850e476 100644
+--- a/hw/xfree86/dri2/dri2.c
++++ b/hw/xfree86/dri2/dri2.c
+@@ -111,6 +111,9 @@ typedef struct _DRI2Screen {
+     HandleExposuresProcPtr HandleExposures;
+ 
+     ConfigNotifyProcPtr ConfigNotify;
++
++    xf86EnterVTProc *enterVT;
++    xf86LeaveVTProc *leaveVT;
+ } DRI2ScreenRec;
+ 
+ static DRI2ScreenPtr
+@@ -1161,9 +1164,51 @@ DRI2ConfigNotify(WindowPtr pWin, int x, int y, int w, int h, int bw,
+     return Success;
+ }
+ 
++
++static Bool
++DRI2EnterVT(int index, int flags)
++{
++    ScrnInfoPtr scrn = xf86Screens[index];
++    ScreenPtr pScreen = screenInfo.screens[index];
++    DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
++    Bool ret;
++
++    LogMessage(X_INFO, "DRI2: Resuming DRI2 clients after VT switch\n");
++
++    scrn->EnterVT = ds->enterVT;
++    ret = scrn->EnterVT(index, flags);
++    ds->enterVT = scrn->EnterVT;
++    scrn->EnterVT = DRI2EnterVT;
++
++    if (!ret)
++        return FALSE;
++
++    dri2ResumeClients();
++
++    return TRUE;
++}
++
++static void
++DRI2LeaveVT(int index, int flags)
++{
++    ScrnInfoPtr scrn = xf86Screens[index];
++    ScreenPtr pScreen = screenInfo.screens[index];
++    DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
++
++    LogMessage(X_INFO, "DRI2: Suspending DRI2 clients for VT switch\n");
++
++    dri2SuspendClients();
++
++    scrn->LeaveVT = ds->leaveVT;
++    (*ds->leaveVT) (index, flags);
++    ds->leaveVT = scrn->LeaveVT;
++    scrn->LeaveVT = DRI2LeaveVT;
++}
++
+ Bool
+ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
+ {
++    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+     DRI2ScreenPtr ds;
+ 
+     const char *driverTypeNames[] = {
+@@ -1268,6 +1313,12 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
+         }
+     }
+ 
++    /* Wrap enter/leave VT callbacks */
++    ds->enterVT = pScrn->EnterVT;
++    pScrn->EnterVT = DRI2EnterVT;
++    ds->leaveVT = pScrn->LeaveVT;
++    pScrn->LeaveVT = DRI2LeaveVT;
++
+     return TRUE;
+ 
+  err_out:
+@@ -1282,9 +1333,14 @@ void
+ DRI2CloseScreen(ScreenPtr pScreen)
+ {
+     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
++    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+ 
+     pScreen->ConfigNotify = ds->ConfigNotify;
+ 
++    /* Unwrap enter/leave VT callbacks */
++    pScrn->EnterVT = ds->enterVT;
++    pScrn->LeaveVT = ds->leaveVT;
++
+     free(ds->driverNames);
+     free(ds);
+     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, NULL);
+diff --git a/hw/xfree86/dri2/dri2.h b/hw/xfree86/dri2/dri2.h
+index 06546bb..b10974d 100644
+--- a/hw/xfree86/dri2/dri2.h
++++ b/hw/xfree86/dri2/dri2.h
+@@ -313,4 +313,7 @@ extern _X_EXPORT void DRI2WaitMSCComplete(ClientPtr client, DrawablePtr pDraw,
+                                           int frame, unsigned int tv_sec,
+                                           unsigned int tv_usec);
+ 
++void dri2SuspendClients(void);
++void dri2ResumeClients(void);
++
+ #endif
+diff --git a/hw/xfree86/dri2/dri2ext.c b/hw/xfree86/dri2/dri2ext.c
+index 2579a5c..96fc0fb 100644
+--- a/hw/xfree86/dri2/dri2ext.c
++++ b/hw/xfree86/dri2/dri2ext.c
+@@ -48,10 +48,62 @@
+ 
+ /* The only xf86 include */
+ #include "xf86Module.h"
++#include <xf86.h>
+ 
+ static ExtensionEntry *dri2Extension;
+ extern Bool DRI2ModuleSetup(void);
+ 
++static DevPrivateKeyRec dri2ClientPrivateKeyRec;
++
++#define dri2ClientPrivateKey (&dri2ClientPrivateKeyRec)
++
++static int dri2BlockClients;
++
++typedef struct DRI2ClientStateRec DRI2ClientState;
++
++/*
++** State kept per client.
++*/
++struct DRI2ClientStateRec {
++    /*
++     ** Whether this structure is currently being used to support a client.
++     */
++    Bool inUse;
++};
++
++static DRI2ClientState *
++dri2GetClient(ClientPtr pClient)
++{
++    return dixLookupPrivate(&pClient->devPrivates, dri2ClientPrivateKey);
++}
++
++void
++dri2SuspendClients(void)
++{
++    int i;
++
++    for (i = 1; i < currentMaxClients; i++) {
++        if (clients[i] && dri2GetClient(clients[i])->inUse)
++            IgnoreClient(clients[i]);
++    }
++
++    dri2BlockClients = TRUE;
++}
++
++void
++dri2ResumeClients(void)
++{
++    int i;
++
++    dri2BlockClients = FALSE;
++
++    for (i = 1; i < currentMaxClients; i++) {
++        if (clients[i] && dri2GetClient(clients[i])->inUse)
++            AttendClient(clients[i]);
++    }
++}
++
++
+ static Bool
+ validDrawable(ClientPtr client, XID drawable, Mask access_mode,
+               DrawablePtr *pDrawable, int *status)
+@@ -538,6 +590,20 @@ static int
+ ProcDRI2Dispatch(ClientPtr client)
+ {
+     REQUEST(xReq);
++    DRI2ClientState *cl;
++
++    cl = dri2GetClient(client);
++    /* Mark it in use so we suspend it on VT switch. */
++    cl->inUse = TRUE;
++
++    /* If we're currently blocking DRI2 clients, just put this guy to
++     * sleep, reset the request and return. */
++    if (dri2BlockClients) {
++        ResetCurrentRequest(client);
++        client->sequence--;
++        IgnoreClient(client);
++        return Success;
++    }
+ 
+     switch (stuff->data) {
+     case X_DRI2QueryVersion:
+@@ -622,6 +688,10 @@ int DRI2EventBase;
+ static void
+ DRI2ExtensionInit(void)
+ {
++    if (!dixRegisterPrivateKey
++        (&dri2ClientPrivateKeyRec, PRIVATE_CLIENT, sizeof(DRI2ClientState)))
++        return;
++
+     dri2Extension = AddExtension(DRI2_NAME,
+                                  DRI2NumberEvents,
+                                  DRI2NumberErrors,
+-- 
+1.8.3
+

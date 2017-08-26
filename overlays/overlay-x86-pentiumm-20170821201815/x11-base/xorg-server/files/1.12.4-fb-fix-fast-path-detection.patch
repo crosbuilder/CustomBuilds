@@ -1,0 +1,144 @@
+From a82255d03b603437ae816032c92fe08ab06362a8 Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Tue, 1 Apr 2014 14:04:43 +0800
+Subject: [PATCH] fb: fix fast-path blt detection
+
+The width parameter is used to disable the blit fast-path (memcpy) when
+source and destination rows overlap in memory. This check was added in [0].
+
+Unfortunately, the calculation to determine if source and destination
+lines overlapped was incorrect:
+  (1) it converts width from pixels to bytes, but width is actually in
+      bits, not pixels.
+  (2) it adds this byte offset to dst/srcLine, which implicitly converts
+      the offset from bytes to sizeof(FbBits).
+
+Fix both of these by converting addresses to byte pointers and width
+to bytes and doing comparisons on the resulting byte address.
+
+For example:
+A 32-bpp 1366 pixel-wide row will have
+  width = 1366 * 32 = 43712 bits
+  bpp = 32
+  (bpp >> 3) = 4
+  width * (bpp >> 3) = 174848 FbBits
+  (FbBits *)width => 699392 bytes
+
+So, "careful" was true if the destination line was within 699392 bytes,
+instead of just within its 1366 * 4 = 5464 byte row.
+
+This bug causes us to take the slow path for large non-overlapping rows
+that are "close" in memory.  As a data point, XGetImage(1366x768) on my
+ARM chromebook was taking ~140 ms, but with this fixed, it now takes
+about 60 ms.
+  XGetImage() -> exaGetImage() -> fbGetImage -> fbBlt()
+
+[0] commit e32cc0b4c85c78cd8743a6e1680dcc79054b57ce
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Thu Apr 21 16:37:11 2011 -0400
+
+    fb: Fix memcpy abuse
+
+    The memcpy fast path implicitly assumes that the copy walks
+    left-to-right.  That's not something memcpy guarantees, and newer glibc
+    on some processors will indeed break that assumption.  Since we walk a
+    line at a time, check the source and destination against the width of
+    the blit to determine whether we can be sloppy enough to allow memcpy.
+    (Having done this, we can remove the check for !reverse as well.)
+
+v3: Convert to byte units
+
+This first checks to make sure the blt is byte aligned, converts all
+of the data to byte units and then compares for byte address range
+overlap between source and dest.
+
+Signed-off-by: Keith Packard <keithp@keithp.com>
+Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
+(cherry picked from commit a2880699e8f1f576e1a48ebf25e8982463323f84)
+---
+ fb/fbblt.c | 60 +++++++++++++++++++++++++++++++++---------------------------
+ 1 file changed, 33 insertions(+), 27 deletions(-)
+
+diff --git a/fb/fbblt.c b/fb/fbblt.c
+index 17bd698..c615106 100644
+--- a/fb/fbblt.c
++++ b/fb/fbblt.c
+@@ -56,42 +56,48 @@ fbBlt(FbBits * srcLine,
+     int n, nmiddle;
+     Bool destInvarient;
+     int startbyte, endbyte;
+-    int careful;
+ 
+     FbDeclareMergeRop();
+ 
++    if (alu == GXcopy && pm == FB_ALLONES &&
++        !(srcX & 7) && !(dstX & 7) && !(width & 7))
++    {
++        CARD8           *src_byte = (CARD8 *) srcLine + (srcX >> 3);
++        CARD8           *dst_byte = (CARD8 *) dstLine + (dstX >> 3);
++        FbStride        src_byte_stride = srcStride << (FB_SHIFT - 3);
++        FbStride        dst_byte_stride = dstStride << (FB_SHIFT - 3);
++        int             width_byte = (width >> 3);
++
++        /* Make sure there's no overlap; we can't use memcpy in that
++         * case as it's not well defined, so fall through to the
++         * general code
++         */
++        if (src_byte + width_byte <= dst_byte ||
++            dst_byte + width_byte <= src_byte)
++        {
++            int i;
++
++            if (!upsidedown)
++                for (i = 0; i < height; i++)
++                    MEMCPY_WRAPPED(dst_byte + i * dst_byte_stride,
++                                   src_byte + i * src_byte_stride,
++                                   width_byte);
++            else
++                for (i = height - 1; i >= 0; i--)
++                    MEMCPY_WRAPPED(dst_byte + i * dst_byte_stride,
++                                   src_byte + i * src_byte_stride,
++                                   width_byte);
++
++            return;
++        }
++    }
++
+     if (bpp == 24 && !FbCheck24Pix(pm)) {
+         fbBlt24(srcLine, srcStride, srcX, dstLine, dstStride, dstX,
+                 width, height, alu, pm, reverse, upsidedown);
+         return;
+     }
+ 
+-    careful = !((srcLine < dstLine && srcLine + width * (bpp >> 3) > dstLine) ||
+-                (dstLine < srcLine && dstLine + width * (bpp >> 3) > srcLine))
+-        || (bpp & 7);
+-
+-    if (alu == GXcopy && pm == FB_ALLONES && !careful &&
+-        !(srcX & 7) && !(dstX & 7) && !(width & 7)) {
+-        int i;
+-        CARD8 *src = (CARD8 *) srcLine;
+-        CARD8 *dst = (CARD8 *) dstLine;
+-
+-        srcStride *= sizeof(FbBits);
+-        dstStride *= sizeof(FbBits);
+-        width >>= 3;
+-        src += (srcX >> 3);
+-        dst += (dstX >> 3);
+-
+-        if (!upsidedown)
+-            for (i = 0; i < height; i++)
+-                MEMCPY_WRAPPED(dst + i * dstStride, src + i * srcStride, width);
+-        else
+-            for (i = height - 1; i >= 0; i--)
+-                MEMCPY_WRAPPED(dst + i * dstStride, src + i * srcStride, width);
+-
+-        return;
+-    }
+-
+     FbInitializeMergeRop(alu, pm);
+     destInvarient = FbDestInvarientMergeRop();
+     if (upsidedown) {
+-- 
+1.9.1.423.g4596e3a
+
