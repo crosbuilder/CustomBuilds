@@ -4,6 +4,12 @@ cd ${myname%/*}
 
 source ./revisionup_ebuild.sh
 
+# BOARDが無ければ設定を要求する
+if [ -z "${BOARD}" ]; then
+        echo Please set BOARD. Abort.
+        exit 1
+fi
+
 # ~/trunk/src/third_party/portage_stableにブランチが無ければ作る
 cd ~/trunk/src/third_party/portage-stable
 b=`repo branches | grep portage-stable`
@@ -14,17 +20,17 @@ else
 	echo branch already exists. skip.
 fi
 
-# ipw2200-firmwarenのパッケージをダウンロードする。BOARDはx86-pentiummで固定
+# ipw2200-firmwarenのパッケージをダウンロードする。
 if [ ! -e ./sys-firmware/ipw2200-firmware ]; then
 	echo ipw2200-firmware package does not fournd. download now.
-	cros_portage_upgrade --board=x86-pentiumm --upgrade ipw2200-firmware || exit 1
+	cros_portage_upgrade --board=${BOARD} --upgrade ipw2200-firmware || exit 1
 	echo done.
 else
 	echo ipw2200-firmware package found. skip
 fi
 
 # 依存関係を追加
-cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
+cd ${OVERLAY_DIR:=~/trunk/src/third_party/chromiumos-overlay}/virtual/target-chromium-os
 search=`grep 'ipw2200-firmware' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
 	echo ipw-firmware is not included in overlay. append to overlay now.

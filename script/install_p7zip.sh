@@ -49,7 +49,7 @@ fi
 
 
 # 依存関係を追加
-cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
+cd ${OVERLAY_DIR:=~/trunk/src/third_party/chromiumos-overlay}/virtual/target-chromium-os
 search=`grep 'p7zip' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo p7zip is not included in base overlay. append to base overlay now.

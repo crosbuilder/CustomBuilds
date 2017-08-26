@@ -65,7 +65,7 @@ emerge-${BOARD} net-wireless/ralink-rt2860-firmware --pretend --verbose
 
 
 # 依存関係を追加
-cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
+cd ${OVERLAY_DIR:=~/trunk/src/third_party/chromiumos-overlay}/virtual/target-chromium-os
 search=`grep 'ralink-rt2860-firmware' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo ralink-rt2860-firmware is not included in base overlay. append to base overlay now.

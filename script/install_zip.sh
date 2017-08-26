@@ -40,7 +40,7 @@ cros_portage_upgrade --board=${BOARD} --upgrade app-arch/zip || exit 1
 cros_portage_upgrade --board=${BOARD} --upgrade app-arch/unzip || exit 1
 
 # 依存関係を追加
-cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
+cd ${OVERLAY_DIR:=~/trunk/src/third_party/chromiumos-overlay}/virtual/target-chromium-os
 search=`grep 'app-arch/zip' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo zip is not included in base overlay. append to base overlay now.

@@ -26,7 +26,8 @@ binutil_ver=`ar --version | grep -o -e '[0-9]\+\.[0-9]\+\.[0-9]\+' |head -n 1`
 mkdir ../addpackages/tarballs/ar-${BOARD}
 arch="i686-pc-linux-gnu"
 lib="lib"
-if [ "${BOARD}" = "amd64-custom" ]; then
+tokens=( `echo ${BOARD}|tr -s '-' ' '` )
+if [ "${tokens[0]}" = "amd64" ]; then
   arch="x86_64-cros-linux-gnu"
   lib="lib64"
 fi
@@ -84,7 +85,7 @@ ebuild-${BOARD} ar-1.ebuild test
 emerge-${BOARD} app-misc/ar --pretend
 
 # 依存関係を追加
-cd ~/trunk/src/third_party/chromiumos-overlay/virtual/target-chromium-os
+cd ${OVERLAY_DIR:=~/trunk/src/third_party/chromiumos-overlay}/virtual/target-chromium-os
 search=`grep 'app-misc/ar' target-chromium-os-1.ebuild`
 if [ -z "${search}" ]; then
         echo ar is not included in base overlay. append to base overlay now.
