@@ -1,10 +1,8 @@
-diff --git a/overlay-x86-generic/make.conf b/overlay-x86-generic/make.conf
-index 00b32f9..a8650ed 100644
---- a/overlay-x86-generic/make.conf
-+++ b/overlay-x86-generic/make.conf
-@@ -8,7 +8,7 @@ MARCH_TUNE="-march=i686 -mfpmath=sse -mmmx -msse -msse2 -msse3"
- # wide variety of platforms with who knows what kind of hardware.
- LINUX_FIRMWARE="${LINUX_FIRMWARE} iwlwifi-all"
+--- a/overlay-x86-xorg/profiles/base/make.defaults	2017-06-24 11:20:55.369633050 +0900
++++ b/overlay-x86-xorg/profiles/base/make.defaults	2017-06-24 11:19:49.762275913 +0900
+@@ -11,7 +11,7 @@
+ 
+ USE="${USE} containers device_jail"
  
 -USE="${USE} legacy_keyboard legacy_power_button kernel-4_4"
 +USE="${USE} legacy_keyboard legacy_power_button kernel-4_4 fbconsole vtconsole"
