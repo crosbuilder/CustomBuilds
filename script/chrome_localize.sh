@@ -16,7 +16,8 @@ tar cvf - . | (cd ${chrome_root}; tar xf -)
 
 # ebuildにパッチ当てをする(audio/mp3対策、--mno-sse*のフィルタリング )
 # x86-genericビルド時のみ。x86-pentiummのビルド時は既にパッチがあたっているのでスキップする
-if [ "${BOARD}" = "x86-generic"]; then
+# →あたっていない。BORADによるチェックは廃止
+if [ "${BOARD}" = "x86-generic" ]; then
   cd ~/trunk/src/third_party/chromiumos-overlay
   patch -p1 --dry-run < ~/myenv/patches/chromeos-chrome/chromeos-chrome-9999.ebuild.diff
   if [ $? -ne 0 ]; then
