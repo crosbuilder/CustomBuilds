@@ -15,8 +15,8 @@ if [ 0 -ne $? ]; then
 fi
 
 # 以下のスクリプトはAtom N280+945GSEの環境でハングアップや電源断を起こす。品質調査用であり、動作に必須ではないので消す。
-if [ -f ~/trunk/src/platform2/init/send-boot-mode.conf ]; then
-  rm -f ~/trunk/src/platform2/init/send-boot-mode.conf
+if [ -f ~/trunk/src/platform2/init/upstart/send-boot-mode.conf ]; then
+  rm -f ~/trunk/src/platform2/init/upstart/send-boot-mode.conf
   if [ 0 -ne $? ]; then
     echo Failed to delete send-boot-mode.conf. Abort.
     exit 1

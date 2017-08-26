@@ -1,7 +1,7 @@
 diff --git a/init/preload-network.conf b/init/preload-network.conf
 index a4046ab..c8dc338 100644
---- a/init/preload-network.conf
-+++ b/init/preload-network.conf
+--- a/init/upstart/preload-network.conf
++++ b/init/upstart/preload-network.conf
 @@ -39,7 +39,7 @@ post-stop script
    # TODO(ggg): can shill share the "user selected" network device?
  
