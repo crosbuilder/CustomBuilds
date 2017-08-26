@@ -18,12 +18,14 @@ index e73bb17..856419c 100644
  
  #include <base/bind.h>
  #include <base/files/file_path.h>
-@@ -14,10 +15,13 @@
+@@ -14,12 +15,15 @@
  #include <base/strings/stringprintf.h>
  #include <chromeos/ui/chromium_command_builder.h>
  #include <chromeos/ui/util.h>
 +#include <chromeos/ui/x_server_runner.h>
  #include <chromeos-config/libcros_config/cros_config_interface.h>
+ #include <policy/device_policy.h>
+ #include <policy/libpolicy.h>
  
  using chromeos::ui::ChromiumCommandBuilder;
 +using chromeos::ui::XServerRunner;
@@ -42,9 +44,10 @@ index e73bb17..856419c 100644
  // Path to file containing developer-supplied modifications to Chrome's
  // environment and command line. Passed to
  // ChromiumCommandBuilder::ApplyUserConfig().
-@@ -374,7 +381,19 @@ void PerformChromeSetup(brillo::CrosConfigInterface* cros_config,
+@@ -374,8 +381,20 @@ void PerformChromeSetup(brillo::CrosConfigInterface* cros_config,
  
    ChromiumCommandBuilder builder;
+   std::set<std::string> disallowed_prefixes;
    CHECK(builder.Init());
 -  CHECK(builder.SetUpChromium());
 +
@@ -99,3 +102,68 @@ index e2dd124..9ab882f 100644
  //
  // Initialization that is common across all Chromium-derived binaries (e.g.
  // content_shell, app_shell, etc.) rather than just applying to the Chrome
+diff --git a/login_manager/init/scripts/send-uptime-metrics b/login_manager/init/scripts/send-uptime-metrics
+index ae1e4ec5c..b3b06d748 100755
+--- a/login_manager/init/scripts/send-uptime-metrics
++++ b/login_manager/init/scripts/send-uptime-metrics
+@@ -21,9 +21,7 @@ if [ -n "$CHROME_LOGOUT_STARTED" ]; then
+   CHROME_UI_POST_STOP=$(bootstat_get_last ui-post-stop time-ms)
+   CHROME_PROCESSES_TERMINATED=$(bootstat_get_last \
+                                 other-processes-terminated time-ms)
+-  # Stub this out since X no longer exists, but the stats below are defined
+-  # as transitions to/from the X kill phase.
+-  CHROME_X_TERMINATED=${CHROME_PROCESSES_TERMINATED}
++  CHROME_X_TERMINATED=$(bootstat_get_last x-terminated time-ms)
+   CHROME_CRYPTOHOME_UNMOUNTED=$(bootstat_get_last \
+                                 cryptohome-unmounted time-ms)
+   CHROME_EXEC=$(bootstat_get_last chrome-exec time-ms)
+diff --git a/login_manager/init/scripts/ui-post-stop b/login_manager/init/scripts/ui-post-stop
+index 69f2a8c5b..38f35e5bd 100755
+--- a/login_manager/init/scripts/ui-post-stop
++++ b/login_manager/init/scripts/ui-post-stop
+@@ -47,5 +47,8 @@ for container in /run/containers/* ; do
+   rm -rf "${container}"
+ done
+ 
++term_process '^X$'
++bootstat x-terminated
++
+ cryptohome --action=unmount
+ bootstat cryptohome-unmounted
+diff --git a/login_manager/init/systemd/clear-framebuffer.service b/login_manager/init/systemd/clear-framebuffer.service
+new file mode 100644
+index 000000000..23890a9bc
+--- /dev/null
++++ b/login_manager/init/systemd/clear-framebuffer.service
+@@ -0,0 +1,12 @@
++# Copyright 2016 The Chromium OS Authors. All rights reserved.
++# Use of this source code is governed by a BSD-style license that can be
++# found in the LICENSE file.
++
++[Unit]
++Description=Splash screen clearing displayed by the boot-splash job
++
++[Service]
++ExecStart=ply-image --clear 0x000000
++
++[Install]
++WantedBy=x-started.target
+diff --git a/login_manager/init/upstart/clear-framebuffer.conf b/login_manager/init/upstart/clear-framebuffer.conf
+new file mode 100644
+index 000000000..a64bd0fc7
+--- /dev/null
++++ b/login_manager/init/upstart/clear-framebuffer.conf
+@@ -0,0 +1,13 @@
++# Copyright (c) 2012 The Chromium OS Authors. All rights reserved.
++# Use of this source code is governed by a BSD-style license that can be
++# found in the LICENSE file.
++
++description    "Clears the splash screen displayed by the boot-splash job"
++author         "chromium-os-dev@chromium.org"
++
++start on x-started
++
++# When X starts, it copies the contents of the framebuffer to the root
++# window.  We clear the framebuffer to make sure that it doesn't flash
++# back onscreen when X exits later.
++exec ply-image --clear 0x000000
