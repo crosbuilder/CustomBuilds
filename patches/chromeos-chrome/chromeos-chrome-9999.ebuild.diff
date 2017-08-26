@@ -2,10 +2,11 @@ diff --git a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild b/chromeo
 index c9589a0..44dcc53 100644
 --- a/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
 +++ b/chromeos-base/chromeos-chrome/chromeos-chrome-9999.ebuild
-@@ -277,6 +292,7 @@ set_build_args() {
+@@ -277,7 +292,8 @@ set_build_args() {
  		is_clang=$(usetf clang)
  		cros_host_is_clang=$(usetf clang)
  		clang_use_chrome_plugins=false
+ 		use_thin_lto=$(usetf thinlto)
 +		is_component_ffmpeg=true
  	)
  	# BUILD_STRING_ARGS needs appropriate quoting. So, we keep them separate and
