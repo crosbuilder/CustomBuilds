@@ -1,0 +1,45 @@
+From c85925c6b250edc9766098c5fbc644886961c77b Mon Sep 17 00:00:00 2001
+From: Dominik Behr <dbehr@chromium.org>
+Date: Tue, 1 Apr 2014 20:18:41 -0700
+Subject: [PATCH] xf86RandR12: use correct gamma size when allocating gamma
+ table
+
+When setting crtc->gamma_size to randr_crtc->gammaSize we should
+use randr_crtc->gammaSize to allocate new gamma table in crtc.
+Currently, if randr_crtc->gammaSize > crtc->gammaSize the subsequent
+memcpy will overwrite memory beyond the end of gamma table.
+
+This patch has been also sent to xorg-devel mailing list for
+consideration upstream.
+
+BUG=chromium:353360
+TEST=none
+Signed-off-by: Dominik Behr <dbehr@chromium.org>
+---
+ hw/xfree86/modes/xf86RandR12.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/hw/xfree86/modes/xf86RandR12.c b/hw/xfree86/modes/xf86RandR12.c
+index a773c34..c53e5dc 100644
+--- a/hw/xfree86/modes/xf86RandR12.c
++++ b/hw/xfree86/modes/xf86RandR12.c
+@@ -1250,12 +1250,13 @@ xf86RandR12CrtcSetGamma(ScreenPtr pScreen, RRCrtcPtr randr_crtc)
+         CARD16 *tmp_ptr;
+ 
+         tmp_ptr =
+-            realloc(crtc->gamma_red, 3 * crtc->gamma_size * sizeof(CARD16));
++            realloc(crtc->gamma_red,
++                    3 * randr_crtc->gammaSize * sizeof(CARD16));
+         if (!tmp_ptr)
+             return FALSE;
+         crtc->gamma_red = tmp_ptr;
+-        crtc->gamma_green = crtc->gamma_red + crtc->gamma_size;
+-        crtc->gamma_blue = crtc->gamma_green + crtc->gamma_size;
++        crtc->gamma_green = crtc->gamma_red + randr_crtc->gammaSize;
++        crtc->gamma_blue = crtc->gamma_green + randr_crtc->gammaSize;
+     }
+ 
+     crtc->gamma_size = randr_crtc->gammaSize;
+-- 
+1.9.1.423.g4596e3a
+

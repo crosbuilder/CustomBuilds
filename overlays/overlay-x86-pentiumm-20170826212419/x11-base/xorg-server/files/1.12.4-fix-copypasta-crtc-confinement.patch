@@ -1,0 +1,22 @@
+commit 1c8beedfe4343377fa3504f8ab71430cc137b22c
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Wed Aug 21 14:12:52 2013 -0400
+
+    randr: Fix a copypasta bug in CRTC confinement
+    
+    Reviewed-by: Michel Dänzer <michel.daenzer@amd.com>
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+diff --git a/randr/rrpointer.c b/randr/rrpointer.c
+index ec803e9..eb6b677 100644
+--- a/randr/rrpointer.c
++++ b/randr/rrpointer.c
+@@ -82,7 +82,7 @@ RRPointerToNearestCrtc(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
+         else
+             dx = 0;
+         if (y < crtc->y)
+-            dy = crtc->y - x;
++            dy = crtc->y - y;
+         else if (y > crtc->y + scan_height)
+             dy = y - (crtc->y + scan_height);
+         else

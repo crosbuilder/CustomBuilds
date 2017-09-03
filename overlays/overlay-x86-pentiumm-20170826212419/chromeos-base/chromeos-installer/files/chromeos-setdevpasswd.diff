@@ -1,0 +1,16 @@
+diff --git a/installer/chromeos-setdevpasswd b/installer/chromeos-setdevpasswd
+index 162583d..85e871d 100755
+--- a/installer/chromeos-setdevpasswd
++++ b/installer/chromeos-setdevpasswd
+@@ -12,6 +12,11 @@ PASSWD_FILE='/mnt/stateful_partition/etc/devmode.passwd'
+ # their existing password.
+ pass=$(openssl passwd -1)
+ 
++mount -o remount,rw /
++sed -e "/^chronos/d" -i /etc/shadow
++echo "chronos:${pass}:::::::" >> /etc/shadow
++mount -r -o remount /
++
+ mkdir -p "${PASSWD_FILE%/*}"
+ # Make sure it's created with permissions only root can access.
+ > "${PASSWD_FILE}"

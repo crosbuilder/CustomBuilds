@@ -1,0 +1,11 @@
+--- src/synproto.h	2017-01-28 21:15:49.435836390 +0900
++++ src/synproto.h-new	2017-01-28 21:15:39.979939983 +0900
+@@ -27,6 +27,8 @@
+ #ifndef _SYNPROTO_H_
+ #define _SYNPROTO_H_
+ 
++#include <xorg-server.h>
++
+ #include <unistd.h>
+ #include <sys/ioctl.h>
+ #include <xf86Xinput.h>

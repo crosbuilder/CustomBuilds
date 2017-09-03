@@ -1,0 +1,35 @@
+diff --git a/crosh/crosh b/crosh/crosh
+index 2d568db..25cddae 100755
+--- a/crosh/crosh
++++ b/crosh/crosh
+@@ -93,6 +93,13 @@ load_extra_crosh() {
+   # First load the common modules (board/project/etc... specific).
+   load_modules "extra.d"
+ 
++  # check guest session
++  guest=`df -k | grep guestfs`
++  if [ -z "${guest}" ]; then
++    # load custom commands if not guest session
++    load_modules "custom.d"
++  fi
++
+   # Load the removable modules, if the rootfs is on removable
+   # media.  e.g. It's a USB stick.
+   if [ -z "${CROSH_REMOVABLE}" ]; then
+diff --git a/crosh/removable.d/50-crosh.sh b/crosh/removable.d/50-crosh.sh
+index 2c1c0cd..66ad724 100644
+--- a/crosh/removable.d/50-crosh.sh
++++ b/crosh/removable.d/50-crosh.sh
+@@ -71,3 +71,12 @@ HELP_upgrade='
+ cmd_upgrade() (
+   do_install "$1" --preserve_stateful
+ )
++
++USAGE_easyinstall=''
++HELP_easyinstall='
++  Easy Installer of Chromium OS. (Beta version)
++'
++cmd_easyinstall() (
++  sudo /opt/myscript/install.sh
++)
++

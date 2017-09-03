@@ -1,0 +1,42 @@
+From 78fe797d3660790f83a2f036c3306fc2ccaeaa35 Mon Sep 17 00:00:00 2001
+From: Yogish Kulkarni <yogishk@nvidia.com>
+Date: Tue, 21 Oct 2014 14:13:42 +0530
+Subject: [PATCH 1/1] Skip SetCursor when !vtSema.
+
+Consider below sequence -
+1) Cursor is removed : isUp will be FALSE if HW cursor is set.
+2) VT switched away from X : vtSema becomes FALSE.
+3) xf86CursorSetCursor is called with non-null CursorPtr :
+Saves the passed in CursorPtr, fallbacks to SW cursor and invokes
+spriteFuncs->SetCursor which saves the area under cursor and restores
+the cursor. This sets isUp to TRUE and as vtSema is FALSE saved data
+is garbage.
+4) VT switched to X : vtSema becomes TRUE. xf86Cursor enable fb access
+is called which will remove the SW cursor, i.e copies saved data in #3
+to screen.
+
+This results to momentary garbage data on screen. Hence when !vtSema
+skip spriteFuncs->SetCursor.
+---
+ hw/xfree86/ramdac/xf86Cursor.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/hw/xfree86/ramdac/xf86Cursor.c b/hw/xfree86/ramdac/xf86Cursor.c
+index 4a4def5..98edb88 100644
+--- a/hw/xfree86/ramdac/xf86Cursor.c
++++ b/hw/xfree86/ramdac/xf86Cursor.c
+@@ -333,8 +333,10 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
+         ScreenPriv->HotX = pCurs->bits->xhot;
+         ScreenPriv->HotY = pCurs->bits->yhot;
+ 
+-        if (!infoPtr->pScrn->vtSema)
++        if (!infoPtr->pScrn->vtSema) {
+             ScreenPriv->SavedCursor = pCurs;
++            return;
++        }
+ 
+         if (infoPtr->pScrn->vtSema &&
+             (ScreenPriv->ForceHWCursorCount ||
+-- 
+1.8.1.5
+

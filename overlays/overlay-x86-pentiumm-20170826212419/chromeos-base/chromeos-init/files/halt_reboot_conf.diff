@@ -1,0 +1,32 @@
+diff --git a/init/halt.conf b/init/halt.conf
+index 06e1893..a462409 100644
+--- a/init/upstart/halt/halt.conf
++++ b/init/upstart/halt/halt.conf
+@@ -8,5 +8,10 @@ author          "chromium-os-dev@chromium.org"
+ start on runlevel 0
+ stop on runlevel [!0]
+ 
+-exec chromeos_shutdown
++script
++  if [ -f /mnt/stateful_partition/dev_image/myscript/pre-shutdown.sh ]; then
++    bash /mnt/stateful_partition/dev_image/myscript/pre-shutdown.sh
++  fi
++  exec chromeos_shutdown
++end script
+ post-stop exec halt --force --poweroff
+diff --git a/init/reboot.conf b/init/reboot.conf
+index 1ebec2f..fbbbe7f 100644
+--- a/init/upstart/reboot.conf
++++ b/init/upstart/reboot.conf
+@@ -8,5 +8,10 @@ author          "chromium-os-dev@chromium.org"
+ start on runlevel 6
+ stop on runlevel [!6]
+ 
+-exec chromeos_shutdown
++script
++  if [ -f /mnt/stateful_partition/dev_image/myscript/pre-shutdown.sh ]; then
++    bash /mnt/stateful_partition/dev_image/myscript/pre-shutdown.sh
++  fi
++  exec chromeos_shutdown
++end script
+ post-stop exec reboot --force

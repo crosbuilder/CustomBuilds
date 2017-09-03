@@ -1,0 +1,13 @@
+[Unit]
+Description=Chromium OS system update service
+After=network.target
+
+[Service]
+IOSchedulingClass=3
+ExecStart=/usr/sbin/update_engine --foreground --logtostderr
+Slice=system-sysdaemons.slice
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

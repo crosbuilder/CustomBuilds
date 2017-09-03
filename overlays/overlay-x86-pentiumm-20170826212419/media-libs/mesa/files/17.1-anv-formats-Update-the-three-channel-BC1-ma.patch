@@ -1,0 +1,79 @@
+From 8c218b16ca67ae1a392b3f5b1b1c96fc7c0fb5a8 Mon Sep 17 00:00:00 2001
+From: Nanley Chery <nanley.g.chery@intel.com>
+Date: Thu, 11 May 2017 15:57:59 -0700
+Subject: [PATCH 1/2] FROMLIST: anv/formats: Update the three-channel BC1
+ mappings
+
+The procedure for decompressing an opaque BC1 Vulkan format is dependant on the
+comparison of two colors stored in the first 32 bits of the compressed block.
+Here's the specified OpenGL (and Vulkan) behavior for reference:
+
+   The RGB color for a texel at location (x,y) in the block is given by:
+
+      RGB0,              if color0 > color1 and code(x,y) == 0
+      RGB1,              if color0 > color1 and code(x,y) == 1
+      (2*RGB0+RGB1)/3,   if color0 > color1 and code(x,y) == 2
+      (RGB0+2*RGB1)/3,   if color0 > color1 and code(x,y) == 3
+
+      RGB0,              if color0 <= color1 and code(x,y) == 0
+      RGB1,              if color0 <= color1 and code(x,y) == 1
+      (RGB0+RGB1)/2,     if color0 <= color1 and code(x,y) == 2
+      BLACK,             if color0 <= color1 and code(x,y) == 3
+
+The sampling operation performed on an opaque DXT1 Intel format essentially
+hard-codes the comparison result of the two colors as color0 > color1. This
+means that the behavior is incompatible with OpenGL and Vulkan. This is stated
+in the SKL PRM, Vol 5: Memory Views:
+
+   Opaque Textures (DXT1_RGB)
+      Texture format DXT1_RGB is identical to DXT1, with the exception that the
+      One-bit Alpha encoding is removed. Color 0 and Color 1 are not compared, and
+      the resulting texel color is derived strictly from the Opaque Color Encoding.
+      The alpha channel defaults to 1.0.
+
+      Programming Note
+      Context: Opaque Textures (DXT1_RGB)
+      The behavior of this format is not compliant with the OGL spec.
+
+The opaque and non-opaque BC1 Vulkan formats are specified to be decoded in
+exactly the same way except the BLACK value must have a transparent alpha
+channel in the latter. Use the four-channel BC1 Intel formats with the alpha
+set to 1 to provide the behavior required by the spec.
+
+v2 (Kenneth Graunke):
+- Provide a more detailed commit message.
+
+BUG=b:36155732
+TEST=launch GoogleEarth website in chrome browser to see the detail of resolving
+in Map without blocky or low res areas
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=100925
+Cc: <mesa-stable@lists.freedesktop.org>
+Reviewed-by: Kenneth Graunke <kenneth@whitecape.org>
+Reviewed-by: Jason Ekstrand <jason@jlekstrand.net>
+Signed-off-by: Nanley Chery <nanley.g.chery@intel.com>
+(cherry picked from commit 56458cb168bf79ae51ba1efc3acec15874cc34a9)
+Change-Id: Ifb9dcf0ae8b0adf362c1b0cf00ed91b876ae974b
+Signed-off-by: Gary Wang <gary.c.wang@intel.com>
+---
+ src/intel/vulkan/anv_formats.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/intel/vulkan/anv_formats.c b/src/intel/vulkan/anv_formats.c
+index 0e84960085a1..9e96806970cc 100644
+--- a/src/intel/vulkan/anv_formats.c
++++ b/src/intel/vulkan/anv_formats.c
+@@ -177,8 +177,8 @@ static const struct anv_format anv_formats[] = {
+    fmt(VK_FORMAT_D24_UNORM_S8_UINT,       ISL_FORMAT_R24_UNORM_X8_TYPELESS),
+    fmt(VK_FORMAT_D32_SFLOAT_S8_UINT,      ISL_FORMAT_R32_FLOAT),
+ 
+-   fmt(VK_FORMAT_BC1_RGB_UNORM_BLOCK,     ISL_FORMAT_DXT1_RGB),
+-   fmt(VK_FORMAT_BC1_RGB_SRGB_BLOCK,      ISL_FORMAT_DXT1_RGB_SRGB),
++   swiz_fmt(VK_FORMAT_BC1_RGB_UNORM_BLOCK,     ISL_FORMAT_BC1_UNORM, RGB1),
++   swiz_fmt(VK_FORMAT_BC1_RGB_SRGB_BLOCK,      ISL_FORMAT_BC1_UNORM_SRGB, RGB1),
+    fmt(VK_FORMAT_BC1_RGBA_UNORM_BLOCK,    ISL_FORMAT_BC1_UNORM),
+    fmt(VK_FORMAT_BC1_RGBA_SRGB_BLOCK,     ISL_FORMAT_BC1_UNORM_SRGB),
+    fmt(VK_FORMAT_BC2_UNORM_BLOCK,         ISL_FORMAT_BC2_UNORM),
+-- 
+1.9.1
+

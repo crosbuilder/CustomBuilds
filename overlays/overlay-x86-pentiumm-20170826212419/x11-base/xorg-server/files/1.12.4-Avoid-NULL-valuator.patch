@@ -1,0 +1,13 @@
+diff --git a/dix/getevents.c b/dix/getevents.c
+index 2a3acfa..ecb7ff2 100644
+--- a/dix/getevents.c
++++ b/dix/getevents.c
+@@ -1484,7 +1484,7 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
+     case ButtonRelease:
+         if (!pDev->button || !buttons)
+             return 0;
+-        if (mask_in && valuator_mask_size(mask_in) > 0 && !pDev->valuator) {
++        if (!pDev->valuator) {
+             ErrorF
+                 ("[dix] button event with valuator from device %d without valuators\n",
+                  pDev->id);
